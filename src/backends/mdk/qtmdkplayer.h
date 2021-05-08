@@ -166,10 +166,6 @@ private:
     qreal m_volume = 1.0;
 
     bool m_mute = false;
-    bool m_hasVideo = false;
-    bool m_hasAudio = false;
-    bool m_hasSubtitle = false;
-    bool m_hasChapters = false;
     bool m_hardwareDecoding = false;
     bool m_autoStart = true;
     bool m_livePreview = false;

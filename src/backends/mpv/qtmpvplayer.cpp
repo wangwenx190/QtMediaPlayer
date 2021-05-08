@@ -45,6 +45,8 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 QtMPVPlayer::QtMPVPlayer(QQuickItem *parent) : QtMediaPlayer(parent)
 {
+    qDebug() << "Initializing the MPV backend ...";
+
     // Qt sets the locale in the QGuiApplication constructor, but libmpv
     // requires the LC_NUMERIC category to be set to "C", so change it back.
     std::setlocale(LC_NUMERIC, "C");
@@ -209,9 +211,10 @@ void QtMPVPlayer::processMpvPropertyChange(void *event)
 
 bool QtMPVPlayer::isLoaded() const
 {
-    return ((m_mediaStatus == MediaStatus::Loaded)
-            || (m_mediaStatus == MediaStatus::Buffering)
-            || (m_mediaStatus == MediaStatus::Buffered));
+    return ((m_mediaStatus != MediaStatus::Invalid)
+            && (m_mediaStatus != MediaStatus::NoMedia)
+            && (m_mediaStatus != MediaStatus::Unloaded)
+            && (m_mediaStatus != MediaStatus::Loading));
 }
 
 bool QtMPVPlayer::isPlaying() const
@@ -458,7 +461,7 @@ QtMPVPlayer::MediaTracks QtMPVPlayer::mediaTracks() const
     if (trackList.isEmpty()) {
         return {};
     }
-    MediaTracks mediaTracks = {};
+    MediaTracks result = {};
     for (auto &&track : qAsConst(trackList)) {
         const QVariantMap trackInfo = track.toMap();
         if (trackInfo.isEmpty()) {
@@ -498,17 +501,17 @@ QtMPVPlayer::MediaTracks QtMPVPlayer::mediaTracks() const
             info.insert(QStringLiteral("demux-w"), trackInfo.value(QStringLiteral("demux-w")));
             info.insert(QStringLiteral("demux-h"), trackInfo.value(QStringLiteral("demux-h")));
             info.insert(QStringLiteral("demux-fps"), trackInfo.value(QStringLiteral("demux-fps")));
-            mediaTracks.video.append(info);
+            result.video.append(info);
         } else if (type == QStringLiteral("audio")) {
             info.insert(QStringLiteral("demux-channel-count"), trackInfo.value(QStringLiteral("demux-channel-count")));
             info.insert(QStringLiteral("demux-channels"), trackInfo.value(QStringLiteral("demux-channels")));
             info.insert(QStringLiteral("demux-samplerate"), trackInfo.value(QStringLiteral("demux-samplerate")));
-            mediaTracks.audio.append(info);
+            result.audio.append(info);
         } else if (type == QStringLiteral("sub")) {
-            mediaTracks.sub.append(info);
+            result.sub.append(info);
         }
     }
-    return mediaTracks;
+    return result;
 }
 
 QtMPVPlayer::Chapters QtMPVPlayer::chapters() const
@@ -517,7 +520,7 @@ QtMPVPlayer::Chapters QtMPVPlayer::chapters() const
     if (chapterList.isEmpty()) {
         return {};
     }
-    Chapters chapters = {};
+    Chapters result = {};
     for (auto &&chapter : qAsConst(chapterList)) {
         const QVariantMap chapterInfo = chapter.toMap();
         if (chapterInfo.isEmpty()) {
@@ -526,24 +529,24 @@ QtMPVPlayer::Chapters QtMPVPlayer::chapters() const
         ChapterInfo info = {};
         info.title = chapterInfo.value(QStringLiteral("title")).toString();
         info.startTime = qRound(chapterInfo.value(QStringLiteral("time")).toReal());
-        chapters.append(info);
+        result.append(info);
     }
-    return chapters;
+    return result;
 }
 
 QtMPVPlayer::MetaData QtMPVPlayer::metaData() const
 {
-    const QVariantMap metaDataMap = mpvGetProperty(QStringLiteral("metadata")).toMap();
-    if (metaDataMap.isEmpty()) {
+    const QVariantMap md = mpvGetProperty(QStringLiteral("metadata")).toMap();
+    if (md.isEmpty()) {
         return {};
     }
-    MetaData data = {};
-    auto iterator = metaDataMap.cbegin();
-    while (iterator != metaDataMap.cend()) {
-        data.insert(iterator.key(), iterator.value());
+    MetaData result = {};
+    auto iterator = md.cbegin();
+    while (iterator != md.cend()) {
+        result.insert(iterator.key(), iterator.value());
         ++iterator;
     }
-    return data;
+    return result;
 }
 
 bool QtMPVPlayer::livePreview() const

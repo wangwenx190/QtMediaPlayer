@@ -61,6 +61,8 @@ MDKVideoTextureNode *createNode(QtMDKPlayer *item);
 
 QtMDKPlayer::QtMDKPlayer(QQuickItem *parent) : QtMediaPlayer(parent)
 {
+    qDebug() << "Initializing the MDK backend ...";
+
     m_player.reset(new MDK_NS_PREPEND(Player));
     if (m_player.isNull()) {
         qFatal("Failed to create mdk player.");
@@ -654,17 +656,73 @@ void QtMDKPlayer::setFillMode(const QtMDKPlayer::FillMode value)
 
 QtMediaPlayer::Chapters QtMDKPlayer::chapters() const
 {
-
+    const auto &mi = m_player->mediaInfo();
+    const auto &cpts = mi.chapters;
+    if (cpts.empty()) {
+        return {};
+    }
+    Chapters result = {};
+    for (auto &&chapter : qAsConst(cpts)) {
+        ChapterInfo info = {};
+        info.title = QString::fromStdString(chapter.title);
+        info.startTime = chapter.start_time;
+        result.append(info);
+    }
+    return result;
 }
 
 QtMediaPlayer::MetaData QtMDKPlayer::metaData() const
 {
-
+    const auto &mi = m_player->mediaInfo();
+    const auto &md = mi.metadata;
+    if (md.empty()) {
+        return {};
+    }
+    MetaData result = {};
+    for (auto &&data : qAsConst(md)) {
+        result.insert(QString::fromStdString(data.first), QString::fromStdString(data.second));
+    }
+    return result;
 }
 
 QtMediaPlayer::MediaTracks QtMDKPlayer::mediaTracks() const
 {
-
+    const auto &mi = m_player->mediaInfo();
+    const auto &vs = mi.video;
+    const auto &as = mi.audio;
+    MediaTracks result = {};
+    if (!vs.empty()) {
+        for (auto &&vsi : qAsConst(vs)) {
+            QVariantHash info = {};
+            info.insert(QStringLiteral("index"), vsi.index);
+            info.insert(QStringLiteral("start_time"), vsi.start_time);
+            info.insert(QStringLiteral("duration"), vsi.duration);
+            info.insert(QStringLiteral("width"), vsi.codec.width);
+            info.insert(QStringLiteral("height"), vsi.codec.height);
+            info.insert(QStringLiteral("frame_rate"), vsi.codec.frame_rate);
+            info.insert(QStringLiteral("bit_rate"), vsi.codec.bit_rate);
+            info.insert(QStringLiteral("codec"), QString::fromUtf8(vsi.codec.codec));
+            info.insert(QStringLiteral("format_name"), QString::fromUtf8(vsi.codec.format_name));
+            // What about metadata?
+            result.video.append(info);
+        }
+    }
+    if (!as.empty()) {
+        for (auto &&asi : qAsConst(as)) {
+            QVariantHash info = {};
+            info.insert(QStringLiteral("index"), asi.index);
+            info.insert(QStringLiteral("start_time"), asi.start_time);
+            info.insert(QStringLiteral("duration"), asi.duration);
+            info.insert(QStringLiteral("bit_rate"), asi.codec.bit_rate);
+            info.insert(QStringLiteral("codec"), QString::fromUtf8(asi.codec.codec));
+            info.insert(QStringLiteral("channels"), asi.codec.channels);
+            info.insert(QStringLiteral("sample_rate"), asi.codec.sample_rate);
+            // What about metadata?
+            result.audio.append(info);
+        }
+    }
+    // TODO: subtitles
+    return result;
 }
 
 void QtMDKPlayer::play()
@@ -728,12 +786,11 @@ void QtMDKPlayer::snapshot()
             path.replace(QStringLiteral("${frametime}"), QString::number(frameTime), Qt::CaseInsensitive);
             path.replace(QStringLiteral("${position}"), QString::number(position()), Qt::CaseInsensitive);
             path.replace(QStringLiteral("${duration}"), QString::number(duration()), Qt::CaseInsensitive);
-#if 0
-            path.replace(QStringLiteral("${title}"), m_mediaInfo.metaData.value(QStringLiteral("title")), Qt::CaseInsensitive);
-            path.replace(QStringLiteral("${author}"), m_mediaInfo.metaData.value(QStringLiteral("author")), Qt::CaseInsensitive);
-            path.replace(QStringLiteral("${artist}"), m_mediaInfo.metaData.value(QStringLiteral("artist")), Qt::CaseInsensitive);
-            path.replace(QStringLiteral("${album}"), m_mediaInfo.metaData.value(QStringLiteral("album")), Qt::CaseInsensitive);
-#endif
+            const auto &md = metaData();
+            path.replace(QStringLiteral("${title}"), md.value(QStringLiteral("title")).toString(), Qt::CaseInsensitive);
+            path.replace(QStringLiteral("${author}"), md.value(QStringLiteral("author")).toString(), Qt::CaseInsensitive);
+            path.replace(QStringLiteral("${artist}"), md.value(QStringLiteral("artist")).toString(), Qt::CaseInsensitive);
+            path.replace(QStringLiteral("${album}"), md.value(QStringLiteral("album")).toString(), Qt::CaseInsensitive);
         }
         path.append(u'.');
         if (m_snapshotFormat.isEmpty()) {
@@ -798,87 +855,13 @@ void QtMDKPlayer::initMdkHandlers()
     });
     m_player->onMediaStatusChanged([this](MDK_NS_PREPEND(MediaStatus) ms) {
         if (MDK_NS_PREPEND(flags_added)(static_cast<MDK_NS_PREPEND(MediaStatus)>(m_mediaStatus), ms, MDK_NS_PREPEND(MediaStatus)::Loaded)) {
-            const auto &info = m_player->mediaInfo();
-            m_mediaInfo.startTime = info.start_time;
-            m_mediaInfo.duration = info.duration;
-            m_mediaInfo.bitRate = info.bit_rate;
-            m_mediaInfo.fileSize = info.size;
-            m_mediaInfo.format = QString::fromUtf8(info.format);
-            m_mediaInfo.streamCount = info.streams;
-            m_hasVideo = !info.video.empty();
-            if (m_hasVideo) {
-                m_mediaInfo.videoStreams.clear();
-                for (auto &&vsi : qAsConst(info.video)) {
-                    VideoStreamInfo vsinfo = {};
-                    vsinfo.index = vsi.index;
-                    vsinfo.startTime = vsi.start_time;
-                    vsinfo.duration = vsi.duration;
-                    const auto &codec = vsi.codec;
-                    vsinfo.codec = QString::fromUtf8(codec.codec);
-                    vsinfo.bitRate = codec.bit_rate;
-                    vsinfo.frameRate = codec.frame_rate;
-                    vsinfo.format = QString::fromUtf8(codec.format_name);
-                    vsinfo.width = codec.width;
-                    vsinfo.height = codec.height;
-                    const auto &metaData = vsi.metadata;
-                    if (!metaData.empty()) {
-                        for (auto &&data : qAsConst(metaData)) {
-                            vsinfo.metaData.insert(QString::fromStdString(data.first),
-                                                   QString::fromStdString(data.second));
-                        }
-                    }
-                    m_mediaInfo.videoStreams.append(vsinfo);
-                }
-                Q_EMIT videoSizeChanged();
-            }
-            m_hasAudio = !info.audio.empty();
-            if (m_hasAudio) {
-                m_mediaInfo.audioStreams.clear();
-                for (auto &&asi : qAsConst(info.audio)) {
-                    AudioStreamInfo asinfo = {};
-                    asinfo.index = asi.index;
-                    asinfo.startTime = asi.start_time;
-                    asinfo.duration = asi.duration;
-                    const auto &codec = asi.codec;
-                    asinfo.codec = QString::fromUtf8(codec.codec);
-                    asinfo.bitRate = codec.bit_rate;
-                    asinfo.frameRate = codec.frame_rate;
-                    asinfo.channels = codec.channels;
-                    asinfo.sampleRate = codec.sample_rate;
-                    const auto &metaData = asi.metadata;
-                    if (!metaData.empty()) {
-                        for (auto &&data : qAsConst(metaData)) {
-                            asinfo.metaData.insert(QString::fromStdString(data.first),
-                                                   QString::fromStdString(data.second));
-                        }
-                    }
-                    m_mediaInfo.audioStreams.append(asinfo);
-                }
-            }
-            // ### TODO: m_hasSubtitle = ...
-            // ### TODO: if (m_hasSubtitle) { ... }
-            m_hasChapters = !info.chapters.empty();
-            if (m_hasChapters) {
-                m_mediaInfo.chapters.clear();
-                for (auto &&chapter : qAsConst(info.chapters)) {
-                    ChapterInfo cpinfo = {};
-                    cpinfo.beginTime = chapter.start_time;
-                    cpinfo.endTime = chapter.end_time;
-                    cpinfo.title = QString::fromStdString(chapter.title);
-                    m_mediaInfo.chapters.append(cpinfo);
-                }
-            }
-            if (!info.metadata.empty()) {
-                m_mediaInfo.metaData.clear();
-                for (auto &&data : qAsConst(info.metadata)) {
-                    m_mediaInfo.metaData.insert(QString::fromStdString(data.first),
-                                                QString::fromStdString(data.second));
-                }
-            }
+            Q_EMIT videoSizeChanged();
             Q_EMIT positionChanged();
             Q_EMIT durationChanged();
             Q_EMIT seekableChanged();
-            Q_EMIT mediaInfoChanged();
+            Q_EMIT chaptersChanged();
+            Q_EMIT metaDataChanged();
+            Q_EMIT mediaTracksChanged();
             Q_EMIT loaded();
             if (!m_livePreview) {
                 qDebug() << "Media loaded.";
@@ -928,17 +911,14 @@ void QtMDKPlayer::resetInternalData()
 {
     // Make sure MDKPlayer::url() returns empty.
     m_player->setMedia(nullptr);
-    m_hasVideo = false;
-    m_hasAudio = false;
-    m_hasSubtitle = false;
-    m_hasChapters = false;
-    m_mediaInfo = {};
     m_mediaStatus = static_cast<int>(MDK_NS_PREPEND(MediaStatus)::NoMedia);
     Q_EMIT sourceChanged();
     Q_EMIT positionChanged();
     Q_EMIT durationChanged();
     Q_EMIT seekableChanged();
-    Q_EMIT mediaInfoChanged();
+    Q_EMIT chaptersChanged();
+    Q_EMIT metaDataChanged();
+    Q_EMIT mediaTracksChanged();
     Q_EMIT mediaStatusChanged();
 }
 
