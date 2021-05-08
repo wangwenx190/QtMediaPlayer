@@ -139,6 +139,8 @@ public:
 
     static bool registerBackend(const char *name);
 
+    virtual bool backendAvailable() const = 0;
+
     virtual QString backendName() const = 0;
     virtual QString backendVersion() const = 0;
     virtual QString backendDescription() const = 0;

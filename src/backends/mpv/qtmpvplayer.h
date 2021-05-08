@@ -47,6 +47,8 @@ public:
 
     static void on_update(void *ctx);
 
+    bool backendAvailable() const override;
+
     QString backendName() const override;
     QString backendVersion() const override;
     QString backendDescription() const override;

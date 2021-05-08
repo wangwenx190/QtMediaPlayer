@@ -27,8 +27,6 @@
 #include "qtmpvvideotexturenode.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
-//#include <QtCore/qfileinfo.h>
-//#include <QtQuick/qquickwindow.h>
 
 static inline void wakeup(void *ctx)
 {
@@ -99,6 +97,11 @@ void QtMPVPlayer::on_update(void *ctx)
         return;
     }
     Q_EMIT static_cast<QtMPVPlayer *>(ctx)->onUpdate();
+}
+
+bool QtMPVPlayer::backendAvailable() const
+{
+    return MPV::Qt::libmpvAvailability();
 }
 
 QString QtMPVPlayer::backendName() const

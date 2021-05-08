@@ -67,6 +67,10 @@
     }
 #endif
 
+#ifndef WWX190_NOTNULL_MPVAPI
+#define WWX190_NOTNULL_MPVAPI(funcName) (m_lp_##funcName != nullptr)
+#endif
+
 #ifndef WWX190_CALL_MPVAPI
 #define WWX190_CALL_MPVAPI(funcName, ...) \
     if (mpvData()->m_lp_##funcName) { \
@@ -80,6 +84,18 @@
 #endif
 
 static const char _mpvHelper_libmpv_fileName_envVar[] = "_WWX190_MPVPLAYER_LIBMPV_FILENAME";
+
+#ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug d, const MPV::Qt::ErrorReturn &err)
+{
+    QDebugStateSaver saver(d);
+    d.nospace();
+    d.noquote();
+    const QString str = QStringLiteral("MPV::Qt::ErrorReturn(errorCode=%1)").arg(QString::number(err.errorCode));
+    d << str;
+    return d;
+}
+#endif
 
 namespace MPV::Qt
 {
@@ -157,12 +173,15 @@ public:
     {
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
-            qWarning() << "Failed to initialize libmpv: empty library path.";
+            qWarning() << "Failed to load libmpv: empty library path.";
             return false;
         }
 
-        if (!unload()) {
-            return false;
+        if (isLoaded()) {
+            qDebug() << "libmpv already loaded. Unloading ...";
+            if (!unload()) {
+                return false;
+            }
         }
 
         library.setFileName(path);
@@ -226,6 +245,7 @@ public:
         WWX190_RESOLVE_MPVAPI(mpv_render_context_report_swap)
         WWX190_RESOLVE_MPVAPI(mpv_render_context_free)
 
+        qDebug() << "libmpv loaded successfully.";
         return true;
     }
 
@@ -291,7 +311,67 @@ public:
                 return false;
             }
         }
+
+        qDebug() << "libmpv unloaded successfully.";
         return true;
+    }
+
+    [[nodiscard]] bool isLoaded() const
+    {
+        const bool result =
+                // client.h
+                WWX190_NOTNULL_MPVAPI(mpv_client_api_version) &&
+                WWX190_NOTNULL_MPVAPI(mpv_error_string) &&
+                WWX190_NOTNULL_MPVAPI(mpv_free) &&
+                WWX190_NOTNULL_MPVAPI(mpv_client_name) &&
+                WWX190_NOTNULL_MPVAPI(mpv_client_id) &&
+                WWX190_NOTNULL_MPVAPI(mpv_create) &&
+                WWX190_NOTNULL_MPVAPI(mpv_initialize) &&
+                WWX190_NOTNULL_MPVAPI(mpv_destroy) &&
+                WWX190_NOTNULL_MPVAPI(mpv_terminate_destroy) &&
+                WWX190_NOTNULL_MPVAPI(mpv_create_client) &&
+                WWX190_NOTNULL_MPVAPI(mpv_create_weak_client) &&
+                WWX190_NOTNULL_MPVAPI(mpv_load_config_file) &&
+                WWX190_NOTNULL_MPVAPI(mpv_get_time_us) &&
+                WWX190_NOTNULL_MPVAPI(mpv_free_node_contents) &&
+                WWX190_NOTNULL_MPVAPI(mpv_set_option) &&
+                WWX190_NOTNULL_MPVAPI(mpv_set_option_string) &&
+                WWX190_NOTNULL_MPVAPI(mpv_command) &&
+                WWX190_NOTNULL_MPVAPI(mpv_command_node) &&
+                WWX190_NOTNULL_MPVAPI(mpv_command_ret) &&
+                WWX190_NOTNULL_MPVAPI(mpv_command_string) &&
+                WWX190_NOTNULL_MPVAPI(mpv_command_async) &&
+                WWX190_NOTNULL_MPVAPI(mpv_command_node_async) &&
+                WWX190_NOTNULL_MPVAPI(mpv_abort_async_command) &&
+                WWX190_NOTNULL_MPVAPI(mpv_set_property) &&
+                WWX190_NOTNULL_MPVAPI(mpv_set_property_string) &&
+                WWX190_NOTNULL_MPVAPI(mpv_set_property_async) &&
+                WWX190_NOTNULL_MPVAPI(mpv_get_property) &&
+                WWX190_NOTNULL_MPVAPI(mpv_get_property_string) &&
+                WWX190_NOTNULL_MPVAPI(mpv_get_property_osd_string) &&
+                WWX190_NOTNULL_MPVAPI(mpv_get_property_async) &&
+                WWX190_NOTNULL_MPVAPI(mpv_observe_property) &&
+                WWX190_NOTNULL_MPVAPI(mpv_unobserve_property) &&
+                WWX190_NOTNULL_MPVAPI(mpv_event_name) &&
+                WWX190_NOTNULL_MPVAPI(mpv_event_to_node) &&
+                WWX190_NOTNULL_MPVAPI(mpv_request_event) &&
+                WWX190_NOTNULL_MPVAPI(mpv_request_log_messages) &&
+                WWX190_NOTNULL_MPVAPI(mpv_wait_event) &&
+                WWX190_NOTNULL_MPVAPI(mpv_wakeup) &&
+                WWX190_NOTNULL_MPVAPI(mpv_set_wakeup_callback) &&
+                WWX190_NOTNULL_MPVAPI(mpv_wait_async_requests) &&
+                WWX190_NOTNULL_MPVAPI(mpv_hook_add) &&
+                WWX190_NOTNULL_MPVAPI(mpv_hook_continue) &&
+                // render.h
+                WWX190_NOTNULL_MPVAPI(mpv_render_context_create) &&
+                WWX190_NOTNULL_MPVAPI(mpv_render_context_set_parameter) &&
+                WWX190_NOTNULL_MPVAPI(mpv_render_context_get_info) &&
+                WWX190_NOTNULL_MPVAPI(mpv_render_context_set_update_callback) &&
+                WWX190_NOTNULL_MPVAPI(mpv_render_context_update) &&
+                WWX190_NOTNULL_MPVAPI(mpv_render_context_render) &&
+                WWX190_NOTNULL_MPVAPI(mpv_render_context_report_swap) &&
+                WWX190_NOTNULL_MPVAPI(mpv_render_context_free);
+        return result;
     }
 
 private:
@@ -299,6 +379,11 @@ private:
 };
 
 Q_GLOBAL_STATIC(MPVData, mpvData)
+
+bool libmpvAvailability()
+{
+    return mpvData()->isLoaded();
+}
 
 QVariant node_to_variant(const mpv_node *node)
 {
