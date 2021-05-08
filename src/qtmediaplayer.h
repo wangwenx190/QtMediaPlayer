@@ -69,9 +69,9 @@ class QTMEDIAPLAYER_API QtMediaPlayer : public QQuickItem
     Q_PROPERTY(bool autoStart READ autoStart WRITE setAutoStart NOTIFY autoStartChanged)
     Q_PROPERTY(bool livePreview READ livePreview WRITE setLivePreview NOTIFY livePreviewChanged)
     Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
-    //Q_PROPERTY(MediaInfo mediaInfo READ mediaInfo NOTIFY mediaInfoChanged)
     Q_PROPERTY(Chapters chapters READ chapters NOTIFY chaptersChanged)
     Q_PROPERTY(MetaData metaData READ metaData NOTIFY metaDataChanged)
+    Q_PROPERTY(MediaTracks mediaTracks READ mediaTracks NOTIFY mediaTracksChanged)
 
 public:
     enum class PlaybackState
@@ -109,16 +109,6 @@ public:
     };
     Q_ENUM(LogLevel)
 
-    struct ChapterInfo
-    {
-        qint64 beginTime = 0;
-        qint64 endTime = 0;
-        QString title = {};
-    };
-    using Chapters = QList<ChapterInfo>;
-
-    using MetaData = QVariantHash;
-
     enum class FillMode
     {
         PreserveAspectFit,
@@ -126,6 +116,23 @@ public:
         Stretch
     };
     Q_ENUM(FillMode)
+
+    struct ChapterInfo
+    {
+        QString title = {};
+        qint64 startTime = 0;
+    };
+
+    struct MediaTracks
+    {
+        QList<QVariantHash> video = {};
+        QList<QVariantHash> audio = {};
+        QList<QVariantHash> sub = {};
+    };
+
+    using Chapters = QList<ChapterInfo>;
+
+    using MetaData = QVariantHash;
 
     explicit QtMediaPlayer(QQuickItem *parent = nullptr);
     ~QtMediaPlayer() override;
@@ -196,11 +203,11 @@ public:
     virtual FillMode fillMode() const = 0;
     virtual void setFillMode(const FillMode value) = 0;
 
-    //virtual MediaInfo mediaInfo() const = 0;
-
     virtual Chapters chapters() const = 0;
 
     virtual MetaData metaData() const = 0;
+
+    virtual MediaTracks mediaTracks() const = 0;
 
     static inline QStringList videoSuffixes()
     {
@@ -340,11 +347,12 @@ Q_SIGNALS:
     void autoStartChanged();
     void livePreviewChanged();
     void fillModeChanged();
-    //void mediaInfoChanged();
     void chaptersChanged();
     void metaDataChanged();
+    void mediaTracksChanged();
 };
 
 QTMEDIAPLAYER_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::ChapterInfo)
+Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::MediaTracks)

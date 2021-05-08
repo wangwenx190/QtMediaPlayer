@@ -36,8 +36,7 @@ QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)
     d.noquote();
     QString str = {};
     for (auto &&chapter : qAsConst(chapters)) {
-        str.append(QStringLiteral("(title: %1, beginTime: %2, endTime: %3)").arg(
-              chapter.title, QString::number(chapter.beginTime), QString::number(chapter.endTime)));
+        str.append(QStringLiteral("(title: %1, startTime: %2)").arg(chapter.title, QString::number(chapter.startTime)));
     }
     d << "QList(" << str << ')';
     return d;
@@ -75,14 +74,10 @@ QtMediaPlayer::QtMediaPlayer(QQuickItem *parent) : QQuickItem(parent)
     qRegisterMetaType<ChapterInfo>();
     qRegisterMetaType<Chapters>();
     qRegisterMetaType<MetaData>();
-#if 0
-    qRegisterMetaType<VideoStreamInfo>();
-    qRegisterMetaType<VideoStreams>();
-    qRegisterMetaType<AudioStreamInfo>();
-    qRegisterMetaType<AudioStreams>();
-    qRegisterMetaType<MediaInfo>();
-#endif
+    qRegisterMetaType<MediaTracks>();
 }
+
+QtMediaPlayer::~QtMediaPlayer() = default;
 
 bool QtMediaPlayer::registerBackend(const char *name)
 {
@@ -104,8 +99,6 @@ bool QtMediaPlayer::registerBackend(const char *name)
     }
     return false;
 }
-
-QtMediaPlayer::~QtMediaPlayer() = default;
 
 QStringList QtMediaPlayer::videoMimeTypes()
 {

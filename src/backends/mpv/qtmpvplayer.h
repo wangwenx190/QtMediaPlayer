@@ -115,6 +115,8 @@ public:
 
     MetaData metaData() const override;
 
+    MediaTracks mediaTracks() const override;
+
 public Q_SLOTS:
     void play() override;
     void pause() override;
@@ -183,8 +185,8 @@ private:
         {QStringLiteral("dheight"), {"videoSizeChanged"}},
         {QStringLiteral("duration"), {"durationChanged"}},
         {QStringLiteral("time-pos"), {"positionChanged"}},
-        {QStringLiteral("volume"), {"volumeChanged"}},
-        {QStringLiteral("mute"), {"muteChanged"}},
+        {QStringLiteral("ao-volume"), {"volumeChanged"}},
+        {QStringLiteral("ao-mute"), {"muteChanged"}},
         {QStringLiteral("seekable"), {"seekableChanged"}},
         {QStringLiteral("hwdec"), {"hardwareDecodingChanged"}},
         {QStringLiteral("video-out-params/aspect"), {"aspectRatioChanged"}},
@@ -196,10 +198,9 @@ private:
         {QStringLiteral("path"), {"filePathChanged"}},
         {QStringLiteral("pause"), {"playbackStateChanged"}},
         {QStringLiteral("idle-active"), {"playbackStateChanged"}},
-        //{QStringLiteral("track-list"), {"mediaTracksChanged"}},
+        {QStringLiteral("track-list"), {"mediaTracksChanged"}},
         {QStringLiteral("chapter-list"), {"chaptersChanged"}},
         {QStringLiteral("metadata"), {"metaDataChanged"}}
-        //{QStringLiteral("percent-pos"), {"positionChanged"}}
     };
 
     // These properties are changing all the time during the playback process.

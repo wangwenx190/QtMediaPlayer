@@ -113,7 +113,7 @@ QString QtMPVPlayer::backendVersion() const
 
 QString QtMPVPlayer::backendDescription() const
 {
-    return QStringLiteral("mpv backend.");
+    return tr("mpv backend.");
 }
 
 QString QtMPVPlayer::backendVendor() const
@@ -392,12 +392,12 @@ qint64 QtMPVPlayer::position() const
 
 qreal QtMPVPlayer::volume() const
 {
-    return (mpvGetProperty(QStringLiteral("volume")).toReal() / 100.0);
+    return (mpvGetProperty(QStringLiteral("ao-volume")).toReal() / 100.0);
 }
 
 bool QtMPVPlayer::mute() const
 {
-    return mpvGetProperty(QStringLiteral("mute")).toBool();
+    return mpvGetProperty(QStringLiteral("ao-mute")).toBool();
 }
 
 bool QtMPVPlayer::seekable() const
@@ -442,34 +442,40 @@ QString QtMPVPlayer::filePath() const
     return isStopped() ? QString{} : QDir::toNativeSeparators(mpvGetProperty(QStringLiteral("path")).toString());
 }
 
-#if 0
-MPVPlayer::MediaTracks MPVPlayer::mediaTracks() const
+QtMPVPlayer::MediaTracks QtMPVPlayer::mediaTracks() const
 {
-    MediaTracks mediaTracks = {};
     const QVariantList trackList = mpvGetProperty(QStringLiteral("track-list")).toList();
+    if (trackList.isEmpty()) {
+        return {};
+    }
+    MediaTracks mediaTracks = {};
     for (auto &&track : qAsConst(trackList)) {
-        const auto trackInfo = track.toMap();
-        if ((trackInfo.value(QStringLiteral("type")).toString() != QStringLiteral("video"))
-            && (trackInfo.value(QStringLiteral("type")).toString() != QStringLiteral("audio"))
-            && (trackInfo.value(QStringLiteral("type")).toString() != QStringLiteral("sub"))) {
+        const QVariantMap trackInfo = track.toMap();
+        if (trackInfo.isEmpty()) {
             continue;
         }
-        QVariantHash info;
+        const QString type = trackInfo.value(QStringLiteral("type")).toString();
+        if ((type != QStringLiteral("video")) && (type != QStringLiteral("audio")) && (type != QStringLiteral("sub"))) {
+            continue;
+        }
+        QVariantHash info = {};
         info.insert(QStringLiteral("id"), trackInfo.value(QStringLiteral("id")));
-        info.insert(QStringLiteral("type"), trackInfo.value(QStringLiteral("type")));
+        info.insert(QStringLiteral("type"), type);
         info.insert(QStringLiteral("src-id"), trackInfo.value(QStringLiteral("src-id")));
-        if (trackInfo.value(QStringLiteral("title")).toString().isEmpty()) {
-            if (trackInfo.value(QStringLiteral("lang")).toString() != QStringLiteral("und")) {
-                info.insert(QStringLiteral("title"), trackInfo.value(QStringLiteral("lang")));
+        const QString lang = trackInfo.value(QStringLiteral("lang")).toString();
+        info.insert(QStringLiteral("lang"), lang);
+        const QString title = trackInfo.value(QStringLiteral("title")).toString();
+        if (title.isEmpty()) {
+            if (lang != QStringLiteral("und")) {
+                info.insert(QStringLiteral("title"), lang);
             } else if (!trackInfo.value(QStringLiteral("external")).toBool()) {
                 info.insert(QStringLiteral("title"), QStringLiteral("[internal]"));
             } else {
                 info.insert(QStringLiteral("title"), QStringLiteral("[untitled]"));
             }
         } else {
-            info.insert(QStringLiteral("title"), trackInfo.value(QStringLiteral("title")));
+            info.insert(QStringLiteral("title"), title);
         }
-        info.insert(QStringLiteral("lang"), trackInfo.value(QStringLiteral("lang")));
         info.insert(QStringLiteral("default"), trackInfo.value(QStringLiteral("default")));
         info.insert(QStringLiteral("forced"), trackInfo.value(QStringLiteral("forced")));
         info.insert(QStringLiteral("codec"), trackInfo.value(QStringLiteral("codec")));
@@ -477,24 +483,23 @@ MPVPlayer::MediaTracks MPVPlayer::mediaTracks() const
         info.insert(QStringLiteral("external-filename"), trackInfo.value(QStringLiteral("external-filename")));
         info.insert(QStringLiteral("selected"), trackInfo.value(QStringLiteral("selected")));
         info.insert(QStringLiteral("decoder-desc"), trackInfo.value(QStringLiteral("decoder-desc")));
-        if (trackInfo.value(QStringLiteral("type")).toString() == QStringLiteral("video")) {
+        if (type == QStringLiteral("video")) {
             info.insert(QStringLiteral("albumart"), trackInfo.value(QStringLiteral("albumart")));
             info.insert(QStringLiteral("demux-w"), trackInfo.value(QStringLiteral("demux-w")));
             info.insert(QStringLiteral("demux-h"), trackInfo.value(QStringLiteral("demux-h")));
             info.insert(QStringLiteral("demux-fps"), trackInfo.value(QStringLiteral("demux-fps")));
-            mediaTracks.videoChannels.append(info);
-        } else if (trackInfo.value(QStringLiteral("type")).toString() == QStringLiteral("audio")) {
+            mediaTracks.video.append(info);
+        } else if (type == QStringLiteral("audio")) {
             info.insert(QStringLiteral("demux-channel-count"), trackInfo.value(QStringLiteral("demux-channel-count")));
             info.insert(QStringLiteral("demux-channels"), trackInfo.value(QStringLiteral("demux-channels")));
             info.insert(QStringLiteral("demux-samplerate"), trackInfo.value(QStringLiteral("demux-samplerate")));
-            mediaTracks.audioTracks.append(info);
-        } else if (trackInfo.value(QStringLiteral("type")).toString() == QStringLiteral("sub")) {
-            mediaTracks.subtitleStreams.append(info);
+            mediaTracks.audio.append(info);
+        } else if (type == QStringLiteral("sub")) {
+            mediaTracks.sub.append(info);
         }
     }
     return mediaTracks;
 }
-#endif
 
 QtMPVPlayer::Chapters QtMPVPlayer::chapters() const
 {
@@ -510,9 +515,7 @@ QtMPVPlayer::Chapters QtMPVPlayer::chapters() const
         }
         ChapterInfo info = {};
         info.title = chapterInfo.value(QStringLiteral("title")).toString();
-        info.beginTime = 0;
-        info.endTime = 0;
-        //info.insert(QStringLiteral("time"), chapterInfo.value(QStringLiteral("time")));
+        info.startTime = qRound(chapterInfo.value(QStringLiteral("time")).toReal());
         chapters.append(info);
     }
     return chapters;
@@ -540,7 +543,7 @@ bool QtMPVPlayer::livePreview() const
 
 void QtMPVPlayer::play()
 {
-    if (!m_source.isValid()) {
+    if (!m_source.isValid() || m_livePreview) {
         return;
     }
     mpvSetProperty(QStringLiteral("pause"), false);
@@ -596,7 +599,7 @@ void QtMPVPlayer::setSource(const QUrl &value)
     }
     const bool result = mpvSendCommand(QVariantList{QStringLiteral("loadfile"), value.isLocalFile() ? QDir::toNativeSeparators(value.toLocalFile()) : value.url()});
     if (result) {
-        if (m_livePreview) {
+        if (m_livePreview || !m_autoStart) {
             mpvSetProperty(QStringLiteral("pause"), true);
         }
         m_source = value;
@@ -609,7 +612,7 @@ void QtMPVPlayer::setMute(const bool value)
     if (mute() == value) {
         return;
     }
-    mpvSetProperty(QStringLiteral("mute"), value);
+    mpvSetProperty(QStringLiteral("ao-mute"), value);
 }
 
 void QtMPVPlayer::setPlaybackState(const QtMPVPlayer::PlaybackState value)
@@ -680,7 +683,7 @@ void QtMPVPlayer::setVolume(const qreal value)
     if (volume() == value) {
         return;
     }
-    mpvSetProperty(QStringLiteral("volume"), qRound(value * 100.0));
+    mpvSetProperty(QStringLiteral("ao-volume"), qRound(value * 100.0));
 }
 
 void QtMPVPlayer::setHardwareDecoding(const bool value)
@@ -753,7 +756,7 @@ void QtMPVPlayer::setLivePreview(const bool value)
     if (value) {
         setLogLevel(LogLevel::Off);
         mpvSetProperty(QStringLiteral("pause"), true);
-        mpvSetProperty(QStringLiteral("mute"), true);
+        mpvSetProperty(QStringLiteral("ao-mute"), true);
         mpvSetProperty(QStringLiteral("hr-seek"), QStringLiteral("yes"));
     } else {
         mpvSetProperty(QStringLiteral("hr-seek"), QStringLiteral("default"));

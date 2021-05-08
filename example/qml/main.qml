@@ -186,7 +186,7 @@ Window {
                 bold: true
                 pointSize: 15
             }
-            text: qsTr("00:00:00")
+            //text: Qt.formatTime(new Date(mediaPlayer.duration), "hh:mm:ss")
         }
     }
 }
