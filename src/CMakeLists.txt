@@ -13,6 +13,28 @@ set(SOURCES
     qtmediaplayer.cpp
 )
 
+# MDK backend
+list(APPEND SOURCES
+    backends/mdk/include/mdk/c/global.h
+    backends/mdk/include/mdk/c/MediaInfo.h
+    backends/mdk/include/mdk/c/module.h
+    backends/mdk/include/mdk/c/Player.h
+    backends/mdk/include/mdk/c/RenderAPI.h
+    backends/mdk/include/mdk/c/VideoFrame.h
+    backends/mdk/include/mdk/global.h
+    backends/mdk/include/mdk/MediaInfo.h
+    backends/mdk/include/mdk/Player.h
+    backends/mdk/include/mdk/RenderAPI.h
+    backends/mdk/include/mdk/VideoFrame.h
+    backends/mdk/qtmdkhelper.h
+    backends/mdk/qtmdkhelper.cpp
+    backends/mdk/qtmdkplayer.h
+    backends/mdk/qtmdkplayer.cpp
+    backends/mdk/qtmdkvideotexturenode.h
+    backends/mdk/qtmdkvideotexturenode.cpp
+    backends/mdk/qtmdkvideotexturenode_impl.cpp
+)
+
 # MPV backend
 list(APPEND SOURCES
     backends/mpv/include/mpv/client.h
@@ -56,6 +78,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     QT_DEPRECATED_WARNINGS
     QT_DISABLE_DEPRECATED_BEFORE=0x060100
     QTMEDIAPLAYER_BUILD_LIBRARY
+    BUILD_MDK_STATIC
 )
 
 if(WIN32)

@@ -56,6 +56,10 @@ QtMPVPlayer::QtMPVPlayer(QQuickItem *parent) : QtMediaPlayer(parent)
         qFatal("Failed to create mpv player.");
     }
 
+    if (!m_livePreview) {
+        qDebug() << "Player created.";
+    }
+
     mpvSetProperty(QStringLiteral("input-default-bindings"), false);
     mpvSetProperty(QStringLiteral("input-vo-keyboard"), false);
     mpvSetProperty(QStringLiteral("input-cursor"), false);
@@ -88,6 +92,9 @@ QtMPVPlayer::~QtMPVPlayer()
         MPV::Qt::render_context_free(m_mpv_gl);
     }
     MPV::Qt::terminate_destroy(m_mpv);
+    if (!m_livePreview) {
+        qDebug() << "Player destroyed.";
+    }
 }
 
 void QtMPVPlayer::on_update(void *ctx)
@@ -919,6 +926,7 @@ void QtMPVPlayer::releaseResources() // Called on the gui thread if the item is 
 
 QSGNode *QtMPVPlayer::updatePaintNode(QSGNode *node, UpdatePaintNodeData *data)
 {
+    Q_UNUSED(data);
     auto n = static_cast<MPVVideoTextureNode*>(node);
     if (!n && ((width() <= 0) || (height() <= 0))) {
         return nullptr;
@@ -928,7 +936,7 @@ QSGNode *QtMPVPlayer::updatePaintNode(QSGNode *node, UpdatePaintNodeData *data)
         n = m_node;
     }
     m_node->sync();
-    window()->update(); // ensure getting to beforeRendering() at some point
+    window()->update(); // Ensure getting to beforeRendering() at some point
     return n;
 }
 
