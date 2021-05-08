@@ -338,19 +338,19 @@ QSizeF QtMPVPlayer::videoSize() const
             mpvGetProperty(QStringLiteral("video-out-params/dh")).toReal()};
 }
 
-PlaybackState QtMPVPlayer::playbackState() const
+QtMPVPlayer::PlaybackState QtMPVPlayer::playbackState() const
 {
     const bool stopped = mpvGetProperty(QStringLiteral("idle-active")).toBool();
     const bool paused = mpvGetProperty(QStringLiteral("pause")).toBool();
     return stopped ? PlaybackState::Stopped : (paused ? PlaybackState::Paused : PlaybackState::Playing);
 }
 
-MediaStatus QtMPVPlayer::mediaStatus() const
+QtMPVPlayer::MediaStatus QtMPVPlayer::mediaStatus() const
 {
     return m_mediaStatus;
 }
 
-LogLevel QtMPVPlayer::logLevel() const
+QtMPVPlayer::LogLevel QtMPVPlayer::logLevel() const
 {
     const QString level = mpvGetProperty(QStringLiteral("msg-level")).toString();
     if (level.isEmpty() || (level == QStringLiteral("no")) || (level == QStringLiteral("off"))) {
@@ -496,7 +496,7 @@ MPVPlayer::MediaTracks MPVPlayer::mediaTracks() const
 }
 #endif
 
-Chapters QtMPVPlayer::chapters() const
+QtMPVPlayer::Chapters QtMPVPlayer::chapters() const
 {
     const QVariantList chapterList = mpvGetProperty(QStringLiteral("chapter-list")).toList();
     if (chapterList.isEmpty()) {
@@ -518,7 +518,7 @@ Chapters QtMPVPlayer::chapters() const
     return chapters;
 }
 
-MetaData QtMPVPlayer::metaData() const
+QtMPVPlayer::MetaData QtMPVPlayer::metaData() const
 {
     const QVariantMap metaDataMap = mpvGetProperty(QStringLiteral("metadata")).toMap();
     if (metaDataMap.isEmpty()) {
@@ -612,7 +612,7 @@ void QtMPVPlayer::setMute(const bool value)
     mpvSetProperty(QStringLiteral("mute"), value);
 }
 
-void QtMPVPlayer::setPlaybackState(const PlaybackState value)
+void QtMPVPlayer::setPlaybackState(const QtMPVPlayer::PlaybackState value)
 {
     if (playbackState() == value) {
         return;
@@ -763,13 +763,13 @@ void QtMPVPlayer::setLivePreview(const bool value)
     Q_EMIT livePreviewChanged();
 }
 
-FillMode QtMPVPlayer::fillMode() const
+QtMPVPlayer::FillMode QtMPVPlayer::fillMode() const
 {
     // TODO
     return FillMode::PreserveAspectFit;
 }
 
-void QtMPVPlayer::setFillMode(const FillMode value)
+void QtMPVPlayer::setFillMode(const QtMPVPlayer::FillMode value)
 {
     // TODO
     Q_UNUSED(value);

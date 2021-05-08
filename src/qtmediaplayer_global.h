@@ -27,8 +27,6 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
-#include <QtCore/qmetatype.h>
-#include <QtCore/qdebug.h>
 
 #ifndef QTMEDIAPLAYER_API
 #ifdef QTMEDIAPLAYER_STATIC
@@ -63,7 +61,7 @@
 #endif
 
 #ifndef QTMEDIAPLAYER_NAMESPACE
-#define QTMEDIAPLAYER_NAMESPACE wangwenx190::QtMediaPlayer
+#define QTMEDIAPLAYER_NAMESPACE wangwenx190::_qmp_ns
 #endif
 
 #define QTMEDIAPLAYER_BEGIN_NAMESPACE namespace QTMEDIAPLAYER_NAMESPACE {
@@ -75,80 +73,9 @@
 #define QTMEDIAPLAYER_URI "org.wangwenx190.QtMediaPlayer"
 #endif
 
-QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-Q_NAMESPACE_EXPORT(QTMEDIAPLAYER_API)
 
-enum class PlaybackState
-{
-    Stopped,
-    Playing,
-    Paused
-};
-Q_ENUM_NS(PlaybackState)
 
-enum class MediaStatus
-{
-    Invalid,
-    NoMedia,
-    Unloaded,
-    Loading,
-    Loaded,
-    Prepared,
-    Stalled,
-    Buffering,
-    Buffered,
-    End,
-    Seeking
-};
-Q_ENUM_NS(MediaStatus)
-
-enum class LogLevel
-{
-    Off,
-    Info,
-    Debug,
-    Warning,
-    Critical,
-    Fatal
-};
-Q_ENUM_NS(LogLevel)
-
-struct ChapterInfo
-{
-    qint64 beginTime = 0;
-    qint64 endTime = 0;
-    QString title = {};
-};
-using Chapters = QList<ChapterInfo>;
-
-#if 0
-#ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug d, const Chapters &chapters)
-{
-    QDebugStateSaver saver(d);
-    d.nospace();
-    d.noquote();
-    QString chaptersStr = {};
-    for (auto &&chapter : qAsConst(chapters)) {
-        chaptersStr.append(QStringLiteral("(title: %1, beginTime: %2, endTime: %3)").arg(
-              chapter.title, QString::number(chapter.beginTime), QString::number(chapter.endTime)));
-    }
-    d << "QList(" << chaptersStr << ')';
-    return d;
-}
-#endif
-#endif
-
-using MetaData = QVariantHash;
-
-enum class FillMode
-{
-    PreserveAspectFit,
-    PreserveAspectCrop,
-    Stretch
-};
-Q_ENUM_NS(FillMode)
 
 #if 0
 struct VideoStreamInfo
@@ -195,9 +122,6 @@ struct MediaInfo
 };
 #endif
 
-QTMEDIAPLAYER_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(ChapterInfo))
 #if 0
 Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(VideoStreamInfo))
 Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(AudioStreamInfo))

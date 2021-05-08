@@ -74,8 +74,63 @@ class QTMEDIAPLAYER_API QtMediaPlayer : public QQuickItem
     Q_PROPERTY(MetaData metaData READ metaData NOTIFY metaDataChanged)
 
 public:
+    enum class PlaybackState
+    {
+        Stopped,
+        Playing,
+        Paused
+    };
+    Q_ENUM(PlaybackState)
+
+    enum class MediaStatus
+    {
+        Invalid,
+        NoMedia,
+        Unloaded,
+        Loading,
+        Loaded,
+        Prepared,
+        Stalled,
+        Buffering,
+        Buffered,
+        End,
+        Seeking
+    };
+    Q_ENUM(MediaStatus)
+
+    enum class LogLevel
+    {
+        Off,
+        Info,
+        Debug,
+        Warning,
+        Critical,
+        Fatal
+    };
+    Q_ENUM(LogLevel)
+
+    struct ChapterInfo
+    {
+        qint64 beginTime = 0;
+        qint64 endTime = 0;
+        QString title = {};
+    };
+    using Chapters = QList<ChapterInfo>;
+
+    using MetaData = QVariantHash;
+
+    enum class FillMode
+    {
+        PreserveAspectFit,
+        PreserveAspectCrop,
+        Stretch
+    };
+    Q_ENUM(FillMode)
+
     explicit QtMediaPlayer(QQuickItem *parent = nullptr);
     ~QtMediaPlayer() override;
+
+    static bool registerBackend(const char *name);
 
     virtual QString backendName() const = 0;
     virtual QString backendVersion() const = 0;
@@ -291,3 +346,5 @@ Q_SIGNALS:
 };
 
 QTMEDIAPLAYER_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::ChapterInfo)

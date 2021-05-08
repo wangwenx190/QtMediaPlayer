@@ -23,9 +23,26 @@
  */
 
 #include "qtmediaplayer.h"
+#include "backends/mpv/qtmpvplayer.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qmimedatabase.h>
 #include <QtCore/qmimetype.h>
+
+#ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::Chapters &chapters)
+{
+    QDebugStateSaver saver(d);
+    d.nospace();
+    d.noquote();
+    QString str = {};
+    for (auto &&chapter : qAsConst(chapters)) {
+        str.append(QStringLiteral("(title: %1, beginTime: %2, endTime: %3)").arg(
+              chapter.title, QString::number(chapter.beginTime), QString::number(chapter.endTime)));
+    }
+    d << "QList(" << str << ')';
+    return d;
+}
+#endif
 
 static inline QStringList suffixesToMimeTypes(const QStringList &suffixes)
 {
@@ -65,6 +82,27 @@ QtMediaPlayer::QtMediaPlayer(QQuickItem *parent) : QQuickItem(parent)
     qRegisterMetaType<AudioStreams>();
     qRegisterMetaType<MediaInfo>();
 #endif
+}
+
+bool QtMediaPlayer::registerBackend(const char *name)
+{
+    Q_ASSERT(name);
+    if (!name) {
+        return false;
+    }
+    if (qstricmp(name, "mpv") == 0) {
+        qmlRegisterType<QtMPVPlayer>(QTMEDIAPLAYER_URI, 1, 0, "QtMediaPlayer");
+        return true;
+    }
+    if (qstricmp(name, "mdk") == 0) {
+        //qmlRegisterType<QtMDKPlayer>(QTMEDIAPLAYER_URI, 1, 0, "QtMediaPlayer");
+        //return true;
+    }
+    if (qstricmp(name, "vlc") == 0) {
+        //qmlRegisterType<QtVLCPlayer>(QTMEDIAPLAYER_URI, 1, 0, "QtMediaPlayer");
+        //return true;
+    }
+    return false;
 }
 
 QtMediaPlayer::~QtMediaPlayer() = default;

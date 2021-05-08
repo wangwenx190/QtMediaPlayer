@@ -34,7 +34,7 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 class MPVVideoTextureNode;
 
-class QtMPVPlayer final : public QtMediaPlayer
+class QtMPVPlayer : public QtMediaPlayer
 {
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(QtMPVPlayer)
@@ -187,7 +187,6 @@ private:
         {QStringLiteral("mute"), {"muteChanged"}},
         {QStringLiteral("seekable"), {"seekableChanged"}},
         {QStringLiteral("hwdec"), {"hardwareDecodingChanged"}},
-        {QStringLiteral("hwdec-current"), {"hardwareDecodingChanged"}},
         {QStringLiteral("video-out-params/aspect"), {"aspectRatioChanged"}},
         {QStringLiteral("speed"), {"playbackRateChanged"}},
         {QStringLiteral("filename"), {"fileNameChanged"}},

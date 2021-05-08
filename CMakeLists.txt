@@ -38,5 +38,5 @@ endif()
 
 add_subdirectory(src)
 if(BUILD_EXAMPLE_APP)
-    #add_subdirectory(example)
+    add_subdirectory(example)
 endif()
