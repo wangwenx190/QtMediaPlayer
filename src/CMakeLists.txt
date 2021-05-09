@@ -6,6 +6,7 @@ set(CMAKE_AUTORCC ON)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Quick REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
+find_package(Vulkan)
 
 set(SOURCES
     qtmediaplayer_global.h
@@ -56,6 +57,12 @@ endif()
 
 add_library(${PROJECT_NAME} ${SOURCES})
 add_library(wangwenx190::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+if(TARGET Vulkan::Vulkan)
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${Vulkan_INCLUDE_DIRS}
+    )
+endif()
 
 if(NOT BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME} PUBLIC

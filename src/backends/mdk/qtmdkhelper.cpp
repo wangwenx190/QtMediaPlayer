@@ -245,7 +245,7 @@ private:
 
 Q_GLOBAL_STATIC(MDKData, mdkData)
 
-bool mdkAvailability()
+bool mdkAvailable()
 {
     return mdkData()->isLoaded();
 }
@@ -296,6 +296,11 @@ void MDK_setGlobalOptionPtr(const char *key, void *value)
 char *MDK_strdup(const char *value)
 {
     return WWX190_CALL_MDKAPI_RETURN(MDK_strdup, nullptr, value);
+}
+
+int MDK_version()
+{
+    return WWX190_CALL_MDKAPI_RETURN(MDK_version, 0);
 }
 
 // MediaInfo.h

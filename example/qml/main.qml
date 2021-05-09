@@ -170,7 +170,7 @@ Window {
         source: mediaPlayer.source
         livePreview: true
         hardwareDecoding: true
-        logLevel: QtMediaPlayer.LogLevel.Warning
+        logLevel: QtMediaPlayer.LogLevel.Off
         width: 300
         height: 168.75
         y: window.height - preview.height - 50;
@@ -186,7 +186,7 @@ Window {
                 bold: true
                 pointSize: 15
             }
-            //text: Qt.formatTime(new Date(mediaPlayer.duration), "hh:mm:ss")
+            text: preview.formatTime(preview.position, "hh:mm:ss")
         }
     }
 }

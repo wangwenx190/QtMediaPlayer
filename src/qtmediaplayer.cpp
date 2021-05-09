@@ -23,10 +23,12 @@
  */
 
 #include "qtmediaplayer.h"
+#include "backends/mdk/qtmdkplayer.h"
 #include "backends/mpv/qtmpvplayer.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qmimedatabase.h>
 #include <QtCore/qmimetype.h>
+#include <QtCore/qdatetime.h>
 
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::Chapters &chapters)
@@ -39,6 +41,15 @@ QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)
         str.append(QStringLiteral("(title: %1, startTime: %2)").arg(chapter.title, QString::number(chapter.startTime)));
     }
     d << "QList(" << str << ')';
+    return d;
+}
+
+QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::MediaTracks &tracks)
+{
+    QDebugStateSaver saver(d);
+    d.nospace();
+    d.noquote();
+    d << "QtMediaPlayer::MediaTracks(Video tracks:" << tracks.video << "; Audio tracks:" << tracks.audio << "; Subtitle tracks:" << tracks.sub << ')';
     return d;
 }
 #endif
@@ -85,18 +96,19 @@ bool QtMediaPlayer::registerBackend(const char *name)
     if (!name) {
         return false;
     }
-    if (qstricmp(name, "mpv") == 0) {
-        qmlRegisterType<QtMPVPlayer>(QTMEDIAPLAYER_URI, 1, 0, "QtMediaPlayer");
+    if (qstricmp(name, "mdk") == 0) {
+        QTMEDIAPLAYER_QML_REGISTER(QtMDKPlayer);
         return true;
     }
-    if (qstricmp(name, "mdk") == 0) {
-        //qmlRegisterType<QtMDKPlayer>(QTMEDIAPLAYER_URI, 1, 0, "QtMediaPlayer");
-        //return true;
+    if (qstricmp(name, "mpv") == 0) {
+        QTMEDIAPLAYER_QML_REGISTER(QtMPVPlayer);
+        return true;
     }
     if (qstricmp(name, "vlc") == 0) {
-        //qmlRegisterType<QtVLCPlayer>(QTMEDIAPLAYER_URI, 1, 0, "QtMediaPlayer");
+        //QTMEDIAPLAYER_QML_REGISTER(QtVLCPlayer);
         //return true;
     }
+    qWarning() << "Unsupported backend:" << name;
     return false;
 }
 
@@ -108,6 +120,16 @@ QStringList QtMediaPlayer::videoMimeTypes()
 QStringList QtMediaPlayer::audioMimeTypes()
 {
     return suffixesToMimeTypes(audioSuffixes());
+}
+
+QString QtMediaPlayer::formatTime(const qint64 ms, const QString &pattern) const
+{
+    Q_ASSERT(ms >= 0);
+    Q_ASSERT(!pattern.isEmpty());
+    if ((ms < 0) || pattern.isEmpty()) {
+        return {};
+    }
+    return QTime(0, 0).addMSecs(ms).toString(pattern);
 }
 
 QTMEDIAPLAYER_END_NAMESPACE

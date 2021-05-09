@@ -380,7 +380,7 @@ private:
 
 Q_GLOBAL_STATIC(MPVData, mpvData)
 
-bool libmpvAvailability()
+bool libmpvAvailable()
 {
     return mpvData()->isLoaded();
 }

@@ -110,21 +110,23 @@ QtMDKPlayer::~QtMDKPlayer()
 
 bool QtMDKPlayer::backendAvailable() const
 {
-    return MDK::Qt::mdkAvailability();
+    return MDK::Qt::mdkAvailable();
 }
 
 QString QtMDKPlayer::backendName() const
 {
-    return QStringLiteral("mdk");
+    return QStringLiteral("MDK");
 }
 
 QString QtMDKPlayer::backendVersion() const
 {
-    return QStringLiteral("1.0.0.0");
+    // Is this correct?
+    return QString::number(MDK_NS_PREPEND(version)());
 }
 
 QString QtMDKPlayer::backendDescription() const
 {
+    // TODO
     return tr("mdk backend.");
 }
 
@@ -135,12 +137,25 @@ QString QtMDKPlayer::backendVendor() const
 
 QString QtMDKPlayer::backendCopyright() const
 {
-    return QStringLiteral("");
+    // TODO
+    return {};
 }
 
-QUrl QtMDKPlayer::backendWebsite() const
+QUrl QtMDKPlayer::backendHomePage() const
 {
     return QStringLiteral("https://sourceforge.net/projects/mdk-sdk/");
+}
+
+QString QtMDKPlayer::ffmpegVersion() const
+{
+    // TODO
+    return {};
+}
+
+QString QtMDKPlayer::ffmpegConfiguration() const
+{
+    // TODO
+    return {};
 }
 
 // The beauty of using a true QSGNode: no need for complicated cleanup

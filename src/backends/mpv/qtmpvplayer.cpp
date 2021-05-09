@@ -110,37 +110,49 @@ void QtMPVPlayer::on_update(void *ctx)
 
 bool QtMPVPlayer::backendAvailable() const
 {
-    return MPV::Qt::libmpvAvailability();
+    return MPV::Qt::libmpvAvailable();
 }
 
 QString QtMPVPlayer::backendName() const
 {
-    return QStringLiteral("mpv");
+    return QStringLiteral("MPV");
 }
 
 QString QtMPVPlayer::backendVersion() const
 {
-    return QStringLiteral("1.0.0.0");
+    return mpvGetProperty(QStringLiteral("mpv-version")).toString();
 }
 
 QString QtMPVPlayer::backendDescription() const
 {
+    // TODO
     return tr("mpv backend.");
 }
 
 QString QtMPVPlayer::backendVendor() const
 {
-    return QStringLiteral("mpv developers");
+    return QStringLiteral("The MPV developers");
 }
 
 QString QtMPVPlayer::backendCopyright() const
 {
+    // TODO
     return QStringLiteral("GPLv3");
 }
 
-QUrl QtMPVPlayer::backendWebsite() const
+QUrl QtMPVPlayer::backendHomePage() const
 {
     return QStringLiteral("https://mpv.io/");
+}
+
+QString QtMPVPlayer::ffmpegVersion() const
+{
+    return mpvGetProperty(QStringLiteral("ffmpeg-version")).toString();
+}
+
+QString QtMPVPlayer::ffmpegConfiguration() const
+{
+    return mpvGetProperty(QStringLiteral("ffmpeg-configuration")).toString();
 }
 
 // Connected to onUpdate() signal makes sure it runs on the GUI thread

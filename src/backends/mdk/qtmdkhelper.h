@@ -27,6 +27,6 @@
 namespace MDK::Qt
 {
 
-bool mdkAvailability();
+bool mdkAvailable();
 
 }

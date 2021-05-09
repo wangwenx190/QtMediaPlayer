@@ -36,12 +36,15 @@ class QTMEDIAPLAYER_API QtMediaPlayer : public QQuickItem
     Q_DISABLE_COPY_MOVE(QtMediaPlayer)
     Q_CLASSINFO("RegisterEnumClassesUnscoped", "false")
 
+    Q_PROPERTY(bool backendAvailable READ backendAvailable CONSTANT)
     Q_PROPERTY(QString backendName READ backendName CONSTANT)
     Q_PROPERTY(QString backendVersion READ backendVersion CONSTANT)
     Q_PROPERTY(QString backendDescription READ backendDescription CONSTANT)
     Q_PROPERTY(QString backendVendor READ backendVendor CONSTANT)
     Q_PROPERTY(QString backendCopyright READ backendCopyright CONSTANT)
-    Q_PROPERTY(QUrl backendWebsite READ backendWebsite CONSTANT)
+    Q_PROPERTY(QUrl backendHomePage READ backendHomePage CONSTANT)
+    Q_PROPERTY(QString ffmpegVersion READ ffmpegVersion CONSTANT)
+    Q_PROPERTY(QString ffmpegConfiguration READ ffmpegConfiguration CONSTANT)
 
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(QString fileName READ fileName NOTIFY fileNameChanged)
@@ -140,13 +143,14 @@ public:
     static bool registerBackend(const char *name);
 
     virtual bool backendAvailable() const = 0;
-
     virtual QString backendName() const = 0;
     virtual QString backendVersion() const = 0;
     virtual QString backendDescription() const = 0;
     virtual QString backendVendor() const = 0;
     virtual QString backendCopyright() const = 0;
-    virtual QUrl backendWebsite() const = 0;
+    virtual QUrl backendHomePage() const = 0;
+    virtual QString ffmpegVersion() const = 0;
+    virtual QString ffmpegConfiguration() const = 0;
 
     virtual QUrl source() const = 0;
     virtual void setSource(const QUrl &value) = 0;
@@ -322,7 +326,11 @@ public Q_SLOTS:
 
     virtual void snapshot() = 0;
 
+    QString formatTime(const qint64 ms, const QString &pattern = QStringLiteral("hh:mm:ss")) const;
+
 Q_SIGNALS:
+    void rendererReady();
+
     void loaded();
     void playing();
     void paused();

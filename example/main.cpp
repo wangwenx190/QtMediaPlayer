@@ -23,6 +23,8 @@
  */
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qcommandlineoption.h>
+#include <QtCore/qcommandlineparser.h>
 #include <QtGui/qguiapplication.h>
 #include <QtQml/qqmlapplicationengine.h>
 #include <QtQuickControls2/qquickstyle.h>
@@ -39,40 +41,160 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
+    QCoreApplication::setApplicationName(QStringLiteral("QtMediaPlayer Demo"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("1.0.0.0"));
+    QCoreApplication::setOrganizationName(QStringLiteral("wangwenx190"));
+    QCoreApplication::setOrganizationDomain(QStringLiteral("wangwenx190.github.io"));
+
     QGuiApplication application(argc, argv);
 
+    QCommandLineParser cmdLineParser;
+    cmdLineParser.setApplicationDescription(QCoreApplication::translate("main", "QtMediaPlayer demo application."));
+    cmdLineParser.addHelpOption();
+    cmdLineParser.addVersionOption();
+    cmdLineParser.addPositionalArgument(QStringLiteral("url"), QCoreApplication::translate("main", "URL to play."));
+
+    const QCommandLineOption rhiBackendOption(QStringLiteral("rhi-backend"),
+                                              QCoreApplication::translate("main", "Set the Qt RHI backend. Available backends: Direct3D, Vulkan, Metal, OpenGL, OpenGLES, Software, Auto."),
+                                              QCoreApplication::translate("main", "backend"));
+    cmdLineParser.addOption(rhiBackendOption);
+
+    const QCommandLineOption playerBackendOption(QStringLiteral("player-backend"),
+                                              QCoreApplication::translate("main", "Set the QtMediaPlayer backend. Available backends: MDK, MPV."),
+                                              QCoreApplication::translate("main", "backend"));
+    cmdLineParser.addOption(playerBackendOption);
+
+    cmdLineParser.process(application);
+
+    const QString rhiBackendParamValue = cmdLineParser.value(rhiBackendOption).toLower();
+    const QString playerBackendParamValue = cmdLineParser.value(playerBackendOption).toLower();
+    const QStringList positionalArguments = cmdLineParser.positionalArguments();
+
+    // Same as setting the environment variable "QSG_INFO".
     QLoggingCategory::setFilterRules(QStringLiteral("qt.scenegraph.general=true\nqt.rhi.*=true"));
 
-    QQmlApplicationEngine engine;
+    if (!rhiBackendParamValue.isEmpty()) {
+        // Same as setting the environment variable "QSG_RHI_BACKEND".
+        if ((rhiBackendParamValue == QStringLiteral("direct3d"))
+            || (rhiBackendParamValue == QStringLiteral("d3d"))) {
+            qDebug() << "Setting Qt RHI backend to Direct3D ...";
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+            QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11Rhi);
+#else
+#endif
+        } else if ((rhiBackendParamValue == QStringLiteral("vulkan"))
+                   || (rhiBackendParamValue == QStringLiteral("vk"))) {
+            qDebug() << "Setting Qt RHI backend to Vulkan ...";
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+            QQuickWindow::setGraphicsApi(QSGRendererInterface::VulkanRhi);
+#else
+#endif
+        } else if ((rhiBackendParamValue == QStringLiteral("opengl"))
+                   || (rhiBackendParamValue == QStringLiteral("opengles"))
+                   || (rhiBackendParamValue == QStringLiteral("gl"))
+                   || (rhiBackendParamValue == QStringLiteral("gles"))) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+            QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGLRhi);
+#else
+#endif
+            QSurfaceFormat surfaceFormat = QSurfaceFormat::defaultFormat();
+            if (rhiBackendParamValue.contains(QStringLiteral("es"), Qt::CaseInsensitive)) {
+                qDebug() << "Setting Qt RHI backend to OpenGL ES ...";
+                // OpenGL ES, performance is better than desktop OpenGL.
+                surfaceFormat.setRenderableType(QSurfaceFormat::OpenGLES);
+                // The latest OpenGL ES version is V3.2 and will never be updated again in
+                // the future because the next generation of OpenGL (ES) is Vulkan.
+                surfaceFormat.setVersion(3, 2);
+            } else {
+                qDebug() << "Setting Qt RHI backend to OpenGL ...";
+                // Desktop OpenGL
+                surfaceFormat.setRenderableType(QSurfaceFormat::OpenGL);
+                // The latest OpenGL version is V4.6, released on October 22, 2019.
+                surfaceFormat.setVersion(4, 6);
+            }
+            surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
+            QSurfaceFormat::setDefaultFormat(surfaceFormat);
+        } else if ((rhiBackendParamValue == QStringLiteral("metal"))
+                   || (rhiBackendParamValue == QStringLiteral("mt"))) {
+            qDebug() << "Setting Qt RHI backend to Metal ...";
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+            QQuickWindow::setGraphicsApi(QSGRendererInterface::MetalRhi);
+#else
+#endif
+        } else if ((rhiBackendParamValue == QStringLiteral("software"))
+                   || (rhiBackendParamValue == QStringLiteral("soft"))
+                   || (rhiBackendParamValue == QStringLiteral("sw"))) {
+            qDebug() << "Setting Qt RHI backend to Software ...";
+            QQuickWindow::setGraphicsApi(QSGRendererInterface::Software);
+        } else if (rhiBackendParamValue == QStringLiteral("auto")) {
+            // Let Qt itself decide which RHI backend to use.
+        } else {
+            qWarning() << "Can't recognize the given RHI backend:" << rhiBackendParamValue;
+            qDebug() << "Acceptable RHI backend names: Direct3D, Vulkan, Metal, OpenGL, OpenGLES, Software, Auto.";
+            return -1;
+        }
+    }
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-    QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
     QQuickStyle::setStyle(QStringLiteral("Basic"));
 #else
-    QQuickWindow::setSceneGraphBackend(QSGRendererInterface::OpenGL);
     QQuickStyle::setStyle(QStringLiteral("Default"));
 #endif
 
-    QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::registerBackend("mpv");
+    QQmlApplicationEngine engine;
 
-    const QUrl mainQmlUrl(QStringLiteral("qrc:///qml/main.qml"));
+    if (playerBackendParamValue.isEmpty()) {
+        qDebug() << "Empty player backend is given. Trying the default backend MDK ...";
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::registerBackend("mdk")) {
+            qWarning() << "Failed to create the MDK backend.";
+            return -1;
+        }
+    } else if (playerBackendParamValue == QStringLiteral("mdk")) {
+        qDebug() << "Setting player backend to MDK ...";
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::registerBackend("mdk")) {
+            qWarning() << "Failed to create the MDK backend.";
+            return -1;
+        }
+    } else if (playerBackendParamValue == QStringLiteral("mpv")) {
+        qDebug() << "Setting player backend to MPV ...";
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+        const QSGRendererInterface::GraphicsApi api = QQuickWindow::graphicsApi();
+        if ((api != QSGRendererInterface::OpenGLRhi) && (api != QSGRendererInterface::Software)) {
+            qWarning() << "The MPV backend only supports the OpenGL(ES) and Software backend of Qt RHI.";
+            return -1;
+        }
+#else
+#endif
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::registerBackend("mpv")) {
+            qWarning() << "Failed to create the MPV backend.";
+            return -1;
+        }
+    } else {
+        qWarning() << "Can't recognize the given player backend:" << playerBackendParamValue;
+        qDebug() << "Acceptable player backend names: MDK, MPV.";
+        return -1;
+    }
+
+    const QUrl homePageURL(QStringLiteral("qrc:///qml/main.qml"));
+
     const QMetaObject::Connection connection = QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreated,
         &application,
-        [&mainQmlUrl, &connection](QObject *object, const QUrl &url) {
-            if (url != mainQmlUrl) {
+        [&homePageURL, &connection](QObject *object, const QUrl &url)
+        {
+            if (url != homePageURL) {
                 return;
             }
-            if (!object) {
-                QGuiApplication::exit(-1);
-            } else {
+            if (object) {
                 QObject::disconnect(connection);
+            } else {
+                QGuiApplication::exit(-1);
             }
         },
         Qt::QueuedConnection);
 
-    engine.load(mainQmlUrl);
+    engine.load(homePageURL);
 
     return QGuiApplication::exec();
 }

@@ -31,7 +31,7 @@
 namespace MPV::Qt
 {
 
-bool libmpvAvailability();
+bool libmpvAvailable();
 
 QVariant node_to_variant(const mpv_node *node);
 

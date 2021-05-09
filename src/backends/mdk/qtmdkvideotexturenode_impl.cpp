@@ -249,7 +249,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
         ra.opaque = this;
         ra.rt = m_texture_vk;
         ra.renderTargetInfo = [](void *opaque, int *w, int *h, VkFormat *fmt, VkImageLayout *layout) {
-            const auto node = static_cast<VideoTextureNodePublic *>(opaque);
+            const auto node = static_cast<MDKVideoTextureNodeImpl *>(opaque);
             *w = node->m_size.width();
             *h = node->m_size.height();
             *fmt = VK_FORMAT_R8G8B8A8_UNORM;
@@ -257,7 +257,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
             return 1;
         };
         ra.currentCommandBuffer = [](void *opaque){
-            const auto node = static_cast<VideoTextureNodePublic *>(opaque);
+            const auto node = static_cast<MDKVideoTextureNodeImpl *>(opaque);
             const QSGRendererInterface *rif = node->m_window->rendererInterface();
             const auto cmdBuf = *static_cast<VkCommandBuffer *>(rif->getResource(node->m_window, QSGRendererInterface::CommandListResource));
             return cmdBuf;

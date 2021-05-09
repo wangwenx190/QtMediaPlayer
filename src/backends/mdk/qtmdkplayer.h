@@ -53,13 +53,14 @@ public:
     ~QtMDKPlayer() override;
 
     bool backendAvailable() const override;
-
     QString backendName() const override;
     QString backendVersion() const override;
     QString backendDescription() const override;
     QString backendVendor() const override;
     QString backendCopyright() const override;
-    QUrl backendWebsite() const override;
+    QUrl backendHomePage() const override;
+    QString ffmpegVersion() const override;
+    QString ffmpegConfiguration() const override;
 
     QUrl source() const override;
     void setSource(const QUrl &value) override;
