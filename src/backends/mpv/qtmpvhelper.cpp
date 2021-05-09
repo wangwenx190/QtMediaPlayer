@@ -41,6 +41,8 @@
 #include "qtmpvhelper.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qlibrary.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qdir.h>
 
 #ifndef WWX190_GENERATE_MPVAPI
 #define WWX190_GENERATE_MPVAPI(funcName, resultType, ...) \
@@ -51,7 +53,7 @@
 #ifndef WWX190_RESOLVE_MPVAPI
 #define WWX190_RESOLVE_MPVAPI(funcName) \
     if (!m_lp_##funcName) { \
-        qDebug() << "Resolving function" << #funcName; \
+        qDebug() << "Resolving function:" << #funcName; \
         m_lp_##funcName = reinterpret_cast<_WWX190_MPVAPI_lp_##funcName>(library.resolve(#funcName)); \
         Q_ASSERT(m_lp_##funcName); \
         if (!m_lp_##funcName) { \
@@ -185,8 +187,14 @@ public:
         }
 
         library.setFileName(path);
-
-        if (!library.load()) {
+        const bool result = library.load();
+        if (result) {
+            // We can't get the full file name if QLibrary is not loaded.
+            QFileInfo fi(library.fileName());
+            fi.makeAbsolute();
+            qDebug() << "Start loading libmpv from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
+        } else {
+            qDebug() << "Start loading libmpv from:" << QDir::toNativeSeparators(path);
             qWarning() << "Failed to load libmpv:" << library.errorString();
             return false;
         }

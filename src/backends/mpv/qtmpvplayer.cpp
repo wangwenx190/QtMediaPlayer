@@ -408,12 +408,12 @@ QtMPVPlayer::LogLevel QtMPVPlayer::logLevel() const
 
 qint64 QtMPVPlayer::duration() const
 {
-    return isStopped() ? 0 : mpvGetProperty(QStringLiteral("duration")).toLongLong();
+    return isStopped() ? 0 : (mpvGetProperty(QStringLiteral("duration")).toLongLong() * 1000);
 }
 
 qint64 QtMPVPlayer::position() const
 {
-    return isStopped() ? 0 : mpvGetProperty(QStringLiteral("time-pos")).toLongLong();
+    return isStopped() ? 0 : (mpvGetProperty(QStringLiteral("time-pos")).toLongLong() * 1000);
 }
 
 qreal QtMPVPlayer::volume() const
@@ -541,7 +541,7 @@ QtMPVPlayer::Chapters QtMPVPlayer::chapters() const
         }
         ChapterInfo info = {};
         info.title = chapterInfo.value(QStringLiteral("title")).toString();
-        info.startTime = qRound(chapterInfo.value(QStringLiteral("time")).toReal());
+        info.startTime = qRound64(chapterInfo.value(QStringLiteral("time")).toReal() * 1000.0);
         result.append(info);
     }
     return result;
@@ -599,7 +599,7 @@ void QtMPVPlayer::seek(const qint64 value)
     if (isStopped() || (position() == value)) {
         return;
     }
-    mpvSendCommand(QVariantList{QStringLiteral("seek"), value, QStringLiteral("absolute")});
+    mpvSendCommand(QVariantList{QStringLiteral("seek"), qRound64(static_cast<qreal>(value) / 1000.0), QStringLiteral("absolute")});
 }
 
 void QtMPVPlayer::snapshot()
@@ -706,8 +706,15 @@ void QtMPVPlayer::setPosition(const qint64 value)
 
 void QtMPVPlayer::setVolume(const qreal value)
 {
-    if (volume() == value) {
+    if (qFuzzyCompare(volume(), value)) {
         return;
+    }
+    if (value < 0.0) {
+        qWarning() << "The minimum volume is 0, however" << value << "is given.";
+        return;
+    }
+    if (value > 1.0) {
+        qWarning() << "The maximum volume is 1.0, setting a higher number may cause damaged sound.";
     }
     mpvSetProperty(QStringLiteral("ao-volume"), qRound(value * 100.0));
 }
@@ -736,7 +743,7 @@ void QtMPVPlayer::setAutoStart(const bool value)
 
 void QtMPVPlayer::setAspectRatio(const qreal value)
 {
-    if (aspectRatio() == value) {
+    if (qFuzzyCompare(aspectRatio(), value)) {
         return;
     }
     mpvSetProperty(QStringLiteral("video-aspect-override"), value);
@@ -744,7 +751,7 @@ void QtMPVPlayer::setAspectRatio(const qreal value)
 
 void QtMPVPlayer::setPlaybackRate(const qreal value)
 {
-    if (playbackRate() == value) {
+    if (qFuzzyCompare(playbackRate(), value)) {
         return;
     }
     mpvSetProperty(QStringLiteral("speed"), value);

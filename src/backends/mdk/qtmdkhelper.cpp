@@ -29,6 +29,8 @@
 #include "include/mdk/c/global.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qlibrary.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
 
 #ifndef WWX190_GENERATE_MDKAPI
 #define WWX190_GENERATE_MDKAPI(funcName, resultType, ...) \
@@ -39,6 +41,7 @@
 #ifndef WWX190_RESOLVE_MDKAPI
 #define WWX190_RESOLVE_MDKAPI(funcName) \
     if (!m_lp_##funcName) { \
+        qDebug() << "Resolving function:" << #funcName; \
         m_lp_##funcName = reinterpret_cast<_WWX190_MDKAPI_lp_##funcName>(library.resolve(#funcName)); \
         Q_ASSERT(m_lp_##funcName); \
         if (!m_lp_##funcName) { \
@@ -121,21 +124,27 @@ public:
     {
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
-            qWarning() << "Failed to load mdk: empty library path.";
+            qWarning() << "Failed to load MDK: empty library path.";
             return false;
         }
 
         if (isLoaded()) {
-            qDebug() << "mdk already loaded. Unloading ...";
+            qDebug() << "MDK already loaded. Unloading ...";
             if (!unload()) {
                 return false;
             }
         }
 
         library.setFileName(path);
-
-        if (!library.load()) {
-            qWarning() << "Failed to load mdk:" << library.errorString();
+        const bool result = library.load();
+        if (result) {
+            // We can't get the full file name if QLibrary is not loaded.
+            QFileInfo fi(library.fileName());
+            fi.makeAbsolute();
+            qDebug() << "Start loading MDK from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
+        } else {
+            qDebug() << "Start loading MDK from:" << QDir::toNativeSeparators(path);
+            qWarning() << "Failed to load MDK:" << library.errorString();
             return false;
         }
 
@@ -166,7 +175,7 @@ public:
         WWX190_RESOLVE_MDKAPI(mdkVideoFrameAPI_new)
         WWX190_RESOLVE_MDKAPI(mdkVideoFrameAPI_delete)
 
-        qDebug() << "mdk loaded successfully.";
+        qDebug() << "MDK loaded successfully.";
         return true;
     }
 
@@ -201,12 +210,12 @@ public:
 
         if (library.isLoaded()) {
             if (!library.unload()) {
-                qWarning() << "Failed to unload mdk:" << library.errorString();
+                qWarning() << "Failed to unload MDK:" << library.errorString();
                 return false;
             }
         }
 
-        qDebug() << "mdk unloaded successfully.";
+        qDebug() << "MDK unloaded successfully.";
         return true;
     }
 

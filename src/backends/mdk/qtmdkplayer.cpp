@@ -303,11 +303,11 @@ void QtMDKPlayer::setVolume(const qreal value)
     if (qFuzzyCompare(value, m_volume)) {
         return;
     }
-    if (value < 0) {
+    if (value < 0.0) {
         qWarning() << "The minimum volume is 0, however" << value << "is given.";
         return;
     }
-    if (value > 1) {
+    if (value > 1.0) {
         qWarning() << "The maximum volume is 1.0, setting a higher number may cause damaged sound.";
     }
     m_volume = value;
@@ -467,7 +467,7 @@ qreal QtMDKPlayer::playbackRate() const
 
 void QtMDKPlayer::setPlaybackRate(const qreal value)
 {
-    if (value == playbackRate()) {
+    if (qFuzzyCompare(value, playbackRate())) {
         return;
     }
     m_player->setPlaybackRate(value);
@@ -485,7 +485,7 @@ qreal QtMDKPlayer::aspectRatio() const
 
 void QtMDKPlayer::setAspectRatio(const qreal value)
 {
-    if (value == aspectRatio()) {
+    if (qFuzzyCompare(value, aspectRatio())) {
         return;
     }
     m_player->setAspectRatio(value);
