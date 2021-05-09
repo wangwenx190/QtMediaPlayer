@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
             QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11Rhi);
 #else
+            QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Direct3D11Rhi);
 #endif
         } else if ((rhiBackendParamValue == QStringLiteral("vulkan"))
                    || (rhiBackendParamValue == QStringLiteral("vk"))) {
@@ -96,6 +97,7 @@ int main(int argc, char *argv[])
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
             QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGLRhi);
 #else
+            QQuickWindow::setSceneGraphBackend(QSGRendererInterface::OpenGLRhi);
 #endif
             QSurfaceFormat surfaceFormat = QSurfaceFormat::defaultFormat();
             if (rhiBackendParamValue.contains(QStringLiteral("es"), Qt::CaseInsensitive)) {
@@ -120,12 +122,17 @@ int main(int argc, char *argv[])
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
             QQuickWindow::setGraphicsApi(QSGRendererInterface::MetalRhi);
 #else
+            QQuickWindow::setSceneGraphBackend(QSGRendererInterface::MetalRhi);
 #endif
         } else if ((rhiBackendParamValue == QStringLiteral("software"))
                    || (rhiBackendParamValue == QStringLiteral("soft"))
                    || (rhiBackendParamValue == QStringLiteral("sw"))) {
             qDebug() << "Setting Qt RHI backend to Software ...";
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
             QQuickWindow::setGraphicsApi(QSGRendererInterface::Software);
+#else
+            QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
+#endif
         } else if (rhiBackendParamValue == QStringLiteral("auto")) {
             // Let Qt itself decide which RHI backend to use.
         } else {
@@ -164,6 +171,7 @@ int main(int argc, char *argv[])
             return -1;
         }
 #else
+        // TODO
 #endif
         if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::registerBackend("mpv")) {
             qWarning() << "Failed to create the MPV backend.";

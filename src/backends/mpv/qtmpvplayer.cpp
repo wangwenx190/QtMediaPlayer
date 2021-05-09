@@ -27,6 +27,7 @@
 #include "qtmpvvideotexturenode.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
+#include <QtQuick/qquickwindow.h>
 
 static inline void wakeup(void *ctx)
 {

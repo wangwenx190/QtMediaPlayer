@@ -28,6 +28,8 @@
 #include "include/mdk/Player.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
+#include <QtCore/qdatetime.h>
+#include <QtQuick/qquickwindow.h>
 
 static inline std::vector<std::string> qStringListToStdStringVector(const QStringList &stringList)
 {
