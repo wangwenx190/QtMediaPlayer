@@ -131,7 +131,7 @@ QString MPVPlayer::backendVersion() const
 QString MPVPlayer::backendDescription() const
 {
     // TODO
-    return tr("mpv backend.");
+    return tr("The MPV backend.");
 }
 
 QString MPVPlayer::backendVendor() const
@@ -261,6 +261,7 @@ void MPVPlayer::setMediaStatus(const MediaStatus mediaStatus)
 void MPVPlayer::videoReconfig()
 {
     Q_EMIT videoSizeChanged();
+    // What else to do ?
 }
 
 void MPVPlayer::audioReconfig()
@@ -582,7 +583,7 @@ void MPVPlayer::play()
 
 void MPVPlayer::pause()
 {
-    if (!isPlaying()) {
+    if (!m_source.isValid()) {
         return;
     }
     mpvSetProperty(QStringLiteral("pause"), true);
@@ -591,7 +592,7 @@ void MPVPlayer::pause()
 
 void MPVPlayer::stop()
 {
-    if (isStopped()) {
+    if (!m_source.isValid()) {
         return;
     }
     mpvSendCommand(QVariantList{QStringLiteral("stop")});
@@ -603,6 +604,15 @@ void MPVPlayer::seek(const qint64 value)
     if (isStopped() || (position() == value)) {
         return;
     }
+    if (value < 0) {
+        qWarning() << "Media start time is 0, however, the user is trying to seek to" << value;
+        return;
+    }
+    const qint64 _duration = duration();
+    if (value > _duration) {
+        qWarning() << "Media duration is" << _duration << ", however, the user is trying to seek to" << value;
+        return;
+    }
     mpvSendCommand(QVariantList{QStringLiteral("seek"), qRound64(static_cast<qreal>(value) / 1000.0), QStringLiteral("absolute")});
 }
 
@@ -611,22 +621,30 @@ void MPVPlayer::snapshot()
     if (isStopped()) {
         return;
     }
-    // Replace "subtitles" with "video" if you don't want to include subtitles
-    // when screenshotting.
+    // Replace "subtitles" with "video" if you don't want to include subtitles when screenshotting.
     mpvSendCommand(QVariantList{QStringLiteral("screenshot"), QStringLiteral("subtitles")});
 }
 
 void MPVPlayer::setSource(const QUrl &value)
 {
     if (value.isEmpty()) {
+        qDebug() << "Empty source is set, playback stopped.";
         stop();
         m_source.clear();
         Q_EMIT sourceChanged();
         return;
     }
-    if (!value.isValid() || (value == m_source)) {
+    if (!value.isValid()) {
+        qWarning() << "The given URL" << value << "is invalid.";
         return;
     }
+    if (value == m_source) {
+        if (isStopped() && !m_livePreview) {
+            play();
+        }
+        return;
+    }
+    stop();
     const bool result = mpvSendCommand(QVariantList{QStringLiteral("loadfile"), value.isLocalFile() ? QDir::toNativeSeparators(value.toLocalFile()) : value.url()});
     if (result) {
         if (m_livePreview || !m_autoStart) {
@@ -702,9 +720,6 @@ void MPVPlayer::setLogLevel(const LogLevel value)
 
 void MPVPlayer::setPosition(const qint64 value)
 {
-    if (isStopped() || (position() == value)) {
-        return;
-    }
     seek(value);
 }
 
@@ -714,11 +729,12 @@ void MPVPlayer::setVolume(const qreal value)
         return;
     }
     if (value < 0.0) {
-        qWarning() << "The minimum volume is 0, however" << value << "is given.";
+        qWarning() << "The minimum volume is 0, however, the user is trying to change it to" << value;
         return;
     }
     if (value > 1.0) {
-        qWarning() << "The maximum volume is 1.0, setting a higher number may cause damaged sound.";
+        qWarning() << "The maximum volume is 1.0, however, the user is trying to change it to" << value
+                   << ". It's allowed but it may cause damaged sound.";
     }
     mpvSetProperty(QStringLiteral("ao-volume"), qRound(value * 100.0));
 }
@@ -750,12 +766,20 @@ void MPVPlayer::setAspectRatio(const qreal value)
     if (qFuzzyCompare(aspectRatio(), value)) {
         return;
     }
+    if (value <= 0.0) {
+        qWarning() << "The user is trying to change the aspect ratio to" << value << ", which is not allowed.";
+        return;
+    }
     mpvSetProperty(QStringLiteral("video-aspect-override"), value);
 }
 
 void MPVPlayer::setPlaybackRate(const qreal value)
 {
     if (qFuzzyCompare(playbackRate(), value)) {
+        return;
+    }
+    if (value <= 0.0) {
+        qWarning() << "The user is trying to change the playback rate to" << value << ", which is not allowed.";
         return;
     }
     mpvSetProperty(QStringLiteral("speed"), value);

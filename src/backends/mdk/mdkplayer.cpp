@@ -59,7 +59,7 @@ static inline MDK_NS_PREPEND(LogLevel) _MDKPlayer_MDK_LogLevel()
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-MDKVideoTextureNode *createNode(MDKPlayer *item);
+extern MDKVideoTextureNode *createNode(MDKPlayer *item);
 
 MDKPlayer::MDKPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {
@@ -133,7 +133,7 @@ QString MDKPlayer::backendVersion() const
 QString MDKPlayer::backendDescription() const
 {
     // TODO
-    return tr("mdk backend.");
+    return tr("The MDK backend.");
 }
 
 QString MDKPlayer::backendVendor() const
@@ -215,9 +215,7 @@ QUrl MDKPlayer::source() const
     if (!m_player->url()) {
         return {};
     }
-    return QUrl::fromUserInput(QString::fromUtf8(m_player->url()),
-                               QCoreApplication::applicationDirPath(),
-                               QUrl::AssumeLocalFile);
+    return QUrl::fromUserInput(QString::fromUtf8(m_player->url()), QCoreApplication::applicationDirPath(), QUrl::AssumeLocalFile);
 }
 
 void MDKPlayer::setSource(const QUrl &value)
@@ -257,8 +255,7 @@ void MDKPlayer::setSource(const QUrl &value)
 QString MDKPlayer::fileName() const
 {
     const QUrl url = source();
-    return url.isValid() ? (url.isLocalFile() ? url.fileName() : url.toDisplayString())
-                            : QString{};
+    return url.isValid() ? (url.isLocalFile() ? url.fileName() : url.toDisplayString()) : QString{};
 }
 
 QString MDKPlayer::filePath() const
@@ -274,9 +271,6 @@ qint64 MDKPlayer::position() const
 
 void MDKPlayer::setPosition(const qint64 value)
 {
-    if (isStopped() || (value == position())) {
-        return;
-    }
     seek(value);
 }
 
@@ -308,11 +302,12 @@ void MDKPlayer::setVolume(const qreal value)
         return;
     }
     if (value < 0.0) {
-        qWarning() << "The minimum volume is 0, however" << value << "is given.";
+        qWarning() << "The minimum volume is 0, however, the user is trying to change it to" << value;
         return;
     }
     if (value > 1.0) {
-        qWarning() << "The maximum volume is 1.0, setting a higher number may cause damaged sound.";
+        qWarning() << "The maximum volume is 1.0, however, the user is trying to change it to" << value
+                   << ". It's allowed but it may cause damaged sound.";
     }
     m_volume = value;
     m_player->setVolume(m_volume);
@@ -474,6 +469,10 @@ void MDKPlayer::setPlaybackRate(const qreal value)
     if (qFuzzyCompare(value, playbackRate())) {
         return;
     }
+    if (value <= 0.0) {
+        qWarning() << "The user is trying to change the playback rate to" << value << ", which is not allowed.";
+        return;
+    }
     m_player->setPlaybackRate(value);
     Q_EMIT playbackRateChanged();
     if (!m_livePreview) {
@@ -490,6 +489,10 @@ qreal MDKPlayer::aspectRatio() const
 void MDKPlayer::setAspectRatio(const qreal value)
 {
     if (qFuzzyCompare(value, aspectRatio())) {
+        return;
+    }
+    if (value <= 0.0) {
+        qWarning() << "The user is trying to change the aspect ratio to" << value << ", which is not allowed.";
         return;
     }
     m_player->setAspectRatio(value);
@@ -769,12 +772,20 @@ void MDKPlayer::stop()
     }
     m_player->setNextMedia(nullptr);
     m_player->setState(MDK_NS_PREPEND(PlaybackState)::Stopped);
-    m_player->waitFor(MDK_NS_PREPEND(PlaybackState)::Stopped);
 }
 
 void MDKPlayer::seek(const qint64 value)
 {
     if (isStopped() || (value == position())) {
+        return;
+    }
+    const auto &mi = m_player->mediaInfo();
+    if (value < mi.start_time) {
+        qWarning() << "Media start time is" << mi.start_time << ", however, the user is trying to seek to" << value;
+        return;
+    }
+    if (value > mi.duration) {
+        qWarning() << "Media duration is" << mi.duration << ", however, the user is trying to seek to" << value;
         return;
     }
     // We have to seek accurately when we are in live preview mode.
