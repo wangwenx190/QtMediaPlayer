@@ -150,15 +150,9 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    if (playerBackendParamValue.isEmpty()) {
-        qDebug() << "Empty player backend is given. Trying the default backend MDK ...";
-        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(QStringLiteral("MDK"))) {
-            qWarning() << "Failed to create the MDK backend.";
-            return -1;
-        }
-    } else if (playerBackendParamValue == QStringLiteral("mdk")) {
+    if (playerBackendParamValue.isEmpty() || (playerBackendParamValue == QStringLiteral("mdk"))) {
         qDebug() << "Setting player backend to MDK ...";
-        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(QStringLiteral("mdk"))) {
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(QStringLiteral("MDK"))) {
             qWarning() << "Failed to create the MDK backend.";
             return -1;
         }
@@ -173,7 +167,7 @@ int main(int argc, char *argv[])
 #else
         // TODO
 #endif
-        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(QStringLiteral("mpv"))) {
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(QStringLiteral("MPV"))) {
             qWarning() << "Failed to create the MPV backend.";
             return -1;
         }
