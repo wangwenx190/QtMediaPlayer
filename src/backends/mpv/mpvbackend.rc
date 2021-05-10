@@ -45,11 +45,6 @@ BEGIN
             VALUE "FileDescription",  "QtMediaPlayer - MPV backend"
             VALUE "FileVersion",      "1.0.0.0"
             VALUE "LegalCopyright",   "MIT License"
-            #ifdef _DEBUG
-            VALUE "OriginalFilename", "QtMediaPlayer_MPVd.dll"
-            #else
-            VALUE "OriginalFilename", "QtMediaPlayer_MPV.dll"
-            #endif
             VALUE "ProductName",      "QtMediaPlayer"
             VALUE "ProductVersion",   "1.0.0.0"
         END
