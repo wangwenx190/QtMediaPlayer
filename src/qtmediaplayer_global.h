@@ -25,8 +25,7 @@
 #pragma once
 
 #include <QtCore/qglobal.h>
-#include <QtCore/qobject.h>
-#include <QtCore/qstring.h>
+//#include <QtCore/qobject.h>
 
 #ifndef QTMEDIAPLAYER_API
 #ifdef QTMEDIAPLAYER_STATIC

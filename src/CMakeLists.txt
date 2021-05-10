@@ -6,48 +6,11 @@ set(CMAKE_AUTORCC ON)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Quick REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
-find_package(Vulkan)
 
 set(SOURCES
     qtmediaplayer_global.h
-    mediaplayer.h
-    mediaplayer.cpp
-)
-
-# MDK backend
-list(APPEND SOURCES
-    backends/mdk/include/mdk/c/global.h
-    backends/mdk/include/mdk/c/MediaInfo.h
-    backends/mdk/include/mdk/c/module.h
-    backends/mdk/include/mdk/c/Player.h
-    backends/mdk/include/mdk/c/RenderAPI.h
-    backends/mdk/include/mdk/c/VideoFrame.h
-    backends/mdk/include/mdk/global.h
-    backends/mdk/include/mdk/MediaInfo.h
-    backends/mdk/include/mdk/Player.h
-    backends/mdk/include/mdk/RenderAPI.h
-    backends/mdk/include/mdk/VideoFrame.h
-    backends/mdk/mdkqthelper.h
-    backends/mdk/mdkqthelper.cpp
-    backends/mdk/mdkplayer.h
-    backends/mdk/mdkplayer.cpp
-    backends/mdk/mdkvideotexturenode.h
-    backends/mdk/mdkvideotexturenode.cpp
-    backends/mdk/mdkvideotexturenode_impl.cpp
-)
-
-# MPV backend
-list(APPEND SOURCES
-    backends/mpv/include/mpv/client.h
-    backends/mpv/include/mpv/render.h
-    backends/mpv/include/mpv/render_gl.h
-    backends/mpv/include/mpv/stream_cb.h
-    backends/mpv/mpvqthelper.h
-    backends/mpv/mpvqthelper.cpp
-    backends/mpv/mpvplayer.h
-    backends/mpv/mpvplayer.cpp
-    backends/mpv/mpvvideotexturenode.h
-    backends/mpv/mpvvideotexturenode.cpp
+    qtmediaplayer.h
+    qtmediaplayer.cpp
 )
 
 if(WIN32 AND BUILD_SHARED_LIBS)
@@ -57,12 +20,6 @@ endif()
 
 add_library(${PROJECT_NAME} ${SOURCES})
 add_library(wangwenx190::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
-
-if(TARGET Vulkan::Vulkan)
-    target_include_directories(${PROJECT_NAME} PRIVATE
-        ${Vulkan_INCLUDE_DIRS}
-    )
-endif()
 
 if(NOT BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME} PUBLIC
@@ -85,7 +42,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     QT_DEPRECATED_WARNINGS
     QT_DISABLE_DEPRECATED_BEFORE=0x060100
     QTMEDIAPLAYER_BUILD_LIBRARY
-    BUILD_MDK_STATIC
 )
 
 if(WIN32)
@@ -104,3 +60,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
 )
+
+add_subdirectory(backends)

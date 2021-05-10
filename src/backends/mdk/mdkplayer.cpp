@@ -114,11 +114,6 @@ MDKPlayer::~MDKPlayer()
     }
 }
 
-bool MDKPlayer::backendAvailable() const
-{
-    return MDK::Qt::mdkAvailable();
-}
-
 QString MDKPlayer::backendName() const
 {
     return QStringLiteral("MDK");

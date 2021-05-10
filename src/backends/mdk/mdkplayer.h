@@ -24,11 +24,10 @@
 
 #pragma once
 
-#include "../../qtmediaplayer_global.h"
-#include "../../mediaplayer.h"
+#include "mdkbackend_global.h"
+#include "../backendinterface.h"
 #include <QtCore/qurl.h>
 #include <QtCore/qtimer.h>
-#include <QtQuick/qquickitem.h>
 
 namespace mdk
 {
@@ -52,7 +51,6 @@ public:
     explicit MDKPlayer(QQuickItem *parent = nullptr);
     ~MDKPlayer() override;
 
-    bool backendAvailable() const override;
     QString backendName() const override;
     QString backendVersion() const override;
     QString backendDescription() const override;

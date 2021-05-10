@@ -22,9 +22,7 @@
  * SOFTWARE.
  */
 
-#include "mediaplayer.h"
-#include "backends/mdk/mdkplayer.h"
-#include "backends/mpv/mpvplayer.h"
+#include "backendinterface.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qmimedatabase.h>
 #include <QtCore/qmimetype.h>
@@ -89,28 +87,6 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
 }
 
 MediaPlayer::~MediaPlayer() = default;
-
-bool MediaPlayer::registerBackend(const char *name)
-{
-    Q_ASSERT(name);
-    if (!name) {
-        return false;
-    }
-    if (qstricmp(name, "mdk") == 0) {
-        QTMEDIAPLAYER_QML_REGISTER(MDKPlayer);
-        return true;
-    }
-    if (qstricmp(name, "mpv") == 0) {
-        QTMEDIAPLAYER_QML_REGISTER(MPVPlayer);
-        return true;
-    }
-    if (qstricmp(name, "vlc") == 0) {
-        //QTMEDIAPLAYER_QML_REGISTER(QtVLCPlayer);
-        //return true;
-    }
-    qWarning() << "Unsupported backend:" << name;
-    return false;
-}
 
 QStringList MediaPlayer::videoMimeTypes()
 {

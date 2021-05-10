@@ -24,19 +24,17 @@
 
 #pragma once
 
-#include "qtmediaplayer_global.h"
-#include <QtCore/qurl.h>
+#include "../qtmediaplayer_global.h"
 #include <QtQuick/qquickitem.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class QTMEDIAPLAYER_API MediaPlayer : public QQuickItem
+class MediaPlayer : public QQuickItem
 {
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(MediaPlayer)
     Q_CLASSINFO("RegisterEnumClassesUnscoped", "false")
 
-    Q_PROPERTY(bool backendAvailable READ backendAvailable CONSTANT)
     Q_PROPERTY(QString backendName READ backendName CONSTANT)
     Q_PROPERTY(QString backendVersion READ backendVersion CONSTANT)
     Q_PROPERTY(QString backendDescription READ backendDescription CONSTANT)
@@ -140,9 +138,6 @@ public:
     explicit MediaPlayer(QQuickItem *parent = nullptr);
     ~MediaPlayer() override;
 
-    static bool registerBackend(const char *name);
-
-    virtual bool backendAvailable() const = 0;
     virtual QString backendName() const = 0;
     virtual QString backendVersion() const = 0;
     virtual QString backendDescription() const = 0;

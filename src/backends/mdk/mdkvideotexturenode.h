@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "../../qtmediaplayer_global.h"
+#include "mdkbackend_global.h"
 #include <QtQuick/qsgtextureprovider.h>
 #include <QtQuick/qsgsimpletexturenode.h>
 

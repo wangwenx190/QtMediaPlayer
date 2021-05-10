@@ -22,47 +22,23 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include "mdkbackend.h"
+#include "mdkplayer.h"
+#include "mdkqthelper.h"
 
-#include "mpvbackend_global.h"
-#include <QtQuick/qsgtextureprovider.h>
-#include <QtQuick/qsgsimpletexturenode.h>
-
-QT_BEGIN_NAMESPACE
-QT_FORWARD_DECLARE_CLASS(QQuickWindow)
-QT_FORWARD_DECLARE_CLASS(QOpenGLFramebufferObject)
-QT_END_NAMESPACE
-
-QTMEDIAPLAYER_BEGIN_NAMESPACE
-
-class MPVPlayer;
-
-class MPVVideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNode
+bool RegisterBackend(const char *name)
 {
-    Q_OBJECT
-    Q_DISABLE_COPY_MOVE(MPVVideoTextureNode)
+    if (qstricmp(name, "mdk") == 0) {
+        if (MDK::Qt::mdkAvailable()) {
+            const int typeId = QTMEDIAPLAYER_QML_REGISTER(QTMEDIAPLAYER_PREPEND_NAMESPACE(MDKPlayer));
+            Q_UNUSED(typeId);
+            return true;
+        }
+    }
+    return false;
+}
 
-public:
-    explicit MPVVideoTextureNode(MPVPlayer *item);
-    ~MPVVideoTextureNode() override;
-
-    QSGTexture *texture() const override;
-
-    void sync();
-
-private Q_SLOTS:
-    void render();
-
-private:
-    QSGTexture *ensureTexture(const QSize &size);
-
-private:
-#if QT_CONFIG(opengl)
-    QScopedPointer<QOpenGLFramebufferObject> fbo_gl;
-#endif
-    QQuickWindow *m_window = nullptr;
-    MPVPlayer *m_item = nullptr;
-    QSize m_size = {};
-};
-
-QTMEDIAPLAYER_END_NAMESPACE
+const char *GetBackendName()
+{
+    return "MDK";
+}

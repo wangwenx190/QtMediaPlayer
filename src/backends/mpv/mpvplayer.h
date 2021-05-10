@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "../../qtmediaplayer_global.h"
-#include "../../mediaplayer.h"
+#include "mpvbackend_global.h"
+#include "../backendinterface.h"
 
 struct mpv_handle;
 struct mpv_render_context;
@@ -47,7 +47,6 @@ public:
 
     static void on_update(void *ctx);
 
-    bool backendAvailable() const override;
     QString backendName() const override;
     QString backendVersion() const override;
     QString backendDescription() const override;

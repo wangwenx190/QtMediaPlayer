@@ -113,11 +113,6 @@ void MPVPlayer::on_update(void *ctx)
     Q_EMIT static_cast<MPVPlayer *>(ctx)->onUpdate();
 }
 
-bool MPVPlayer::backendAvailable() const
-{
-    return MPV::Qt::libmpvAvailable();
-}
-
 QString MPVPlayer::backendName() const
 {
     return QStringLiteral("MPV");

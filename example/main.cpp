@@ -29,7 +29,7 @@
 #include <QtQml/qqmlapplicationengine.h>
 #include <QtQuickControls2/qquickstyle.h>
 #include <QtQuick/qquickwindow.h>
-#include <mediaplayer.h>
+#include <qtmediaplayer.h>
 
 int main(int argc, char *argv[])
 {
@@ -152,13 +152,13 @@ int main(int argc, char *argv[])
 
     if (playerBackendParamValue.isEmpty()) {
         qDebug() << "Empty player backend is given. Trying the default backend MDK ...";
-        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::registerBackend("mdk")) {
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(QStringLiteral("MDK"))) {
             qWarning() << "Failed to create the MDK backend.";
             return -1;
         }
     } else if (playerBackendParamValue == QStringLiteral("mdk")) {
         qDebug() << "Setting player backend to MDK ...";
-        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::registerBackend("mdk")) {
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(QStringLiteral("mdk"))) {
             qWarning() << "Failed to create the MDK backend.";
             return -1;
         }
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 #else
         // TODO
 #endif
-        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::registerBackend("mpv")) {
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(QStringLiteral("mpv"))) {
             qWarning() << "Failed to create the MPV backend.";
             return -1;
         }
