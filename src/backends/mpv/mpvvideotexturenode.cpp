@@ -58,6 +58,7 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 MPVVideoTextureNode::MPVVideoTextureNode(MPVPlayer *item)
 {
+    Q_ASSERT(item);
     if (!item) {
         qFatal("null mpv player item.");
     }
@@ -235,6 +236,10 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(const QSize &size)
                 qFatal("failed to initialize mpv GL context");
             }
             MPV::Qt::render_context_set_update_callback(m_item->m_mpv_gl, on_mpv_redraw, m_item);
+
+            // If you try to play any media before this signal is emitted,
+            // libmpv will create a separate window to display it.
+            QMetaObject::invokeMethod(m_item, "rendererReady");
         }
         const auto tex = fbo_gl->texture();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))

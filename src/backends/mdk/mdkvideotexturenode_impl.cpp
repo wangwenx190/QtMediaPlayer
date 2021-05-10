@@ -23,6 +23,7 @@
  */
 
 #include "mdkvideotexturenode.h"
+#include "mdkplayer.h"
 #include <QtQuick/qquickwindow.h>
 
 #ifdef Q_OS_WINDOWS
@@ -153,6 +154,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
         MDK_NS_PREPEND(GLRenderAPI) ra = {};
         ra.fbo = fbo_gl->handle();
         player->setRenderAPI(&ra);
+        QMetaObject::invokeMethod(m_item, "rendererReady");
         const auto tex = fbo_gl->texture();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = static_cast<decltype(nativeObj)>(tex);
@@ -185,6 +187,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
         MDK_NS_PREPEND(D3D11RenderAPI) ra = {};
         ra.rtv = m_texture_d3d11.Get();
         player->setRenderAPI(&ra);
+        QMetaObject::invokeMethod(m_item, "rendererReady");
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = reinterpret_cast<decltype(nativeObj)>(m_texture_d3d11.Get());
 #else
@@ -215,6 +218,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
         ra.device = (__bridge void*)dev;
         ra.cmdQueue = rif->getResource(m_window, QSGRendererInterface::CommandQueueResource);
         player->setRenderAPI(&ra);
+        QMetaObject::invokeMethod(m_item, "rendererReady");
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = decltype(nativeObj)(ra.texture);
 #else
@@ -263,6 +267,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
             return cmdBuf;
         };
         player->setRenderAPI(&ra);
+        QMetaObject::invokeMethod(m_item, "rendererReady");
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         if (m_texture_vk) {
             return QNativeInterface::QSGVulkanTexture::fromNative(m_texture_vk, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_window, size);
@@ -274,10 +279,10 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
     case QSGRendererInterface::Software:
     {
         // TODO: implement this.
-        qWarning() << "TO BE IMPLEMENTED: software backend of mdk.";
+        qWarning() << "TO BE IMPLEMENTED: Software backend of MDK.";
     } break;
     default:
-        qWarning() << "Unsupported backend of mdk:" << rif->graphicsApi();
+        qWarning() << "Unsupported backend of MDK:" << rif->graphicsApi();
         break;
     }
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
