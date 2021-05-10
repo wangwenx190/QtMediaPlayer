@@ -48,6 +48,10 @@ MPVPlayer::MPVPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {
     qDebug() << "Initializing the MPV backend ...";
 
+    if (!MPV::Qt::libmpvAvailable()) {
+        qFatal("libmpv is not available.");
+    }
+
     // Qt sets the locale in the QGuiApplication constructor, but libmpv
     // requires the LC_NUMERIC category to be set to "C", so change it back.
     std::setlocale(LC_NUMERIC, "C");

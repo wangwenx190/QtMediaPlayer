@@ -65,6 +65,10 @@ MDKPlayer::MDKPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {
     qDebug() << "Initializing the MDK backend ...";
 
+    if (!MDK::Qt::mdkAvailable()) {
+        qFatal("MDK is not available.");
+    }
+
     m_player.reset(new MDK_NS_PREPEND(Player));
     if (m_player.isNull()) {
         qFatal("Failed to create mdk player.");

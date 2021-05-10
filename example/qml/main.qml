@@ -25,6 +25,7 @@
 import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 import Qt.labs.platform 1.1
 import org.wangwenx190.QtMediaPlayer 1.0
 
@@ -34,6 +35,16 @@ Window {
     width: 800
     height: 600
     title: (mediaPlayer.fileName.length > 0) ? (qsTr("Current playing: ") + mediaPlayer.fileName) : qsTr("QtMediaPlayer demo application")
+
+    Timer {
+        id: messageLabelTimer
+        interval: 3000
+
+        onTriggered: {
+            messageLabel.visible = false;
+            messageLabel.text = "";
+        }
+    }
 
     Shortcut {
         sequence: StandardKey.Open
@@ -61,7 +72,6 @@ Window {
 
     FileDialog {
         id: fileDialog
-        currentFile: mediaPlayer.source
         folder: StandardPaths.writableLocation(StandardPaths.MoviesLocation)
         options: FileDialog.ReadOnly
         nameFilters: [
@@ -105,62 +115,95 @@ Window {
         onClicked: fileDialog.open()
     }
 
-    Slider {
-        id: slider
+    RowLayout {
         anchors {
-            left: parent.left
-            right: parent.right
             bottom: parent.bottom
-            bottomMargin: 20
+            bottomMargin: 10
+            left: parent.left
+            leftMargin: 10
+            right: parent.right
+            rightMargin: 10
         }
-        visible: mediaPlayer.playbackState !== MediaPlayer.PlaybackState.Stopped
-        to: mediaPlayer.duration
-        value: mediaPlayer.position
-        onMoved: mediaPlayer.seek(slider.value)
+        spacing: 10
 
-        background: Rectangle {
-            id: slider_background
-            x: slider.leftPadding
-            y: slider.topPadding + slider.availableHeight / 2 - height / 2
-            implicitWidth: 200
-            implicitHeight: 7
-            width: slider.availableWidth
-            height: implicitHeight
-            radius: 2
-            color: "#bdbebf"
+        Label {
+            visible: mediaPlayer.playbackState !== MediaPlayer.PlaybackState.Stopped
+            text: mediaPlayer.formatTime(mediaPlayer.position, "hh:mm:ss")
+            font {
+                bold: true
+                pointSize: 12
+            }
+            color: "white"
+        }
 
-            Rectangle {
-                width: slider.visualPosition * parent.width
-                height: parent.height
-                color: "#21be2b"
-                radius: 2
+        Slider {
+            Layout.fillWidth: true
+            id: positionSlider
+            visible: mediaPlayer.playbackState !== MediaPlayer.PlaybackState.Stopped
+            to: mediaPlayer.duration
+            value: mediaPlayer.position
+
+            onMoved: {
+                mediaPlayer.seek(positionSlider.value);
+                messageLabel.text = qsTr("Seek to %1%").arg(Math.round(mediaPlayer.position / mediaPlayer.duration * 100));
+                messageLabel.visible = true;
+                messageLabelTimer.restart();
             }
 
-            MouseArea {
-                hoverEnabled: true
-                anchors.fill: parent
-                onEntered: preview.visible = true
-                onExited: preview.visible = false
-                onPositionChanged: {
-                    var minX = 0;
-                    var maxX = window.width - preview.width;
-                    var curX = mouseX - (preview.width / 2);
-                    var newX = (curX < minX) ? minX : ((curX > maxX) ? maxX : curX);
-                    preview.x = newX;
-                    var newPos = (mouseX - slider_background.x) / slider_background.width;
-                    preview.seek(newPos * mediaPlayer.duration);
+            background: Rectangle {
+                id: slider_background
+                x: positionSlider.leftPadding
+                y: positionSlider.topPadding + positionSlider.availableHeight / 2 - height / 2
+                implicitWidth: 200
+                implicitHeight: 7
+                width: positionSlider.availableWidth
+                height: implicitHeight
+                radius: 2
+                color: "#bdbebf"
+
+                Rectangle {
+                    width: positionSlider.visualPosition * parent.width
+                    height: parent.height
+                    color: "#21be2b"
+                    radius: 2
+                }
+
+                MouseArea {
+                    hoverEnabled: true
+                    anchors.fill: parent
+                    onEntered: preview.visible = true
+                    onExited: preview.visible = false
+                    onPositionChanged: {
+                        var minX = 0;
+                        var maxX = window.width - preview.width;
+                        var curX = mouseX - (preview.width / 2);
+                        var newX = (curX < minX) ? minX : ((curX > maxX) ? maxX : curX);
+                        preview.x = newX;
+                        var newPos = (mouseX - slider_background.x) / slider_background.width;
+                        preview.seek(newPos * mediaPlayer.duration);
+                    }
                 }
             }
+
+            handle: Rectangle {
+                x: positionSlider.leftPadding + positionSlider.visualPosition * (positionSlider.availableWidth - width)
+                y: positionSlider.topPadding + positionSlider.availableHeight / 2 - height / 2
+                implicitWidth: 20
+                implicitHeight: 20
+                radius: 10
+                color: positionSlider.pressed ? "#f0f0f0" : "#f6f6f6"
+                border.color: "#bdbebf"
+            }
         }
 
-        handle: Rectangle {
-            x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
-            y: slider.topPadding + slider.availableHeight / 2 - height / 2
-            implicitWidth: 20
-            implicitHeight: 20
-            radius: 10
-            color: slider.pressed ? "#f0f0f0" : "#f6f6f6"
-            border.color: "#bdbebf"
+        Label {
+            visible: mediaPlayer.playbackState !== MediaPlayer.PlaybackState.Stopped
+            text: mediaPlayer.formatTime(mediaPlayer.duration, "hh:mm:ss")
+            font {
+                bold: true
+                pointSize: 12
+            }
+            color: "white"
         }
     }
 
@@ -188,5 +231,20 @@ Window {
             }
             text: preview.formatTime(preview.position, "hh:mm:ss")
         }
+    }
+
+    Label {
+        id: messageLabel
+        anchors {
+            top: parent.top
+            topMargin: 10
+            left: parent.left
+            leftMargin: 10
+        }
+        font {
+            bold: true
+            pointSize: 15
+        }
+        color: "white"
     }
 }
