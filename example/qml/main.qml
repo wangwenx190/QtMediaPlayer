@@ -145,13 +145,12 @@ Window {
 
             onMoved: {
                 mediaPlayer.seek(positionSlider.value);
-                messageLabel.text = qsTr("Seek to %1%").arg(Math.round(mediaPlayer.position / mediaPlayer.duration * 100));
+                messageLabel.text = qsTr("Seek to: %1%").arg(Math.round(mediaPlayer.position / mediaPlayer.duration * 100));
                 messageLabel.visible = true;
                 messageLabelTimer.restart();
             }
 
             background: Rectangle {
-                id: slider_background
                 x: positionSlider.leftPadding
                 y: positionSlider.topPadding + positionSlider.availableHeight / 2 - height / 2
                 implicitWidth: 200
@@ -176,10 +175,10 @@ Window {
                     onPositionChanged: {
                         var minX = 0;
                         var maxX = window.width - preview.width;
-                        var curX = mouseX - (preview.width / 2);
+                        var curX = mouseX - (preview.width / 2) + positionSlider.x;
                         var newX = (curX < minX) ? minX : ((curX > maxX) ? maxX : curX);
                         preview.x = newX;
-                        var newPos = (mouseX - slider_background.x) / slider_background.width;
+                        var newPos = (mouseX - positionSlider.x) / positionSlider.width;
                         preview.seek(newPos * mediaPlayer.duration);
                     }
                 }
@@ -230,6 +229,25 @@ Window {
                 pointSize: 15
             }
             text: preview.formatTime(preview.position, "hh:mm:ss")
+        }
+    }
+
+    Slider {
+        id: volumeSlider
+        anchors {
+            verticalCenter: parent.verticalCenter
+            right: parent.right
+            rightMargin: 10
+        }
+        orientation: Qt.Vertical
+        height: window.height / 3
+        value: mediaPlayer.volume
+
+        onMoved: {
+            mediaPlayer.volume = volumeSlider.value;
+            messageLabel.text = qsTr("Volume: %1%").arg(Math.round(mediaPlayer.volume * 100));
+            messageLabel.visible = true;
+            messageLabelTimer.restart();
         }
     }
 
