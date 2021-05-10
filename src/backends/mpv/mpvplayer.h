@@ -24,33 +24,28 @@
 
 #pragma once
 
-#include "qtmediaplayer_global.h"
-#include "qtmediaplayer.h"
-#include <QtCore/qurl.h>
-#include <QtCore/qtimer.h>
-#include <QtQuick/qquickitem.h>
+#include "../../qtmediaplayer_global.h"
+#include "../../mediaplayer.h"
 
-namespace mdk
-{
-
-class Player;
-
-}
+struct mpv_handle;
+struct mpv_render_context;
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class MDKVideoTextureNode;
+class MPVVideoTextureNode;
 
-class QtMDKPlayer : public QtMediaPlayer
+class MPVPlayer : public MediaPlayer
 {
     Q_OBJECT
-    Q_DISABLE_COPY_MOVE(QtMDKPlayer)
+    Q_DISABLE_COPY_MOVE(MPVPlayer)
 
-    friend class MDKVideoTextureNode;
+    friend class MPVVideoTextureNode;
 
 public:
-    explicit QtMDKPlayer(QQuickItem *parent = nullptr);
-    ~QtMDKPlayer() override;
+    explicit MPVPlayer(QQuickItem *parent = nullptr);
+    ~MPVPlayer() override;
+
+    static void on_update(void *ctx);
 
     bool backendAvailable() const override;
     QString backendName() const override;
@@ -134,6 +129,9 @@ public Q_SLOTS:
 
     void snapshot() override;
 
+protected Q_SLOTS:
+    void handleMpvEvents();
+
 protected:
     QSGNode *updatePaintNode(QSGNode *node, UpdatePaintNodeData *data) override;
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
@@ -143,40 +141,84 @@ protected:
 #endif
 
 private Q_SLOTS:
+    void doUpdate();
     void invalidateSceneGraph();
 
 private:
+    void releaseResources() override;
+
+    bool mpvSendCommand(const QVariant &arguments);
+    bool mpvSetProperty(const QString &name, const QVariant &value);
+    QVariant mpvGetProperty(const QString &name, const bool silent = false, bool *ok = nullptr) const;
+    bool mpvObserveProperty(const QString &name);
+
+    void processMpvLogMessage(void *event);
+    void processMpvPropertyChange(void *event);
+
     bool isLoaded() const;
     bool isPlaying() const;
     bool isPaused() const;
     bool isStopped() const;
 
-    void releaseResources() override;
+    void setMediaStatus(const MediaStatus mediaStatus);
 
-    void initMdkHandlers();
+    void videoReconfig();
+    void audioReconfig();
 
-    void resetInternalData();
+    void playbackStateChangeEvent();
+
+Q_SIGNALS:
+    void onUpdate();
+    void hasMpvEvents();
 
 private:
-    MDKVideoTextureNode *m_node = nullptr;
+    mpv_handle *m_mpv = nullptr;
+    mpv_render_context *m_mpv_gl = nullptr;
 
-    QTimer m_timer;
+    MPVVideoTextureNode *m_node = nullptr;
 
-    QSharedPointer<mdk::Player> m_player;
-
-    qreal m_volume = 1.0;
-
-    bool m_mute = false;
-    bool m_hardwareDecoding = false;
-    bool m_autoStart = true;
+    QUrl m_source = {};
+    MediaStatus m_mediaStatus = MediaStatus::NoMedia;
     bool m_livePreview = false;
+    bool m_autoStart = true;
 
-    QUrl m_snapshotDirectory = {};
-    QString m_snapshotFormat = QStringLiteral("png");
-    QString m_snapshotTemplate = QStringLiteral("${filename}_${datetime}_${frametime}");
+    const QHash<QString, QList<const char *>> properties =
+    {
+        {QStringLiteral("dwidth"), {"videoSizeChanged"}},
+        {QStringLiteral("dheight"), {"videoSizeChanged"}},
+        {QStringLiteral("duration"), {"durationChanged"}},
+        {QStringLiteral("time-pos"), {"positionChanged"}},
+        {QStringLiteral("ao-volume"), {"volumeChanged"}},
+        {QStringLiteral("ao-mute"), {"muteChanged"}},
+        {QStringLiteral("seekable"), {"seekableChanged"}},
+        {QStringLiteral("hwdec"), {"hardwareDecodingChanged"}},
+        {QStringLiteral("video-out-params/aspect"), {"aspectRatioChanged"}},
+        {QStringLiteral("speed"), {"playbackRateChanged"}},
+        {QStringLiteral("filename"), {"fileNameChanged"}},
+        {QStringLiteral("screenshot-format"), {"snapshotFormatChanged"}},
+        {QStringLiteral("screenshot-template"), {"snapshotTemplateChanged"}},
+        {QStringLiteral("screenshot-directory"), {"snapshotDirectoryChanged"}},
+        {QStringLiteral("path"), {"filePathChanged"}},
+        {QStringLiteral("pause"), {"playbackStateChanged"}},
+        {QStringLiteral("idle-active"), {"playbackStateChanged"}},
+        {QStringLiteral("track-list"), {"mediaTracksChanged"}},
+        {QStringLiteral("chapter-list"), {"chaptersChanged"}},
+        {QStringLiteral("metadata"), {"metaDataChanged"}}
+    };
 
-    FillMode m_fillMode = FillMode::PreserveAspectFit;
-    int m_mediaStatus = 0;
+    // These properties are changing all the time during the playback process.
+    // So we have to add them to the black list, otherwise we'll get huge
+    // message floods.
+    const QStringList propertyBlackList =
+    {
+        QStringLiteral("time-pos"),
+        QStringLiteral("playback-time"),
+        QStringLiteral("percent-pos"),
+        QStringLiteral("video-bitrate"),
+        QStringLiteral("audio-bitrate"),
+        QStringLiteral("estimated-vf-fps"),
+        QStringLiteral("avsync")
+    };
 };
 
 QTMEDIAPLAYER_END_NAMESPACE

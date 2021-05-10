@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-#include "qtmpvvideotexturenode.h"
-#include "qtmpvplayer.h"
-#include "qtmpvhelper.h"
+#include "mpvvideotexturenode.h"
+#include "mpvplayer.h"
+#include "mpvqthelper.h"
 #include "include/mpv/render_gl.h"
 #include <QtCore/qdebug.h>
 #include <QtGui/qscreen.h>
@@ -51,12 +51,12 @@ static inline void *get_proc_address_mpv(void *ctx, const char *name)
 
 static inline void on_mpv_redraw(void *ctx)
 {
-    QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMPVPlayer)::on_update(ctx);
+    QTMEDIAPLAYER_PREPEND_NAMESPACE(MPVPlayer)::on_update(ctx);
 }
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-MPVVideoTextureNode::MPVVideoTextureNode(QtMPVPlayer *item)
+MPVVideoTextureNode::MPVVideoTextureNode(MPVPlayer *item)
 {
     if (!item) {
         qFatal("null mpv player item.");

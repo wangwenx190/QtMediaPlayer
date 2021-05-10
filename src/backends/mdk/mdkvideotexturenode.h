@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "qtmediaplayer_global.h"
+#include "../../qtmediaplayer_global.h"
 #include <QtQuick/qsgtextureprovider.h>
 #include <QtQuick/qsgsimpletexturenode.h>
 
@@ -41,7 +41,7 @@ QT_END_NAMESPACE
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class QtMDKPlayer;
+class MDKPlayer;
 
 class MDKVideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNode
 {
@@ -49,7 +49,7 @@ class MDKVideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNo
     Q_DISABLE_COPY_MOVE(MDKVideoTextureNode)
 
 public:
-    explicit MDKVideoTextureNode(QtMDKPlayer *item);
+    explicit MDKVideoTextureNode(MDKPlayer *item);
     ~MDKVideoTextureNode() override;
 
     QSGTexture *texture() const override;
@@ -65,7 +65,7 @@ private:
 protected:
     TextureCoordinatesTransformMode m_transformMode = TextureCoordinatesTransformFlag::NoTransform;
     QQuickWindow *m_window = nullptr;
-    QtMDKPlayer *m_item = nullptr;
+    MDKPlayer *m_item = nullptr;
     QSize m_size = {};
 
 private:

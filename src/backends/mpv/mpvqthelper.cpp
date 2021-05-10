@@ -38,7 +38,7 @@
  * SOFTWARE.
  */
 
-#include "qtmpvhelper.h"
+#include "mpvqthelper.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qlibrary.h>
 #include <QtCore/qfileinfo.h>

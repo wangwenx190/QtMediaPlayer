@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-#include "qtmpvplayer.h"
-#include "qtmpvhelper.h"
-#include "qtmpvvideotexturenode.h"
+#include "mpvplayer.h"
+#include "mpvqthelper.h"
+#include "mpvvideotexturenode.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtQuick/qquickwindow.h>
@@ -39,12 +39,12 @@ static inline void wakeup(void *ctx)
     // recursively from a thread that is calling the mpv API). Just notify
     // the Qt GUI thread to wake up (so that it can process events with
     // mpv_wait_event()), and return as quickly as possible.
-    QMetaObject::invokeMethod(static_cast<QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMPVPlayer) *>(ctx), "hasMpvEvents", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(static_cast<QTMEDIAPLAYER_PREPEND_NAMESPACE(MPVPlayer) *>(ctx), "hasMpvEvents", Qt::QueuedConnection);
 }
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-QtMPVPlayer::QtMPVPlayer(QQuickItem *parent) : QtMediaPlayer(parent)
+MPVPlayer::MPVPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {
     qDebug() << "Initializing the MPV backend ...";
 
@@ -77,7 +77,7 @@ QtMPVPlayer::QtMPVPlayer(QQuickItem *parent) : QtMediaPlayer(parent)
     // From this point on, the wakeup function will be called. The callback
     // can come from any thread, so we use the QueuedConnection mechanism to
     // relay the wakeup in a thread-safe way.
-    connect(this, &QtMPVPlayer::hasMpvEvents, this, &QtMPVPlayer::handleMpvEvents, Qt::QueuedConnection);
+    connect(this, &MPVPlayer::hasMpvEvents, this, &MPVPlayer::handleMpvEvents, Qt::QueuedConnection);
 
     MPV::Qt::set_wakeup_callback(m_mpv, wakeup, this);
 
@@ -85,10 +85,10 @@ QtMPVPlayer::QtMPVPlayer(QQuickItem *parent) : QtMediaPlayer(parent)
         qFatal("Failed to initialize mpv.");
     }
 
-    connect(this, &QtMPVPlayer::onUpdate, this, &QtMPVPlayer::doUpdate, Qt::QueuedConnection);
+    connect(this, &MPVPlayer::onUpdate, this, &MPVPlayer::doUpdate, Qt::QueuedConnection);
 }
 
-QtMPVPlayer::~QtMPVPlayer()
+MPVPlayer::~MPVPlayer()
 {
     // Only initialized if something got drawn
     if (m_mpv_gl) {
@@ -100,69 +100,69 @@ QtMPVPlayer::~QtMPVPlayer()
     }
 }
 
-void QtMPVPlayer::on_update(void *ctx)
+void MPVPlayer::on_update(void *ctx)
 {
     Q_ASSERT(ctx);
     if (!ctx) {
         return;
     }
-    Q_EMIT static_cast<QtMPVPlayer *>(ctx)->onUpdate();
+    Q_EMIT static_cast<MPVPlayer *>(ctx)->onUpdate();
 }
 
-bool QtMPVPlayer::backendAvailable() const
+bool MPVPlayer::backendAvailable() const
 {
     return MPV::Qt::libmpvAvailable();
 }
 
-QString QtMPVPlayer::backendName() const
+QString MPVPlayer::backendName() const
 {
     return QStringLiteral("MPV");
 }
 
-QString QtMPVPlayer::backendVersion() const
+QString MPVPlayer::backendVersion() const
 {
     return mpvGetProperty(QStringLiteral("mpv-version")).toString();
 }
 
-QString QtMPVPlayer::backendDescription() const
+QString MPVPlayer::backendDescription() const
 {
     // TODO
     return tr("mpv backend.");
 }
 
-QString QtMPVPlayer::backendVendor() const
+QString MPVPlayer::backendVendor() const
 {
     return QStringLiteral("The MPV developers");
 }
 
-QString QtMPVPlayer::backendCopyright() const
+QString MPVPlayer::backendCopyright() const
 {
     // TODO
     return QStringLiteral("GPLv3");
 }
 
-QUrl QtMPVPlayer::backendHomePage() const
+QUrl MPVPlayer::backendHomePage() const
 {
     return QStringLiteral("https://mpv.io/");
 }
 
-QString QtMPVPlayer::ffmpegVersion() const
+QString MPVPlayer::ffmpegVersion() const
 {
     return mpvGetProperty(QStringLiteral("ffmpeg-version")).toString();
 }
 
-QString QtMPVPlayer::ffmpegConfiguration() const
+QString MPVPlayer::ffmpegConfiguration() const
 {
     return mpvGetProperty(QStringLiteral("ffmpeg-configuration")).toString();
 }
 
 // Connected to onUpdate() signal makes sure it runs on the GUI thread
-void QtMPVPlayer::doUpdate()
+void MPVPlayer::doUpdate()
 {
     update();
 }
 
-void QtMPVPlayer::processMpvLogMessage(void *event)
+void MPVPlayer::processMpvLogMessage(void *event)
 {
     Q_ASSERT(event);
     if (!event) {
@@ -199,7 +199,7 @@ void QtMPVPlayer::processMpvLogMessage(void *event)
     }
 }
 
-void QtMPVPlayer::processMpvPropertyChange(void *event)
+void MPVPlayer::processMpvPropertyChange(void *event)
 {
     Q_ASSERT(event);
     if (!event) {
@@ -222,7 +222,7 @@ void QtMPVPlayer::processMpvPropertyChange(void *event)
     }
 }
 
-bool QtMPVPlayer::isLoaded() const
+bool MPVPlayer::isLoaded() const
 {
     return ((m_mediaStatus != MediaStatus::Invalid)
             && (m_mediaStatus != MediaStatus::NoMedia)
@@ -230,22 +230,22 @@ bool QtMPVPlayer::isLoaded() const
             && (m_mediaStatus != MediaStatus::Loading));
 }
 
-bool QtMPVPlayer::isPlaying() const
+bool MPVPlayer::isPlaying() const
 {
     return playbackState() == PlaybackState::Playing;
 }
 
-bool QtMPVPlayer::isPaused() const
+bool MPVPlayer::isPaused() const
 {
     return playbackState() == PlaybackState::Paused;
 }
 
-bool QtMPVPlayer::isStopped() const
+bool MPVPlayer::isStopped() const
 {
     return playbackState() == PlaybackState::Stopped;
 }
 
-void QtMPVPlayer::setMediaStatus(const MediaStatus mediaStatus)
+void MPVPlayer::setMediaStatus(const MediaStatus mediaStatus)
 {
     if (m_mediaStatus == mediaStatus) {
         return;
@@ -254,17 +254,17 @@ void QtMPVPlayer::setMediaStatus(const MediaStatus mediaStatus)
     Q_EMIT mediaStatusChanged();
 }
 
-void QtMPVPlayer::videoReconfig()
+void MPVPlayer::videoReconfig()
 {
     Q_EMIT videoSizeChanged();
 }
 
-void QtMPVPlayer::audioReconfig()
+void MPVPlayer::audioReconfig()
 {
     // TODO
 }
 
-void QtMPVPlayer::playbackStateChangeEvent()
+void MPVPlayer::playbackStateChangeEvent()
 {
     if (isPlaying()) {
         Q_EMIT playing();
@@ -278,7 +278,7 @@ void QtMPVPlayer::playbackStateChangeEvent()
     Q_EMIT playbackStateChanged();
 }
 
-bool QtMPVPlayer::mpvSendCommand(const QVariant &arguments)
+bool MPVPlayer::mpvSendCommand(const QVariant &arguments)
 {
     if (!arguments.isValid()) {
         return false;
@@ -293,7 +293,7 @@ bool QtMPVPlayer::mpvSendCommand(const QVariant &arguments)
     return (errorCode >= 0);
 }
 
-bool QtMPVPlayer::mpvSetProperty(const QString &name, const QVariant &value)
+bool MPVPlayer::mpvSetProperty(const QString &name, const QVariant &value)
 {
     if (name.isEmpty() || !value.isValid()) {
         return false;
@@ -308,7 +308,7 @@ bool QtMPVPlayer::mpvSetProperty(const QString &name, const QVariant &value)
     return (errorCode >= 0);
 }
 
-QVariant QtMPVPlayer::mpvGetProperty(const QString &name, const bool silent, bool *ok) const
+QVariant MPVPlayer::mpvGetProperty(const QString &name, const bool silent, bool *ok) const
 {
     if (ok) {
         *ok = false;
@@ -333,7 +333,7 @@ QVariant QtMPVPlayer::mpvGetProperty(const QString &name, const bool silent, boo
     return result;
 }
 
-bool QtMPVPlayer::mpvObserveProperty(const QString &name)
+bool MPVPlayer::mpvObserveProperty(const QString &name)
 {
     if (name.isEmpty()) {
         return false;
@@ -345,17 +345,17 @@ bool QtMPVPlayer::mpvObserveProperty(const QString &name)
     return (errorCode >= 0);
 }
 
-QUrl QtMPVPlayer::source() const
+QUrl MPVPlayer::source() const
 {
     return m_source;
 }
 
-QString QtMPVPlayer::fileName() const
+QString MPVPlayer::fileName() const
 {
     return isStopped() ? QString{} : mpvGetProperty(QStringLiteral("filename")).toString();
 }
 
-QSizeF QtMPVPlayer::videoSize() const
+QSizeF MPVPlayer::videoSize() const
 {
     if (isStopped()) {
         return {};
@@ -364,19 +364,19 @@ QSizeF QtMPVPlayer::videoSize() const
             mpvGetProperty(QStringLiteral("video-out-params/dh")).toReal()};
 }
 
-QtMPVPlayer::PlaybackState QtMPVPlayer::playbackState() const
+MPVPlayer::PlaybackState MPVPlayer::playbackState() const
 {
     const bool stopped = mpvGetProperty(QStringLiteral("idle-active")).toBool();
     const bool paused = mpvGetProperty(QStringLiteral("pause")).toBool();
     return stopped ? PlaybackState::Stopped : (paused ? PlaybackState::Paused : PlaybackState::Playing);
 }
 
-QtMPVPlayer::MediaStatus QtMPVPlayer::mediaStatus() const
+MPVPlayer::MediaStatus MPVPlayer::mediaStatus() const
 {
     return m_mediaStatus;
 }
 
-QtMPVPlayer::LogLevel QtMPVPlayer::logLevel() const
+MPVPlayer::LogLevel MPVPlayer::logLevel() const
 {
     const QString level = mpvGetProperty(QStringLiteral("msg-level")).toString();
     if (level.isEmpty() || (level == QStringLiteral("no")) || (level == QStringLiteral("off"))) {
@@ -406,69 +406,69 @@ QtMPVPlayer::LogLevel QtMPVPlayer::logLevel() const
     return LogLevel::Debug;
 }
 
-qint64 QtMPVPlayer::duration() const
+qint64 MPVPlayer::duration() const
 {
     return isStopped() ? 0 : (mpvGetProperty(QStringLiteral("duration")).toLongLong() * 1000);
 }
 
-qint64 QtMPVPlayer::position() const
+qint64 MPVPlayer::position() const
 {
     return isStopped() ? 0 : (mpvGetProperty(QStringLiteral("time-pos")).toLongLong() * 1000);
 }
 
-qreal QtMPVPlayer::volume() const
+qreal MPVPlayer::volume() const
 {
     return (mpvGetProperty(QStringLiteral("ao-volume")).toReal() / 100.0);
 }
 
-bool QtMPVPlayer::mute() const
+bool MPVPlayer::mute() const
 {
     return mpvGetProperty(QStringLiteral("ao-mute")).toBool();
 }
 
-bool QtMPVPlayer::seekable() const
+bool MPVPlayer::seekable() const
 {
     return isStopped() ? false : mpvGetProperty(QStringLiteral("seekable")).toBool();
 }
 
-bool QtMPVPlayer::hardwareDecoding() const
+bool MPVPlayer::hardwareDecoding() const
 {
     // Querying "hwdec" itself will return empty string.
     const QString hwdec = mpvGetProperty(QStringLiteral("hwdec-current")).toString();
     return (!hwdec.isEmpty() && (hwdec != QStringLiteral("no")) && (hwdec != QStringLiteral("off")));
 }
 
-qreal QtMPVPlayer::aspectRatio() const
+qreal MPVPlayer::aspectRatio() const
 {
     return isStopped() ? (16.0 / 9.0) : mpvGetProperty(QStringLiteral("video-out-params/aspect")).toReal();
 }
 
-qreal QtMPVPlayer::playbackRate() const
+qreal MPVPlayer::playbackRate() const
 {
     return mpvGetProperty(QStringLiteral("speed")).toReal();
 }
 
-QString QtMPVPlayer::snapshotFormat() const
+QString MPVPlayer::snapshotFormat() const
 {
     return mpvGetProperty(QStringLiteral("screenshot-format")).toString();
 }
 
-QString QtMPVPlayer::snapshotTemplate() const
+QString MPVPlayer::snapshotTemplate() const
 {
     return mpvGetProperty(QStringLiteral("screenshot-template")).toString();
 }
 
-QUrl QtMPVPlayer::snapshotDirectory() const
+QUrl MPVPlayer::snapshotDirectory() const
 {
     return mpvGetProperty(QStringLiteral("screenshot-directory")).toString();
 }
 
-QString QtMPVPlayer::filePath() const
+QString MPVPlayer::filePath() const
 {
     return isStopped() ? QString{} : QDir::toNativeSeparators(mpvGetProperty(QStringLiteral("path")).toString());
 }
 
-QtMPVPlayer::MediaTracks QtMPVPlayer::mediaTracks() const
+MPVPlayer::MediaTracks MPVPlayer::mediaTracks() const
 {
     const QVariantList trackList = mpvGetProperty(QStringLiteral("track-list")).toList();
     if (trackList.isEmpty()) {
@@ -527,7 +527,7 @@ QtMPVPlayer::MediaTracks QtMPVPlayer::mediaTracks() const
     return result;
 }
 
-QtMPVPlayer::Chapters QtMPVPlayer::chapters() const
+MPVPlayer::Chapters MPVPlayer::chapters() const
 {
     const QVariantList chapterList = mpvGetProperty(QStringLiteral("chapter-list")).toList();
     if (chapterList.isEmpty()) {
@@ -547,7 +547,7 @@ QtMPVPlayer::Chapters QtMPVPlayer::chapters() const
     return result;
 }
 
-QtMPVPlayer::MetaData QtMPVPlayer::metaData() const
+MPVPlayer::MetaData MPVPlayer::metaData() const
 {
     const QVariantMap md = mpvGetProperty(QStringLiteral("metadata")).toMap();
     if (md.isEmpty()) {
@@ -562,12 +562,12 @@ QtMPVPlayer::MetaData QtMPVPlayer::metaData() const
     return result;
 }
 
-bool QtMPVPlayer::livePreview() const
+bool MPVPlayer::livePreview() const
 {
     return m_livePreview;
 }
 
-void QtMPVPlayer::play()
+void MPVPlayer::play()
 {
     if (!m_source.isValid() || m_livePreview) {
         return;
@@ -576,7 +576,7 @@ void QtMPVPlayer::play()
     playbackStateChangeEvent();
 }
 
-void QtMPVPlayer::pause()
+void MPVPlayer::pause()
 {
     if (!isPlaying()) {
         return;
@@ -585,7 +585,7 @@ void QtMPVPlayer::pause()
     playbackStateChangeEvent();
 }
 
-void QtMPVPlayer::stop()
+void MPVPlayer::stop()
 {
     if (isStopped()) {
         return;
@@ -594,7 +594,7 @@ void QtMPVPlayer::stop()
     playbackStateChangeEvent();
 }
 
-void QtMPVPlayer::seek(const qint64 value)
+void MPVPlayer::seek(const qint64 value)
 {
     if (isStopped() || (position() == value)) {
         return;
@@ -602,7 +602,7 @@ void QtMPVPlayer::seek(const qint64 value)
     mpvSendCommand(QVariantList{QStringLiteral("seek"), qRound64(static_cast<qreal>(value) / 1000.0), QStringLiteral("absolute")});
 }
 
-void QtMPVPlayer::snapshot()
+void MPVPlayer::snapshot()
 {
     if (isStopped()) {
         return;
@@ -612,7 +612,7 @@ void QtMPVPlayer::snapshot()
     mpvSendCommand(QVariantList{QStringLiteral("screenshot"), QStringLiteral("subtitles")});
 }
 
-void QtMPVPlayer::setSource(const QUrl &value)
+void MPVPlayer::setSource(const QUrl &value)
 {
     if (value.isEmpty()) {
         stop();
@@ -633,7 +633,7 @@ void QtMPVPlayer::setSource(const QUrl &value)
     }
 }
 
-void QtMPVPlayer::setMute(const bool value)
+void MPVPlayer::setMute(const bool value)
 {
     if (mute() == value) {
         return;
@@ -641,7 +641,7 @@ void QtMPVPlayer::setMute(const bool value)
     mpvSetProperty(QStringLiteral("ao-mute"), value);
 }
 
-void QtMPVPlayer::setPlaybackState(const QtMPVPlayer::PlaybackState value)
+void MPVPlayer::setPlaybackState(const MPVPlayer::PlaybackState value)
 {
     if (playbackState() == value) {
         return;
@@ -659,7 +659,7 @@ void QtMPVPlayer::setPlaybackState(const QtMPVPlayer::PlaybackState value)
     }
 }
 
-void QtMPVPlayer::setLogLevel(const LogLevel value)
+void MPVPlayer::setLogLevel(const LogLevel value)
 {
     QString level = QStringLiteral("debug");
     switch (value) {
@@ -696,7 +696,7 @@ void QtMPVPlayer::setLogLevel(const LogLevel value)
     }
 }
 
-void QtMPVPlayer::setPosition(const qint64 value)
+void MPVPlayer::setPosition(const qint64 value)
 {
     if (isStopped() || (position() == value)) {
         return;
@@ -704,7 +704,7 @@ void QtMPVPlayer::setPosition(const qint64 value)
     seek(value);
 }
 
-void QtMPVPlayer::setVolume(const qreal value)
+void MPVPlayer::setVolume(const qreal value)
 {
     if (qFuzzyCompare(volume(), value)) {
         return;
@@ -719,7 +719,7 @@ void QtMPVPlayer::setVolume(const qreal value)
     mpvSetProperty(QStringLiteral("ao-volume"), qRound(value * 100.0));
 }
 
-void QtMPVPlayer::setHardwareDecoding(const bool value)
+void MPVPlayer::setHardwareDecoding(const bool value)
 {
     if (hardwareDecoding() == value) {
         return;
@@ -727,12 +727,12 @@ void QtMPVPlayer::setHardwareDecoding(const bool value)
     mpvSetProperty(QStringLiteral("hwdec"), QStringLiteral("auto-safe"));
 }
 
-bool QtMPVPlayer::autoStart() const
+bool MPVPlayer::autoStart() const
 {
     return m_autoStart;
 }
 
-void QtMPVPlayer::setAutoStart(const bool value)
+void MPVPlayer::setAutoStart(const bool value)
 {
     if (m_autoStart == value) {
         return;
@@ -741,7 +741,7 @@ void QtMPVPlayer::setAutoStart(const bool value)
     Q_EMIT autoStartChanged();
 }
 
-void QtMPVPlayer::setAspectRatio(const qreal value)
+void MPVPlayer::setAspectRatio(const qreal value)
 {
     if (qFuzzyCompare(aspectRatio(), value)) {
         return;
@@ -749,7 +749,7 @@ void QtMPVPlayer::setAspectRatio(const qreal value)
     mpvSetProperty(QStringLiteral("video-aspect-override"), value);
 }
 
-void QtMPVPlayer::setPlaybackRate(const qreal value)
+void MPVPlayer::setPlaybackRate(const qreal value)
 {
     if (qFuzzyCompare(playbackRate(), value)) {
         return;
@@ -757,7 +757,7 @@ void QtMPVPlayer::setPlaybackRate(const qreal value)
     mpvSetProperty(QStringLiteral("speed"), value);
 }
 
-void QtMPVPlayer::setSnapshotFormat(const QString &value)
+void MPVPlayer::setSnapshotFormat(const QString &value)
 {
     if (value.isEmpty() || (snapshotFormat() == value)) {
         return;
@@ -765,7 +765,7 @@ void QtMPVPlayer::setSnapshotFormat(const QString &value)
     mpvSetProperty(QStringLiteral("screenshot-format"), value);
 }
 
-void QtMPVPlayer::setSnapshotTemplate(const QString &value)
+void MPVPlayer::setSnapshotTemplate(const QString &value)
 {
     if (value.isEmpty() || (snapshotTemplate() == value)) {
         return;
@@ -773,7 +773,7 @@ void QtMPVPlayer::setSnapshotTemplate(const QString &value)
     mpvSetProperty(QStringLiteral("screenshot-template"), value);
 }
 
-void QtMPVPlayer::setSnapshotDirectory(const QUrl &value)
+void MPVPlayer::setSnapshotDirectory(const QUrl &value)
 {
     if (!value.isValid() || (snapshotDirectory() == value)) {
         return;
@@ -781,7 +781,7 @@ void QtMPVPlayer::setSnapshotDirectory(const QUrl &value)
     mpvSetProperty(QStringLiteral("screenshot-directory"), QDir::toNativeSeparators(value.toLocalFile()));
 }
 
-void QtMPVPlayer::setLivePreview(const bool value)
+void MPVPlayer::setLivePreview(const bool value)
 {
     if (m_livePreview == value) {
         return;
@@ -799,19 +799,19 @@ void QtMPVPlayer::setLivePreview(const bool value)
     Q_EMIT livePreviewChanged();
 }
 
-QtMPVPlayer::FillMode QtMPVPlayer::fillMode() const
+MPVPlayer::FillMode MPVPlayer::fillMode() const
 {
     // TODO
     return FillMode::PreserveAspectFit;
 }
 
-void QtMPVPlayer::setFillMode(const QtMPVPlayer::FillMode value)
+void MPVPlayer::setFillMode(const MPVPlayer::FillMode value)
 {
     // TODO
     Q_UNUSED(value);
 }
 
-void QtMPVPlayer::handleMpvEvents()
+void MPVPlayer::handleMpvEvents()
 {
     // Process all events, until the event queue is empty.
     while (m_mpv) {
@@ -937,17 +937,17 @@ void QtMPVPlayer::handleMpvEvents()
 // The beauty of using a true QSGNode: no need for complicated cleanup
 // arrangements, unlike in other examples like metalunderqml, because the
 // scenegraph will handle destroying the node at the appropriate time.
-void QtMPVPlayer::invalidateSceneGraph() // Called on the render thread when the scenegraph is invalidated
+void MPVPlayer::invalidateSceneGraph() // Called on the render thread when the scenegraph is invalidated
 {
     m_node = nullptr;
 }
 
-void QtMPVPlayer::releaseResources() // Called on the gui thread if the item is removed from scene
+void MPVPlayer::releaseResources() // Called on the gui thread if the item is removed from scene
 {
     m_node = nullptr;
 }
 
-QSGNode *QtMPVPlayer::updatePaintNode(QSGNode *node, UpdatePaintNodeData *data)
+QSGNode *MPVPlayer::updatePaintNode(QSGNode *node, UpdatePaintNodeData *data)
 {
     Q_UNUSED(data);
     auto n = static_cast<MPVVideoTextureNode*>(node);
@@ -964,15 +964,15 @@ QSGNode *QtMPVPlayer::updatePaintNode(QSGNode *node, UpdatePaintNodeData *data)
 }
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-void QtMPVPlayer::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
+void MPVPlayer::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
 #else
-void QtMPVPlayer::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+void MPVPlayer::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 #endif
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-    QtMediaPlayer::geometryChange(newGeometry, oldGeometry);
+    MediaPlayer::geometryChange(newGeometry, oldGeometry);
 #else
-    QtMediaPlayer::geometryChanged(newGeometry, oldGeometry);
+    MediaPlayer::geometryChanged(newGeometry, oldGeometry);
 #endif
     if (newGeometry.size() != oldGeometry.size()) {
         update();

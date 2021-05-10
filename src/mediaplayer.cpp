@@ -22,16 +22,16 @@
  * SOFTWARE.
  */
 
-#include "qtmediaplayer.h"
-#include "backends/mdk/qtmdkplayer.h"
-#include "backends/mpv/qtmpvplayer.h"
+#include "mediaplayer.h"
+#include "backends/mdk/mdkplayer.h"
+#include "backends/mpv/mpvplayer.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qmimedatabase.h>
 #include <QtCore/qmimetype.h>
 #include <QtCore/qdatetime.h>
 
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::Chapters &chapters)
+QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::Chapters &chapters)
 {
     QDebugStateSaver saver(d);
     d.nospace();
@@ -44,12 +44,12 @@ QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)
     return d;
 }
 
-QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::MediaTracks &tracks)
+QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::MediaTracks &tracks)
 {
     QDebugStateSaver saver(d);
     d.nospace();
     d.noquote();
-    d << "QtMediaPlayer::MediaTracks(Video tracks:" << tracks.video << "; Audio tracks:" << tracks.audio << "; Subtitle tracks:" << tracks.sub << ')';
+    d << "MediaPlayer::MediaTracks(Video tracks:" << tracks.video << "; Audio tracks:" << tracks.audio << "; Subtitle tracks:" << tracks.sub << ')';
     return d;
 }
 #endif
@@ -77,7 +77,7 @@ static inline QStringList suffixesToMimeTypes(const QStringList &suffixes)
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-QtMediaPlayer::QtMediaPlayer(QQuickItem *parent) : QQuickItem(parent)
+MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
 {
     // Without this flag, our item won't paint anything.
     setFlag(ItemHasContents, true);
@@ -88,20 +88,20 @@ QtMediaPlayer::QtMediaPlayer(QQuickItem *parent) : QQuickItem(parent)
     qRegisterMetaType<MediaTracks>();
 }
 
-QtMediaPlayer::~QtMediaPlayer() = default;
+MediaPlayer::~MediaPlayer() = default;
 
-bool QtMediaPlayer::registerBackend(const char *name)
+bool MediaPlayer::registerBackend(const char *name)
 {
     Q_ASSERT(name);
     if (!name) {
         return false;
     }
     if (qstricmp(name, "mdk") == 0) {
-        QTMEDIAPLAYER_QML_REGISTER(QtMDKPlayer);
+        QTMEDIAPLAYER_QML_REGISTER(MDKPlayer);
         return true;
     }
     if (qstricmp(name, "mpv") == 0) {
-        QTMEDIAPLAYER_QML_REGISTER(QtMPVPlayer);
+        QTMEDIAPLAYER_QML_REGISTER(MPVPlayer);
         return true;
     }
     if (qstricmp(name, "vlc") == 0) {
@@ -112,17 +112,17 @@ bool QtMediaPlayer::registerBackend(const char *name)
     return false;
 }
 
-QStringList QtMediaPlayer::videoMimeTypes()
+QStringList MediaPlayer::videoMimeTypes()
 {
     return suffixesToMimeTypes(videoSuffixes());
 }
 
-QStringList QtMediaPlayer::audioMimeTypes()
+QStringList MediaPlayer::audioMimeTypes()
 {
     return suffixesToMimeTypes(audioSuffixes());
 }
 
-QString QtMediaPlayer::formatTime(const qint64 ms, const QString &pattern) const
+QString MediaPlayer::formatTime(const qint64 ms, const QString &pattern) const
 {
     Q_ASSERT(ms >= 0);
     Q_ASSERT(!pattern.isEmpty());

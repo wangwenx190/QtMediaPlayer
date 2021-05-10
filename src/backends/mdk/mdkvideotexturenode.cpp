@@ -22,15 +22,15 @@
  * SOFTWARE.
  */
 
-#include "qtmdkvideotexturenode.h"
-#include "qtmdkplayer.h"
+#include "mdkvideotexturenode.h"
+#include "mdkplayer.h"
 #include "include/mdk/Player.h"
 #include <QtQuick/qquickwindow.h>
 #include <QtGui/qscreen.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-MDKVideoTextureNode::MDKVideoTextureNode(QtMDKPlayer *item)
+MDKVideoTextureNode::MDKVideoTextureNode(MDKPlayer *item)
 {
     Q_ASSERT(item);
     if (!item) {

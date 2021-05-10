@@ -30,10 +30,10 @@
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class QTMEDIAPLAYER_API QtMediaPlayer : public QQuickItem
+class QTMEDIAPLAYER_API MediaPlayer : public QQuickItem
 {
     Q_OBJECT
-    Q_DISABLE_COPY_MOVE(QtMediaPlayer)
+    Q_DISABLE_COPY_MOVE(MediaPlayer)
     Q_CLASSINFO("RegisterEnumClassesUnscoped", "false")
 
     Q_PROPERTY(bool backendAvailable READ backendAvailable CONSTANT)
@@ -137,8 +137,8 @@ public:
 
     using MetaData = QVariantHash;
 
-    explicit QtMediaPlayer(QQuickItem *parent = nullptr);
-    ~QtMediaPlayer() override;
+    explicit MediaPlayer(QQuickItem *parent = nullptr);
+    ~MediaPlayer() override;
 
     static bool registerBackend(const char *name);
 
@@ -364,5 +364,5 @@ Q_SIGNALS:
 
 QTMEDIAPLAYER_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::ChapterInfo)
-Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(QtMediaPlayer)::MediaTracks)
+Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::ChapterInfo)
+Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::MediaTracks)

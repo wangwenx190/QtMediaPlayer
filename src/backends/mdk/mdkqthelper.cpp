@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "qtmdkhelper.h"
+#include "mdkqthelper.h"
 #include "include/mdk/c/MediaInfo.h"
 #include "include/mdk/c/Player.h"
 #include "include/mdk/c/VideoFrame.h"

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "qtmdkvideotexturenode.h"
+#include "mdkvideotexturenode.h"
 #include <QtQuick/qquickwindow.h>
 
 #ifdef Q_OS_WINDOWS
@@ -72,7 +72,7 @@ class MDKVideoTextureNodeImpl final : public MDKVideoTextureNode
     Q_DISABLE_COPY_MOVE(MDKVideoTextureNodeImpl)
 
 public:
-    explicit MDKVideoTextureNodeImpl(QtMDKPlayer *item) : MDKVideoTextureNode(item)
+    explicit MDKVideoTextureNodeImpl(MDKPlayer *item) : MDKVideoTextureNode(item)
     {
         Q_ASSERT(item);
         if (!item) {
@@ -117,7 +117,7 @@ private:
 #endif
 };
 
-MDKVideoTextureNode *createNode(QtMDKPlayer *item)
+MDKVideoTextureNode *createNode(MDKPlayer *item)
 {
     Q_ASSERT(item);
     if (!item) {
@@ -355,4 +355,4 @@ void MDKVideoTextureNodeImpl::freeTexture()
 
 QTMEDIAPLAYER_END_NAMESPACE
 
-#include "qtmdkvideotexturenode_impl.moc"
+#include "mdkvideotexturenode_impl.moc"

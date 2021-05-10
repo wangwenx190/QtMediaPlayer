@@ -40,11 +40,11 @@ Window {
         onActivated: fileDialog.open()
     }
 
-    QtMediaPlayer {
+    MediaPlayer {
         id: mediaPlayer
         anchors.fill: parent
         source: fileDialog.file
-        logLevel: QtMediaPlayer.LogLevel.Info
+        logLevel: MediaPlayer.LogLevel.Info
         hardwareDecoding: true
         onVideoSizeChanged: {
             if (window.visibility === Window.Windowed) {
@@ -96,7 +96,7 @@ Window {
     }
 
     Button {
-        visible: mediaPlayer.playbackState === QtMediaPlayer.PlaybackState.Stopped
+        visible: mediaPlayer.playbackState === MediaPlayer.PlaybackState.Stopped
         anchors.centerIn: parent
         width: 180
         height: 80
@@ -113,7 +113,7 @@ Window {
             bottom: parent.bottom
             bottomMargin: 20
         }
-        visible: mediaPlayer.playbackState !== QtMediaPlayer.PlaybackState.Stopped
+        visible: mediaPlayer.playbackState !== MediaPlayer.PlaybackState.Stopped
         to: mediaPlayer.duration
         value: mediaPlayer.position
         onMoved: mediaPlayer.seek(slider.value)
@@ -164,13 +164,13 @@ Window {
         }
     }
 
-    QtMediaPlayer {
+    MediaPlayer {
         id: preview
         visible: false
         source: mediaPlayer.source
         livePreview: true
         hardwareDecoding: true
-        logLevel: QtMediaPlayer.LogLevel.Off
+        logLevel: MediaPlayer.LogLevel.Off
         width: 300
         height: 168.75
         y: window.height - preview.height - 50;

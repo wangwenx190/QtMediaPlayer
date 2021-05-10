@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "qtmediaplayer_global.h"
+#include "../../qtmediaplayer_global.h"
 #include <QtQuick/qsgtextureprovider.h>
 #include <QtQuick/qsgsimpletexturenode.h>
 
@@ -35,7 +35,7 @@ QT_END_NAMESPACE
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class QtMPVPlayer;
+class MPVPlayer;
 
 class MPVVideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNode
 {
@@ -43,7 +43,7 @@ class MPVVideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNo
     Q_DISABLE_COPY_MOVE(MPVVideoTextureNode)
 
 public:
-    explicit MPVVideoTextureNode(QtMPVPlayer *item);
+    explicit MPVVideoTextureNode(MPVPlayer *item);
     ~MPVVideoTextureNode() override;
 
     QSGTexture *texture() const override;
@@ -61,7 +61,7 @@ private:
     QScopedPointer<QOpenGLFramebufferObject> fbo_gl;
 #endif
     QQuickWindow *m_window = nullptr;
-    QtMPVPlayer *m_item = nullptr;
+    MPVPlayer *m_item = nullptr;
     QSize m_size = {};
 };
 

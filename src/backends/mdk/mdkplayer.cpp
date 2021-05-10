@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-#include "qtmdkplayer.h"
-#include "qtmdkvideotexturenode.h"
-#include "qtmdkhelper.h"
+#include "mdkplayer.h"
+#include "mdkvideotexturenode.h"
+#include "mdkqthelper.h"
 #include "include/mdk/Player.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
@@ -59,9 +59,9 @@ static inline MDK_NS_PREPEND(LogLevel) _MDKPlayer_MDK_LogLevel()
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-MDKVideoTextureNode *createNode(QtMDKPlayer *item);
+MDKVideoTextureNode *createNode(MDKPlayer *item);
 
-QtMDKPlayer::QtMDKPlayer(QQuickItem *parent) : QtMediaPlayer(parent)
+MDKPlayer::MDKPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {
     qDebug() << "Initializing the MDK backend ...";
 
@@ -80,8 +80,8 @@ QtMDKPlayer::QtMDKPlayer(QQuickItem *parent) : QtMediaPlayer(parent)
 
     m_snapshotDirectory = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
 
-    connect(this, &QtMDKPlayer::sourceChanged, this, &QtMDKPlayer::fileNameChanged);
-    connect(this, &QtMDKPlayer::sourceChanged, this, &QtMDKPlayer::filePathChanged);
+    connect(this, &MDKPlayer::sourceChanged, this, &MDKPlayer::fileNameChanged);
+    connect(this, &MDKPlayer::sourceChanged, this, &MDKPlayer::filePathChanged);
 
     initMdkHandlers();
 
@@ -103,58 +103,58 @@ QtMDKPlayer::QtMDKPlayer(QQuickItem *parent) : QtMediaPlayer(parent)
     m_timer.start();
 }
 
-QtMDKPlayer::~QtMDKPlayer()
+MDKPlayer::~MDKPlayer()
 {
     if (!m_livePreview) {
         qDebug() << "Player destroyed.";
     }
 }
 
-bool QtMDKPlayer::backendAvailable() const
+bool MDKPlayer::backendAvailable() const
 {
     return MDK::Qt::mdkAvailable();
 }
 
-QString QtMDKPlayer::backendName() const
+QString MDKPlayer::backendName() const
 {
     return QStringLiteral("MDK");
 }
 
-QString QtMDKPlayer::backendVersion() const
+QString MDKPlayer::backendVersion() const
 {
     // Is this correct?
     return QString::number(MDK_NS_PREPEND(version)());
 }
 
-QString QtMDKPlayer::backendDescription() const
+QString MDKPlayer::backendDescription() const
 {
     // TODO
     return tr("mdk backend.");
 }
 
-QString QtMDKPlayer::backendVendor() const
+QString MDKPlayer::backendVendor() const
 {
     return QStringLiteral("Wang Bin");
 }
 
-QString QtMDKPlayer::backendCopyright() const
+QString MDKPlayer::backendCopyright() const
 {
     // TODO
     return {};
 }
 
-QUrl QtMDKPlayer::backendHomePage() const
+QUrl MDKPlayer::backendHomePage() const
 {
     return QStringLiteral("https://sourceforge.net/projects/mdk-sdk/");
 }
 
-QString QtMDKPlayer::ffmpegVersion() const
+QString MDKPlayer::ffmpegVersion() const
 {
     // TODO
     return {};
 }
 
-QString QtMDKPlayer::ffmpegConfiguration() const
+QString MDKPlayer::ffmpegConfiguration() const
 {
     // TODO
     return {};
@@ -163,17 +163,17 @@ QString QtMDKPlayer::ffmpegConfiguration() const
 // The beauty of using a true QSGNode: no need for complicated cleanup
 // arrangements, unlike in other examples like metalunderqml, because the
 // scenegraph will handle destroying the node at the appropriate time.
-void QtMDKPlayer::invalidateSceneGraph() // Called on the render thread when the scenegraph is invalidated.
+void MDKPlayer::invalidateSceneGraph() // Called on the render thread when the scenegraph is invalidated.
 {
     m_node = nullptr;
 }
 
-void QtMDKPlayer::releaseResources() // Called on the gui thread if the item is removed from scene.
+void MDKPlayer::releaseResources() // Called on the gui thread if the item is removed from scene.
 {
     m_node = nullptr;
 }
 
-QSGNode *QtMDKPlayer::updatePaintNode(QSGNode *node, UpdatePaintNodeData *data)
+QSGNode *MDKPlayer::updatePaintNode(QSGNode *node, UpdatePaintNodeData *data)
 {
     Q_UNUSED(data);
     auto n = static_cast<MDKVideoTextureNode *>(node);
@@ -190,22 +190,22 @@ QSGNode *QtMDKPlayer::updatePaintNode(QSGNode *node, UpdatePaintNodeData *data)
 }
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-void QtMDKPlayer::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
+void MDKPlayer::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
 #else
-void QtMDKPlayer::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+void MDKPlayer::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 #endif
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-    QtMediaPlayer::geometryChange(newGeometry, oldGeometry);
+    MediaPlayer::geometryChange(newGeometry, oldGeometry);
 #else
-    QtMediaPlayer::geometryChanged(newGeometry, oldGeometry);
+    MediaPlayer::geometryChanged(newGeometry, oldGeometry);
 #endif
     if (newGeometry.size() != oldGeometry.size()) {
         update();
     }
 }
 
-QUrl QtMDKPlayer::source() const
+QUrl MDKPlayer::source() const
 {
     // ### TODO: isStopped() ?
     if (!m_player->url()) {
@@ -216,7 +216,7 @@ QUrl QtMDKPlayer::source() const
                                QUrl::AssumeLocalFile);
 }
 
-void QtMDKPlayer::setSource(const QUrl &value)
+void MDKPlayer::setSource(const QUrl &value)
 {
     const auto realStop = [this]() -> void {
         m_player->setNextMedia(nullptr);
@@ -250,25 +250,25 @@ void QtMDKPlayer::setSource(const QUrl &value)
     }
 }
 
-QString QtMDKPlayer::fileName() const
+QString MDKPlayer::fileName() const
 {
     const QUrl url = source();
     return url.isValid() ? (url.isLocalFile() ? url.fileName() : url.toDisplayString())
                             : QString{};
 }
 
-QString QtMDKPlayer::filePath() const
+QString MDKPlayer::filePath() const
 {
     const QUrl url = source();
     return url.isValid() ? urlToString(url, true) : QString{};
 }
 
-qint64 QtMDKPlayer::position() const
+qint64 MDKPlayer::position() const
 {
     return isStopped() ? 0 : m_player->position();
 }
 
-void QtMDKPlayer::setPosition(const qint64 value)
+void MDKPlayer::setPosition(const qint64 value)
 {
     if (isStopped() || (value == position())) {
         return;
@@ -276,13 +276,13 @@ void QtMDKPlayer::setPosition(const qint64 value)
     seek(value);
 }
 
-qint64 QtMDKPlayer::duration() const
+qint64 MDKPlayer::duration() const
 {
     const auto &mi = m_player->mediaInfo();
     return mi.duration;
 }
 
-QSizeF QtMDKPlayer::videoSize() const
+QSizeF MDKPlayer::videoSize() const
 {
     const auto &mi = m_player->mediaInfo();
     const auto &vs = mi.video;
@@ -293,12 +293,12 @@ QSizeF QtMDKPlayer::videoSize() const
     return {static_cast<qreal>(vsf.codec.width), static_cast<qreal>(vsf.codec.height)};
 }
 
-qreal QtMDKPlayer::volume() const
+qreal MDKPlayer::volume() const
 {
     return m_volume;
 }
 
-void QtMDKPlayer::setVolume(const qreal value)
+void MDKPlayer::setVolume(const qreal value)
 {
     if (qFuzzyCompare(value, m_volume)) {
         return;
@@ -318,12 +318,12 @@ void QtMDKPlayer::setVolume(const qreal value)
     }
 }
 
-bool QtMDKPlayer::mute() const
+bool MDKPlayer::mute() const
 {
     return m_mute;
 }
 
-void QtMDKPlayer::setMute(const bool value)
+void MDKPlayer::setMute(const bool value)
 {
     if (value == m_mute) {
         return;
@@ -336,13 +336,13 @@ void QtMDKPlayer::setMute(const bool value)
     }
 }
 
-bool QtMDKPlayer::seekable() const
+bool MDKPlayer::seekable() const
 {
     // Local files are always seekable, in theory.
     return (isLoaded() && source().isLocalFile());
 }
 
-QtMDKPlayer::PlaybackState QtMDKPlayer::playbackState() const
+MDKPlayer::PlaybackState MDKPlayer::playbackState() const
 {
     switch (m_player->state()) {
     case MDK_NS_PREPEND(PlaybackState)::Playing:
@@ -355,7 +355,7 @@ QtMDKPlayer::PlaybackState QtMDKPlayer::playbackState() const
     return PlaybackState::Stopped;
 }
 
-void QtMDKPlayer::setPlaybackState(const QtMDKPlayer::PlaybackState value)
+void MDKPlayer::setPlaybackState(const MDKPlayer::PlaybackState value)
 {
     if (value == playbackState()) {
         return;
@@ -375,7 +375,7 @@ void QtMDKPlayer::setPlaybackState(const QtMDKPlayer::PlaybackState value)
     }
 }
 
-QtMDKPlayer::MediaStatus QtMDKPlayer::mediaStatus() const
+MDKPlayer::MediaStatus MDKPlayer::mediaStatus() const
 {
     const auto ms = m_player->mediaStatus();
     if (MDK_NS_PREPEND(test_flag)(ms & MDK_NS_PREPEND(MediaStatus)::NoMedia)) {
@@ -414,7 +414,7 @@ QtMDKPlayer::MediaStatus QtMDKPlayer::mediaStatus() const
     return MediaStatus::Invalid;
 }
 
-QtMDKPlayer::LogLevel QtMDKPlayer::logLevel() const
+MDKPlayer::LogLevel MDKPlayer::logLevel() const
 {
     switch (_MDKPlayer_MDK_LogLevel()) {
     case MDK_NS_PREPEND(LogLevel)::Off:
@@ -432,7 +432,7 @@ QtMDKPlayer::LogLevel QtMDKPlayer::logLevel() const
     }
 }
 
-void QtMDKPlayer::setLogLevel(const QtMDKPlayer::LogLevel value)
+void MDKPlayer::setLogLevel(const MDKPlayer::LogLevel value)
 {
     MDK_NS_PREPEND(LogLevel) logLv = MDK_NS_PREPEND(LogLevel)::Debug;
     switch (value) {
@@ -460,12 +460,12 @@ void QtMDKPlayer::setLogLevel(const QtMDKPlayer::LogLevel value)
     }
 }
 
-qreal QtMDKPlayer::playbackRate() const
+qreal MDKPlayer::playbackRate() const
 {
     return static_cast<qreal>(m_player->playbackRate());
 }
 
-void QtMDKPlayer::setPlaybackRate(const qreal value)
+void MDKPlayer::setPlaybackRate(const qreal value)
 {
     if (qFuzzyCompare(value, playbackRate())) {
         return;
@@ -477,13 +477,13 @@ void QtMDKPlayer::setPlaybackRate(const qreal value)
     }
 }
 
-qreal QtMDKPlayer::aspectRatio() const
+qreal MDKPlayer::aspectRatio() const
 {
     const QSizeF vs = videoSize();
     return (vs.width() / vs.height());
 }
 
-void QtMDKPlayer::setAspectRatio(const qreal value)
+void MDKPlayer::setAspectRatio(const qreal value)
 {
     if (qFuzzyCompare(value, aspectRatio())) {
         return;
@@ -495,12 +495,12 @@ void QtMDKPlayer::setAspectRatio(const qreal value)
     }
 }
 
-QUrl QtMDKPlayer::snapshotDirectory() const
+QUrl MDKPlayer::snapshotDirectory() const
 {
     return m_snapshotDirectory;
 }
 
-void QtMDKPlayer::setSnapshotDirectory(const QUrl &value)
+void MDKPlayer::setSnapshotDirectory(const QUrl &value)
 {
     if (value.isEmpty() || (value == snapshotDirectory())) {
         return;
@@ -512,12 +512,12 @@ void QtMDKPlayer::setSnapshotDirectory(const QUrl &value)
     }
 }
 
-QString QtMDKPlayer::snapshotFormat() const
+QString MDKPlayer::snapshotFormat() const
 {
     return m_snapshotFormat;
 }
 
-void QtMDKPlayer::setSnapshotFormat(const QString &value)
+void MDKPlayer::setSnapshotFormat(const QString &value)
 {
     if (value.isEmpty() || (value == m_snapshotFormat)) {
         return;
@@ -529,12 +529,12 @@ void QtMDKPlayer::setSnapshotFormat(const QString &value)
     }
 }
 
-QString QtMDKPlayer::snapshotTemplate() const
+QString MDKPlayer::snapshotTemplate() const
 {
     return m_snapshotTemplate;
 }
 
-void QtMDKPlayer::setSnapshotTemplate(const QString &value)
+void MDKPlayer::setSnapshotTemplate(const QString &value)
 {
     if (value.isEmpty() || (value == m_snapshotTemplate)) {
         return;
@@ -546,12 +546,12 @@ void QtMDKPlayer::setSnapshotTemplate(const QString &value)
     }
 }
 
-bool QtMDKPlayer::hardwareDecoding() const
+bool MDKPlayer::hardwareDecoding() const
 {
     return m_hardwareDecoding;
 }
 
-void QtMDKPlayer::setHardwareDecoding(const bool value)
+void MDKPlayer::setHardwareDecoding(const bool value)
 {
     const auto setVideoDecoders = [this](const QStringList &decoders) -> void
     {
@@ -599,12 +599,12 @@ void QtMDKPlayer::setHardwareDecoding(const bool value)
     }
 }
 
-bool QtMDKPlayer::autoStart() const
+bool MDKPlayer::autoStart() const
 {
     return m_autoStart;
 }
 
-void QtMDKPlayer::setAutoStart(const bool value)
+void MDKPlayer::setAutoStart(const bool value)
 {
     if (m_autoStart != value) {
         m_autoStart = value;
@@ -615,12 +615,12 @@ void QtMDKPlayer::setAutoStart(const bool value)
     }
 }
 
-bool QtMDKPlayer::livePreview() const
+bool MDKPlayer::livePreview() const
 {
     return m_livePreview;
 }
 
-void QtMDKPlayer::setLivePreview(const bool value)
+void MDKPlayer::setLivePreview(const bool value)
 {
     if (m_livePreview != value) {
         m_livePreview = value;
@@ -644,12 +644,12 @@ void QtMDKPlayer::setLivePreview(const bool value)
     }
 }
 
-QtMDKPlayer::FillMode QtMDKPlayer::fillMode() const
+MDKPlayer::FillMode MDKPlayer::fillMode() const
 {
     return m_fillMode;
 }
 
-void QtMDKPlayer::setFillMode(const QtMDKPlayer::FillMode value)
+void MDKPlayer::setFillMode(const MDKPlayer::FillMode value)
 {
     if (m_fillMode != value) {
         m_fillMode = value;
@@ -671,7 +671,7 @@ void QtMDKPlayer::setFillMode(const QtMDKPlayer::FillMode value)
     }
 }
 
-QtMediaPlayer::Chapters QtMDKPlayer::chapters() const
+MDKPlayer::Chapters MDKPlayer::chapters() const
 {
     const auto &mi = m_player->mediaInfo();
     const auto &cpts = mi.chapters;
@@ -688,7 +688,7 @@ QtMediaPlayer::Chapters QtMDKPlayer::chapters() const
     return result;
 }
 
-QtMediaPlayer::MetaData QtMDKPlayer::metaData() const
+MDKPlayer::MetaData MDKPlayer::metaData() const
 {
     const auto &mi = m_player->mediaInfo();
     const auto &md = mi.metadata;
@@ -702,7 +702,7 @@ QtMediaPlayer::MetaData QtMDKPlayer::metaData() const
     return result;
 }
 
-QtMediaPlayer::MediaTracks QtMDKPlayer::mediaTracks() const
+MDKPlayer::MediaTracks MDKPlayer::mediaTracks() const
 {
     const auto &mi = m_player->mediaInfo();
     const auto &vs = mi.video;
@@ -742,7 +742,7 @@ QtMediaPlayer::MediaTracks QtMDKPlayer::mediaTracks() const
     return result;
 }
 
-void QtMDKPlayer::play()
+void MDKPlayer::play()
 {
     if (!source().isValid() || m_livePreview) {
         return;
@@ -750,7 +750,7 @@ void QtMDKPlayer::play()
     m_player->setState(MDK_NS_PREPEND(PlaybackState)::Playing);
 }
 
-void QtMDKPlayer::pause()
+void MDKPlayer::pause()
 {
     if (!source().isValid()) {
         return;
@@ -758,7 +758,7 @@ void QtMDKPlayer::pause()
     m_player->setState(MDK_NS_PREPEND(PlaybackState)::Paused);
 }
 
-void QtMDKPlayer::stop()
+void MDKPlayer::stop()
 {
     if (!source().isValid()) {
         return;
@@ -768,7 +768,7 @@ void QtMDKPlayer::stop()
     m_player->waitFor(MDK_NS_PREPEND(PlaybackState)::Stopped);
 }
 
-void QtMDKPlayer::seek(const qint64 value)
+void MDKPlayer::seek(const qint64 value)
 {
     if (isStopped() || (value == position())) {
         return;
@@ -782,7 +782,7 @@ void QtMDKPlayer::seek(const qint64 value)
     }
 }
 
-void QtMDKPlayer::snapshot()
+void MDKPlayer::snapshot()
 {
     if (isStopped()) {
         return;
@@ -831,7 +831,7 @@ void QtMDKPlayer::snapshot()
     });
 }
 
-void QtMDKPlayer::initMdkHandlers()
+void MDKPlayer::initMdkHandlers()
 {
     MDK_NS_PREPEND(setLogHandler)([this](MDK_NS_PREPEND(LogLevel) level, const char *msg) {
         QString prefix = objectName();
@@ -924,7 +924,7 @@ void QtMDKPlayer::initMdkHandlers()
     });
 }
 
-void QtMDKPlayer::resetInternalData()
+void MDKPlayer::resetInternalData()
 {
     // Make sure MDKPlayer::url() returns empty.
     m_player->setMedia(nullptr);
@@ -939,7 +939,7 @@ void QtMDKPlayer::resetInternalData()
     Q_EMIT mediaStatusChanged();
 }
 
-bool QtMDKPlayer::isLoaded() const
+bool MDKPlayer::isLoaded() const
 {
     const MediaStatus ms = mediaStatus();
     return ((ms != MediaStatus::Invalid)
@@ -948,17 +948,17 @@ bool QtMDKPlayer::isLoaded() const
             && (ms != MediaStatus::Loading));
 }
 
-bool QtMDKPlayer::isPlaying() const
+bool MDKPlayer::isPlaying() const
 {
     return (m_player->state() == MDK_NS_PREPEND(PlaybackState)::Playing);
 }
 
-bool QtMDKPlayer::isPaused() const
+bool MDKPlayer::isPaused() const
 {
     return (m_player->state() == MDK_NS_PREPEND(PlaybackState)::Paused);
 }
 
-bool QtMDKPlayer::isStopped() const
+bool MDKPlayer::isStopped() const
 {
     return (m_player->state() == MDK_NS_PREPEND(PlaybackState)::Stopped);
 }

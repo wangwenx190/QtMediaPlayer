@@ -10,8 +10,8 @@ find_package(Vulkan)
 
 set(SOURCES
     qtmediaplayer_global.h
-    qtmediaplayer.h
-    qtmediaplayer.cpp
+    mediaplayer.h
+    mediaplayer.cpp
 )
 
 # MDK backend
@@ -27,13 +27,13 @@ list(APPEND SOURCES
     backends/mdk/include/mdk/Player.h
     backends/mdk/include/mdk/RenderAPI.h
     backends/mdk/include/mdk/VideoFrame.h
-    backends/mdk/qtmdkhelper.h
-    backends/mdk/qtmdkhelper.cpp
-    backends/mdk/qtmdkplayer.h
-    backends/mdk/qtmdkplayer.cpp
-    backends/mdk/qtmdkvideotexturenode.h
-    backends/mdk/qtmdkvideotexturenode.cpp
-    backends/mdk/qtmdkvideotexturenode_impl.cpp
+    backends/mdk/mdkqthelper.h
+    backends/mdk/mdkqthelper.cpp
+    backends/mdk/mdkplayer.h
+    backends/mdk/mdkplayer.cpp
+    backends/mdk/mdkvideotexturenode.h
+    backends/mdk/mdkvideotexturenode.cpp
+    backends/mdk/mdkvideotexturenode_impl.cpp
 )
 
 # MPV backend
@@ -42,12 +42,12 @@ list(APPEND SOURCES
     backends/mpv/include/mpv/render.h
     backends/mpv/include/mpv/render_gl.h
     backends/mpv/include/mpv/stream_cb.h
-    backends/mpv/qtmpvhelper.h
-    backends/mpv/qtmpvhelper.cpp
-    backends/mpv/qtmpvplayer.h
-    backends/mpv/qtmpvplayer.cpp
-    backends/mpv/qtmpvvideotexturenode.h
-    backends/mpv/qtmpvvideotexturenode.cpp
+    backends/mpv/mpvqthelper.h
+    backends/mpv/mpvqthelper.cpp
+    backends/mpv/mpvplayer.h
+    backends/mpv/mpvplayer.cpp
+    backends/mpv/mpvvideotexturenode.h
+    backends/mpv/mpvvideotexturenode.cpp
 )
 
 if(WIN32 AND BUILD_SHARED_LIBS)
