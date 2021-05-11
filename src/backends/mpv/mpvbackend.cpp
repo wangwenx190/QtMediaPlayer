@@ -46,7 +46,7 @@ const char *GetBackendName()
 
 const char *GetBackendVersion()
 {
-    return qstrdup(qUtf8Printable(MPV::Qt::getLibmpvVersion()));
+    return qUtf8Printable(MPV::Qt::getLibmpvVersion());
 }
 
 bool IsRHIBackendSupported(const int enumIntValue)

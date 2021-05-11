@@ -261,8 +261,13 @@ bool isMDKAvailable()
 
 QString getMDKVersion()
 {
-    // Is this correct?
-    return QString::number(MDK_version());
+    const auto fullVerNum = MDK_version();
+    const auto majorVerNum = (fullVerNum >> 16) & 0xff;
+    const auto minorVerNum = (fullVerNum >> 8) & 0xff;
+    const auto patchVerNum = fullVerNum & 0xff;
+    return QStringLiteral("%1.%2.%3").arg(QString::number(majorVerNum),
+                                          QString::number(minorVerNum),
+                                          QString::number(patchVerNum));
 }
 
 } // namespace MDK::Qt

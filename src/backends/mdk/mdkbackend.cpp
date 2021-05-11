@@ -45,7 +45,7 @@ const char *GetBackendName()
 
 const char *GetBackendVersion()
 {
-    return qstrdup(qUtf8Printable(MDK::Qt::getMDKVersion()));
+    return qUtf8Printable(MDK::Qt::getMDKVersion());
 }
 
 bool IsRHIBackendSupported(const int enumIntValue)
