@@ -43,6 +43,7 @@ class MediaPlayer : public QQuickItem
     Q_PROPERTY(QUrl backendHomePage READ backendHomePage CONSTANT)
     Q_PROPERTY(QString ffmpegVersion READ ffmpegVersion CONSTANT)
     Q_PROPERTY(QString ffmpegConfiguration READ ffmpegConfiguration CONSTANT)
+    Q_PROPERTY(QString qtRHIBackendName READ qtRHIBackendName CONSTANT)
 
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(QString fileName READ fileName NOTIFY fileNameChanged)
@@ -61,11 +62,11 @@ class MediaPlayer : public QQuickItem
     Q_PROPERTY(QUrl snapshotDirectory READ snapshotDirectory WRITE setSnapshotDirectory NOTIFY snapshotDirectoryChanged)
     Q_PROPERTY(QString snapshotFormat READ snapshotFormat WRITE setSnapshotFormat NOTIFY snapshotFormatChanged)
     Q_PROPERTY(QString snapshotTemplate READ snapshotTemplate WRITE setSnapshotTemplate NOTIFY snapshotTemplateChanged)
-    Q_PROPERTY(QStringList videoSuffixes READ videoSuffixes CONSTANT)
-    Q_PROPERTY(QStringList audioSuffixes READ audioSuffixes CONSTANT)
-    Q_PROPERTY(QStringList subtitleSuffixes READ subtitleSuffixes CONSTANT)
-    Q_PROPERTY(QStringList videoMimeTypes READ videoMimeTypes CONSTANT)
-    Q_PROPERTY(QStringList audioMimeTypes READ audioMimeTypes CONSTANT)
+    Q_PROPERTY(QStringList videoFileSuffixes READ videoFileSuffixes CONSTANT)
+    Q_PROPERTY(QStringList audioFileSuffixes READ audioFileSuffixes CONSTANT)
+    Q_PROPERTY(QStringList subtitleFileSuffixes READ subtitleFileSuffixes CONSTANT)
+    Q_PROPERTY(QStringList videoFileMimeTypes READ videoFileMimeTypes CONSTANT)
+    Q_PROPERTY(QStringList audioFileMimeTypes READ audioFileMimeTypes CONSTANT)
     Q_PROPERTY(bool hardwareDecoding READ hardwareDecoding WRITE setHardwareDecoding NOTIFY hardwareDecodingChanged)
     Q_PROPERTY(bool autoStart READ autoStart WRITE setAutoStart NOTIFY autoStartChanged)
     Q_PROPERTY(bool livePreview READ livePreview WRITE setLivePreview NOTIFY livePreviewChanged)
@@ -146,6 +147,7 @@ public:
     virtual QUrl backendHomePage() const = 0;
     virtual QString ffmpegVersion() const = 0;
     virtual QString ffmpegConfiguration() const = 0;
+    QString qtRHIBackendName() const;
 
     virtual QUrl source() const = 0;
     virtual void setSource(const QUrl &value) = 0;
@@ -210,7 +212,7 @@ public:
 
     virtual MediaTracks mediaTracks() const = 0;
 
-    static inline QStringList videoSuffixes()
+    static inline QStringList videoFileSuffixes()
     {
         static const QStringList list =
         {
@@ -267,7 +269,7 @@ public:
         return list;
     }
 
-    static inline QStringList audioSuffixes()
+    static inline QStringList audioFileSuffixes()
     {
         static const QStringList list =
         {
@@ -286,7 +288,7 @@ public:
         return list;
     }
 
-    static inline QStringList subtitleSuffixes()
+    static inline QStringList subtitleFileSuffixes()
     {
         static const QStringList list =
         {
@@ -308,9 +310,9 @@ public:
         return list;
     }
 
-    static QStringList videoMimeTypes();
+    static QStringList videoFileMimeTypes();
 
-    static QStringList audioMimeTypes();
+    static QStringList audioFileMimeTypes();
 
 public Q_SLOTS:
     virtual void play() = 0;

@@ -75,8 +75,8 @@ Window {
         folder: StandardPaths.writableLocation(StandardPaths.MoviesLocation)
         options: FileDialog.ReadOnly
         nameFilters: [
-            qsTr("Video files (%1)").arg(mediaPlayer.videoSuffixes.join(' ')),
-            qsTr("Audio files (%1)").arg(mediaPlayer.audioSuffixes.join(' ')),
+            qsTr("Video files (%1)").arg(mediaPlayer.videoFileSuffixes.join(' ')),
+            qsTr("Audio files (%1)").arg(mediaPlayer.audioFileSuffixes.join(' ')),
             qsTr("All files (*)")
         ]
     }
@@ -237,6 +237,16 @@ Window {
         Label {
             Layout.fillWidth: true
             text: qsTr("FFmpeg version: %1").arg(mediaPlayer.ffmpegVersion)
+            font {
+                bold: true
+                pointSize: 15
+            }
+            color: "white"
+        }
+
+        Label {
+            Layout.fillWidth: true
+            text: qsTr("Qt RHI backend name: %1").arg(mediaPlayer.qtRHIBackendName)
             font {
                 bold: true
                 pointSize: 15

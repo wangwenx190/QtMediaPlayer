@@ -91,7 +91,7 @@ static const char _mpvHelper_libmpv_fileName_envVar[] = "_WWX190_MPVPLAYER_LIBMP
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug d, const MPV::Qt::ErrorReturn &err)
 {
-    QDebugStateSaver saver(d);
+    const QDebugStateSaver saver(d);
     d.nospace();
     d.noquote();
     const QString str = QStringLiteral("MPV::Qt::ErrorReturn(errorCode=%1)").arg(QString::number(err.errorCode));

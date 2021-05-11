@@ -27,16 +27,19 @@
 #include <QtCore/qmimedatabase.h>
 #include <QtCore/qmimetype.h>
 #include <QtCore/qdatetime.h>
+#include <QtQuick/qquickwindow.h>
 
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::Chapters &chapters)
 {
-    QDebugStateSaver saver(d);
+    const QDebugStateSaver saver(d);
     d.nospace();
     d.noquote();
     QString str = {};
-    for (auto &&chapter : qAsConst(chapters)) {
-        str.append(QStringLiteral("(title: %1, startTime: %2)").arg(chapter.title, QString::number(chapter.startTime)));
+    if (!chapters.isEmpty()) {
+        for (auto &&chapter : qAsConst(chapters)) {
+            str.append(QStringLiteral("(title: %1, startTime: %2)").arg(chapter.title, QString::number(chapter.startTime)));
+        }
     }
     d << "QList(" << str << ')';
     return d;
@@ -44,7 +47,7 @@ QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::
 
 QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::MediaTracks &tracks)
 {
-    QDebugStateSaver saver(d);
+    const QDebugStateSaver saver(d);
     d.nospace();
     d.noquote();
     d << "MediaPlayer::MediaTracks(Video tracks:" << tracks.video << "; Audio tracks:" << tracks.audio << "; Subtitle tracks:" << tracks.sub << ')';
@@ -54,6 +57,9 @@ QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::
 
 static inline QStringList suffixesToMimeTypes(const QStringList &suffixes)
 {
+    if (suffixes.isEmpty()) {
+        return {};
+    }
     QStringList mimeTypes = {};
     const QMimeDatabase db;
     for (auto &&suffix : qAsConst(suffixes)) {
@@ -88,14 +94,37 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
 
 MediaPlayer::~MediaPlayer() = default;
 
-QStringList MediaPlayer::videoMimeTypes()
+QString MediaPlayer::qtRHIBackendName() const
 {
-    return suffixesToMimeTypes(videoSuffixes());
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    switch (QQuickWindow::graphicsApi()) {
+    case QSGRendererInterface::Direct3D11:
+        return QStringLiteral("Direct3D11");
+    case QSGRendererInterface::Vulkan:
+        return QStringLiteral("Vulkan");
+    case QSGRendererInterface::Metal:
+        return QStringLiteral("Metal");
+    case QSGRendererInterface::OpenGL:
+        return QStringLiteral("OpenGL");
+    case QSGRendererInterface::Software:
+        return QStringLiteral("Software");
+    default:
+        return QStringLiteral("Unknown");
+    }
+    return QStringLiteral("Unknown");
+#else
+    return QQuickWindow::sceneGraphBackend();
+#endif
 }
 
-QStringList MediaPlayer::audioMimeTypes()
+QStringList MediaPlayer::videoFileMimeTypes()
 {
-    return suffixesToMimeTypes(audioSuffixes());
+    return suffixesToMimeTypes(videoFileSuffixes());
+}
+
+QStringList MediaPlayer::audioFileMimeTypes()
+{
+    return suffixesToMimeTypes(audioFileSuffixes());
 }
 
 QString MediaPlayer::formatTime(const qint64 ms, const QString &pattern) const

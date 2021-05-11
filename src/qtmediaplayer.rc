@@ -42,7 +42,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName",      "wangwenx190"
-            VALUE "FileDescription",  "QtMediaPlayer"
+            VALUE "FileDescription",  "QtMediaPlayer - Simple but powerful multimedia player library designed for Qt Quick."
             VALUE "FileVersion",      "1.0.0.0"
             VALUE "LegalCopyright",   "MIT License"
             #ifdef _DEBUG
