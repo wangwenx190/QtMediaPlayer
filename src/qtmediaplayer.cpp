@@ -34,7 +34,9 @@ static const char _qmp_backend_dir_envVar[] = "_QTMEDIAPLAYER_BACKEND_SEARCH_PAT
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 using RegisterBackendPtr = bool(*)(const char *);
-using BackendNamePtr = const char *(*)();
+using GetBackendNamePtr = const char *(*)();
+using GetBackendVersion = const char *(*)();
+using IsRHIBackendSupportedPtr = bool(*)(const int);
 
 struct QMPData
 {
@@ -71,7 +73,7 @@ public:
             if (!QLibrary::isLibrary(entryInfo.fileName())) {
                 continue;
             }
-            const auto m_lpBackendName = reinterpret_cast<BackendNamePtr>(QLibrary::resolve(entryInfo.canonicalFilePath(), "GetBackendName"));
+            const auto m_lpBackendName = reinterpret_cast<GetBackendNamePtr>(QLibrary::resolve(entryInfo.canonicalFilePath(), "GetBackendName"));
             if (!m_lpBackendName) {
                 continue;
             }
@@ -113,7 +115,7 @@ QString getPluginSearchPath()
     return qmpData()->searchPath;
 }
 
-QStringList availableBackends()
+QStringList getAvailableBackends()
 {
     QStringList list = {};
     for (auto &&backendName : qAsConst(qmpData()->availableBackends)) {
@@ -139,6 +141,25 @@ bool initializeBackend(const QString &value)
         return false;
     }
     return m_lpRegisterBackend(qUtf8Printable(loweredName));
+}
+
+bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api)
+{
+    Q_ASSERT(!name.isEmpty());
+    if (name.isEmpty()) {
+        return false;
+    }
+    const QString loweredName = name.toLower();
+    if (!qmpData()->availableBackends.contains(loweredName)) {
+        qWarning() << loweredName << "is not an available backend.";
+        return false;
+    }
+    const auto m_lpIsRHIBackendSupported = reinterpret_cast<IsRHIBackendSupportedPtr>(QLibrary::resolve(qmpData()->availableBackends.value(loweredName), "IsRHIBackendSupported"));
+    if (!m_lpIsRHIBackendSupported) {
+        qWarning() << "Failed to resolve \"IsRHIBackendSupported()\" from the backend library.";
+        return false;
+    }
+    return m_lpIsRHIBackendSupported(static_cast<int>(api));
 }
 
 QTMEDIAPLAYER_END_NAMESPACE

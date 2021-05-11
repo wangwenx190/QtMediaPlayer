@@ -25,14 +25,14 @@
 #pragma once
 
 #include "qtmediaplayer_global.h"
+#include <QtQuick/qsgrendererinterface.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 QTMEDIAPLAYER_API void setPluginSearchPath(const QString &value);
 QTMEDIAPLAYER_API QString getPluginSearchPath();
-
-QTMEDIAPLAYER_API QStringList availableBackends();
-
+QTMEDIAPLAYER_API QStringList getAvailableBackends();
 QTMEDIAPLAYER_API bool initializeBackend(const QString &value);
+QTMEDIAPLAYER_API bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api);
 
 QTMEDIAPLAYER_END_NAMESPACE

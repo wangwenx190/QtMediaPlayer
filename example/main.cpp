@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     cmdLineParser.addOption(rhiBackendOption);
 
     const QCommandLineOption playerBackendOption(QStringLiteral("player-backend"),
-                                              QCoreApplication::translate("main", "Set the QtMediaPlayer backend. Available backends: MDK, MPV."),
+                                              QCoreApplication::translate("main", "Set the QtMediaPlayer backend. Available backends: MDK, MPV, VLC."),
                                               QCoreApplication::translate("main", "backend"));
     cmdLineParser.addOption(playerBackendOption);
 
@@ -152,6 +152,15 @@ int main(int argc, char *argv[])
 
     if (playerBackendParamValue.isEmpty() || (playerBackendParamValue == QStringLiteral("mdk"))) {
         qDebug() << "Setting player backend to MDK ...";
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+        const QSGRendererInterface::GraphicsApi api = QQuickWindow::graphicsApi();
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(isRHIBackendSupported)(QStringLiteral("MDK"), api)) {
+            qWarning() << "Current Qt RHI backend" << api << "is not supported by the MDK backend.";
+            return -1;
+        }
+#else
+        // TODO
+#endif
         if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(QStringLiteral("MDK"))) {
             qWarning() << "Failed to create the MDK backend.";
             return -1;
@@ -160,8 +169,8 @@ int main(int argc, char *argv[])
         qDebug() << "Setting player backend to MPV ...";
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         const QSGRendererInterface::GraphicsApi api = QQuickWindow::graphicsApi();
-        if ((api != QSGRendererInterface::OpenGLRhi) && (api != QSGRendererInterface::Software)) {
-            qWarning() << "The MPV backend only supports the OpenGL(ES) and Software backend of Qt RHI.";
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(isRHIBackendSupported)(QStringLiteral("MPV"), api)) {
+            qWarning() << "Current Qt RHI backend" << api << "is not supported by the MPV backend.";
             return -1;
         }
 #else
@@ -171,9 +180,11 @@ int main(int argc, char *argv[])
             qWarning() << "Failed to create the MPV backend.";
             return -1;
         }
+    } else if (playerBackendParamValue == QStringLiteral("vlc")) {
+        // TODO
     } else {
         qWarning() << "Can't recognize the given player backend:" << playerBackendParamValue;
-        qDebug() << "Acceptable player backend names: MDK, MPV.";
+        qDebug() << "Acceptable player backend names: MDK, MPV, VLC.";
         return -1;
     }
 
