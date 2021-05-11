@@ -32,6 +32,8 @@ extern "C" {
 
 QTMEDIAPLAYER_BACKEND_API bool RegisterBackend(const char *name);
 QTMEDIAPLAYER_BACKEND_API const char *GetBackendName();
+QTMEDIAPLAYER_BACKEND_API const char *GetBackendVersion();
+QTMEDIAPLAYER_BACKEND_API bool IsRHIBackendSupported(const int enumIntValue);
 
 #ifdef __cplusplus
 }

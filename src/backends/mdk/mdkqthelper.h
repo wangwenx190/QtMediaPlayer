@@ -24,9 +24,12 @@
 
 #pragma once
 
+#include <QtCore/qstring.h>
+
 namespace MDK::Qt
 {
 
-bool mdkAvailable();
+bool isMDKAvailable();
+QString getMDKVersion();
 
 }

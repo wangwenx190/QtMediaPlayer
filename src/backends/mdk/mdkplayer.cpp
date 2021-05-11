@@ -65,7 +65,7 @@ MDKPlayer::MDKPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {
     qDebug() << "Initializing the MDK backend ...";
 
-    if (!MDK::Qt::mdkAvailable()) {
+    if (!MDK::Qt::isMDKAvailable()) {
         qFatal("MDK is not available.");
     }
 
@@ -121,8 +121,7 @@ QString MDKPlayer::backendName() const
 
 QString MDKPlayer::backendVersion() const
 {
-    // Is this correct?
-    return QString::number(MDK_NS_PREPEND(version)());
+    return MDK::Qt::getMDKVersion();
 }
 
 QString MDKPlayer::backendDescription() const

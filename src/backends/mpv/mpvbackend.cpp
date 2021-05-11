@@ -25,11 +25,12 @@
 #include "mpvbackend.h"
 #include "mpvplayer.h"
 #include "mpvqthelper.h"
+#include <QtQuick/qsgrendererinterface.h>
 
 bool RegisterBackend(const char *name)
 {
     if (qstricmp(name, "mpv") == 0) {
-        if (MPV::Qt::libmpvAvailable()) {
+        if (MPV::Qt::isLibmpvAvailable()) {
             const int typeId = QTMEDIAPLAYER_QML_REGISTER(QTMEDIAPLAYER_PREPEND_NAMESPACE(MPVPlayer));
             Q_UNUSED(typeId);
             return true;
@@ -41,4 +42,27 @@ bool RegisterBackend(const char *name)
 const char *GetBackendName()
 {
     return "MPV";
+}
+
+const char *GetBackendVersion()
+{
+    return qstrdup(qUtf8Printable(MPV::Qt::getLibmpvVersion()));
+}
+
+bool IsRHIBackendSupported(const int enumIntValue)
+{
+    const auto api = static_cast<QSGRendererInterface::GraphicsApi>(enumIntValue);
+    switch (api) {
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+    case QSGRendererInterface::OpenGL: // Equal to OpenGLRhi in Qt6.
+#endif
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    case QSGRendererInterface::OpenGLRhi:
+#endif
+    case QSGRendererInterface::Software:
+        return true;
+    default:
+        return false;
+    }
+    return false;
 }

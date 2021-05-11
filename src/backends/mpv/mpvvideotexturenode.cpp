@@ -164,7 +164,7 @@ void MPVVideoTextureNode::render()
     };
     // See render_gl.h on what OpenGL environment mpv expects, and
     // other API details.
-    MPV::Qt::render_context_render(m_item->m_mpv_gl, params);
+    mpv_render_context_render(m_item->m_mpv_gl, params);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     QQuickOpenGLUtils::resetOpenGLState();
@@ -232,10 +232,10 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(const QSize &size)
                 }
             };
 
-            if (MPV::Qt::render_context_create(&m_item->m_mpv_gl, m_item->m_mpv, params) < 0) {
+            if (mpv_render_context_create(&m_item->m_mpv_gl, m_item->m_mpv, params) < 0) {
                 qFatal("failed to initialize mpv GL context");
             }
-            MPV::Qt::render_context_set_update_callback(m_item->m_mpv_gl, on_mpv_redraw, m_item);
+            mpv_render_context_set_update_callback(m_item->m_mpv_gl, on_mpv_redraw, m_item);
 
             // If you try to play any media before this signal is emitted,
             // libmpv will create a separate window to display it.

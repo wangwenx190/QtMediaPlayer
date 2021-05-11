@@ -1,6 +1,6 @@
 # QtMediaPlayer
 
-A simple but powerful multimedia player designed for Qt Quick.
+A simple but powerful multimedia player **library** designed for Qt Quick.
 
 ## Features
 

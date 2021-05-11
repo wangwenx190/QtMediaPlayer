@@ -25,15 +25,13 @@
 #pragma once
 
 #include "include/mpv/client.h"
-#include "include/mpv/render_gl.h"
 #include <QtCore/qvariant.h>
 
 namespace MPV::Qt
 {
 
-bool libmpvAvailable();
-
-QVariant node_to_variant(const mpv_node *node);
+bool isLibmpvAvailable();
+QString getLibmpvVersion();
 
 /**
  * This is used to return error codes wrapped in QVariant for functions which
@@ -108,34 +106,6 @@ QVariant command(mpv_handle *ctx, const QVariant &args);
  * @return mpv error code (<0 on error, >= 0 on success)
  */
 int command_async(mpv_handle *ctx, const QVariant &args, quint64 reply_userdata);
-
-int load_config_file(mpv_handle *ctx, const QString &fileName);
-
-int observe_property(mpv_handle *ctx, const QString &name, quint64 reply_userdata);
-
-QString error_string(int errCode);
-
-int render_context_create(mpv_render_context **res, mpv_handle *ctx, mpv_render_param *params);
-
-void render_context_set_update_callback(mpv_render_context *ctx, mpv_render_update_fn callback, void *callback_ctx);
-
-int render_context_render(mpv_render_context *ctx, mpv_render_param *params);
-
-void set_wakeup_callback(mpv_handle *ctx, void (*cb)(void *d), void *d);
-
-int initialize(mpv_handle *ctx);
-
-void render_context_free(mpv_render_context *ctx);
-
-void terminate_destroy(mpv_handle *ctx);
-
-int request_log_messages(mpv_handle *ctx, const QString &min_level);
-
-mpv_event *wait_event(mpv_handle *ctx, qreal timeout);
-
-mpv_handle *create();
-
-QString event_name(mpv_event_id event);
 
 } // namespace MPV::Qt
 

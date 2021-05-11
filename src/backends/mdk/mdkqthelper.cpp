@@ -254,9 +254,15 @@ private:
 
 Q_GLOBAL_STATIC(MDKData, mdkData)
 
-bool mdkAvailable()
+bool isMDKAvailable()
 {
     return mdkData()->isLoaded();
+}
+
+QString getMDKVersion()
+{
+    // Is this correct?
+    return QString::number(MDK_version());
 }
 
 } // namespace MDK::Qt
@@ -309,7 +315,7 @@ char *MDK_strdup(const char *value)
 
 int MDK_version()
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_version, 0);
+    return WWX190_CALL_MDKAPI_RETURN(MDK_version, MDK_VERSION);
 }
 
 // MediaInfo.h

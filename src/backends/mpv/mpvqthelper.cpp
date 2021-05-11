@@ -39,6 +39,7 @@
  */
 
 #include "mpvqthelper.h"
+#include "include/mpv/render_gl.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qlibrary.h>
 #include <QtCore/qfileinfo.h>
@@ -75,14 +76,14 @@
 
 #ifndef WWX190_CALL_MPVAPI
 #define WWX190_CALL_MPVAPI(funcName, ...) \
-    if (mpvData()->m_lp_##funcName) { \
-        mpvData()->m_lp_##funcName(__VA_ARGS__); \
+    if (MPV::Qt::mpvData()->m_lp_##funcName) { \
+        MPV::Qt::mpvData()->m_lp_##funcName(__VA_ARGS__); \
     }
 #endif
 
 #ifndef WWX190_CALL_MPVAPI_RETURN
 #define WWX190_CALL_MPVAPI_RETURN(funcName, defRet, ...) \
-    (mpvData()->m_lp_##funcName ? mpvData()->m_lp_##funcName(__VA_ARGS__) : defRet)
+    (MPV::Qt::mpvData()->m_lp_##funcName ? MPV::Qt::mpvData()->m_lp_##funcName(__VA_ARGS__) : defRet)
 #endif
 
 static const char _mpvHelper_libmpv_fileName_envVar[] = "_WWX190_MPVPLAYER_LIBMPV_FILENAME";
@@ -388,12 +389,18 @@ private:
 
 Q_GLOBAL_STATIC(MPVData, mpvData)
 
-bool libmpvAvailable()
+bool isLibmpvAvailable()
 {
     return mpvData()->isLoaded();
 }
 
-QVariant node_to_variant(const mpv_node *node)
+QString getLibmpvVersion()
+{
+    //return mpvGetProperty(QStringLiteral("mpv-version")).toString();
+    return {};
+}
+
+static inline QVariant node_to_variant(const mpv_node *node)
 {
     Q_ASSERT(node);
     if (!node) {
@@ -587,7 +594,7 @@ struct node_autofree
 
     ~node_autofree()
     {
-        WWX190_CALL_MPVAPI(mpv_free_node_contents, ptr)
+        mpv_free_node_contents(ptr);
     }
 };
 
@@ -622,7 +629,7 @@ QVariant get_property(mpv_handle *ctx, const QString &name)
         return {};
     }
     mpv_node node;
-    const int err = WWX190_CALL_MPVAPI_RETURN(mpv_get_property, -1, ctx, qUtf8Printable(name), MPV_FORMAT_NODE, &node);
+    const int err = mpv_get_property(ctx, qUtf8Printable(name), MPV_FORMAT_NODE, &node);
     if (err < 0) {
         return QVariant::fromValue(ErrorReturn(err));
     }
@@ -644,7 +651,7 @@ int set_property(mpv_handle *ctx, const QString &name, const QVariant &v)
         return -1;
     }
     node_builder node(v);
-    return WWX190_CALL_MPVAPI_RETURN(mpv_set_property, -1, ctx, qUtf8Printable(name), MPV_FORMAT_NODE, node.node());
+    return mpv_set_property(ctx, qUtf8Printable(name), MPV_FORMAT_NODE, node.node());
 }
 
 /**
@@ -662,7 +669,7 @@ int set_property_async(mpv_handle *ctx, const QString &name, const QVariant &v, 
         return -1;
     }
     node_builder node(v);
-    return WWX190_CALL_MPVAPI_RETURN(mpv_set_property_async, -1, ctx, reply_userdata, qUtf8Printable(name), MPV_FORMAT_NODE, node.node());
+    return mpv_set_property_async(ctx, reply_userdata, qUtf8Printable(name), MPV_FORMAT_NODE, node.node());
 }
 
 /**
@@ -680,7 +687,7 @@ QVariant command(mpv_handle *ctx, const QVariant &args)
     }
     node_builder node(args);
     mpv_node res;
-    const int err = WWX190_CALL_MPVAPI_RETURN(mpv_command_node, -1, ctx, node.node(), &res);
+    const int err = mpv_command_node(ctx, node.node(), &res);
     if (err < 0) {
         return QVariant::fromValue(ErrorReturn(err));
     }
@@ -702,131 +709,111 @@ int command_async(mpv_handle *ctx, const QVariant &args, quint64 reply_userdata)
         return -1;
     }
     node_builder node(args);
-    return WWX190_CALL_MPVAPI_RETURN(mpv_command_node_async, -1, ctx, reply_userdata, node.node());
+    return mpv_command_node_async(ctx, reply_userdata, node.node());
 }
 
-int load_config_file(mpv_handle *ctx, const QString &fileName)
+} // namespace MPV::Qt
+
+////////////////////////////////////////////////////
+/////         libmpv
+///////////////////////////////////////////////////
+
+int mpv_get_property(mpv_handle *ctx, const char *name, mpv_format format, void *data)
 {
-    Q_ASSERT(ctx);
-    Q_ASSERT(!fileName.isEmpty());
-    if (!ctx || fileName.isEmpty()) {
-        return -1;
-    }
-    return WWX190_CALL_MPVAPI_RETURN(mpv_load_config_file, -1, ctx, qUtf8Printable(fileName));
+    return WWX190_CALL_MPVAPI_RETURN(mpv_get_property, -1, ctx, name, format, data);
 }
 
-int observe_property(mpv_handle *ctx, const QString &name, quint64 reply_userdata)
+int mpv_set_property(mpv_handle *ctx, const char *name, mpv_format format, void *data)
 {
-    Q_ASSERT(ctx);
-    Q_ASSERT(!name.isEmpty());
-    if (!ctx || name.isEmpty()) {
-        return -1;
-    }
-    return WWX190_CALL_MPVAPI_RETURN(mpv_observe_property, -1, ctx, reply_userdata, qUtf8Printable(name), MPV_FORMAT_NONE);
+    return WWX190_CALL_MPVAPI_RETURN(mpv_set_property, -1, ctx, name, format, data);
 }
 
-QString error_string(int errCode)
+int mpv_set_property_async(mpv_handle *ctx, quint64 reply_userdata, const char *name, mpv_format format, void *data)
 {
-    return QString::fromUtf8(WWX190_CALL_MPVAPI_RETURN(mpv_error_string, nullptr, errCode));
+    return WWX190_CALL_MPVAPI_RETURN(mpv_set_property_async, -1, ctx, reply_userdata, name, format, data);
 }
 
-int render_context_create(mpv_render_context **res, mpv_handle *ctx, mpv_render_param *params)
+int mpv_command_node(mpv_handle *ctx, mpv_node *args, mpv_node *result)
 {
-    Q_ASSERT(res);
-    Q_ASSERT(ctx);
-    Q_ASSERT(params);
-    if (!res || !ctx || !params) {
-        return -1;
-    }
+    return WWX190_CALL_MPVAPI_RETURN(mpv_command_node, -1, ctx, args, result);
+}
+
+int mpv_command_node_async(mpv_handle *ctx, quint64 reply_userdata, mpv_node *args)
+{
+    return WWX190_CALL_MPVAPI_RETURN(mpv_command_node_async, -1, ctx, reply_userdata, args);
+}
+
+int mpv_load_config_file(mpv_handle *ctx, const char *filename)
+{
+    return WWX190_CALL_MPVAPI_RETURN(mpv_load_config_file, -1, ctx, filename);
+}
+
+int mpv_observe_property(mpv_handle *ctx, quint64 reply_userdata, const char *name, mpv_format format)
+{
+    return WWX190_CALL_MPVAPI_RETURN(mpv_observe_property, -1, ctx, reply_userdata, name, format);
+}
+
+const char *mpv_error_string(int error)
+{
+    return WWX190_CALL_MPVAPI_RETURN(mpv_error_string, nullptr, error);
+}
+
+int mpv_render_context_create(mpv_render_context **res, mpv_handle *ctx, mpv_render_param *params)
+{
     return WWX190_CALL_MPVAPI_RETURN(mpv_render_context_create, -1, res, ctx, params);
 }
 
-void render_context_set_update_callback(mpv_render_context *ctx, mpv_render_update_fn callback, void *callback_ctx)
+void mpv_render_context_set_update_callback(mpv_render_context *ctx, mpv_render_update_fn callback, void *callback_ctx)
 {
-    Q_ASSERT(ctx);
-    Q_ASSERT(callback);
-    Q_ASSERT(callback_ctx);
-    if (!ctx || !callback || !callback_ctx) {
-        return;
-    }
     WWX190_CALL_MPVAPI(mpv_render_context_set_update_callback, ctx, callback, callback_ctx)
 }
 
-int render_context_render(mpv_render_context *ctx, mpv_render_param *params)
+int mpv_render_context_render(mpv_render_context *ctx, mpv_render_param *params)
 {
-    Q_ASSERT(ctx);
-    Q_ASSERT(params);
-    if (!ctx || !params) {
-        return -1;
-    }
     return WWX190_CALL_MPVAPI_RETURN(mpv_render_context_render, -1, ctx, params);
 }
 
-void set_wakeup_callback(mpv_handle *ctx, void (*cb)(void *d), void *d)
+void mpv_set_wakeup_callback(mpv_handle *ctx, void (*cb)(void *d), void *d)
 {
-    Q_ASSERT(ctx);
-    Q_ASSERT(cb);
-    Q_ASSERT(d);
-    if (!ctx || !cb || !d) {
-        return;
-    }
     WWX190_CALL_MPVAPI(mpv_set_wakeup_callback, ctx, cb, d)
 }
 
-int initialize(mpv_handle *ctx)
+int mpv_initialize(mpv_handle *ctx)
 {
-    Q_ASSERT(ctx);
-    if (!ctx) {
-        return -1;
-    }
     return WWX190_CALL_MPVAPI_RETURN(mpv_initialize, -1, ctx);
 }
 
-void render_context_free(mpv_render_context *ctx)
+void mpv_render_context_free(mpv_render_context *ctx)
 {
-    Q_ASSERT(ctx);
-    if (!ctx) {
-        return;
-    }
     WWX190_CALL_MPVAPI(mpv_render_context_free, ctx)
 }
 
-void terminate_destroy(mpv_handle *ctx)
+void mpv_terminate_destroy(mpv_handle *ctx)
 {
-    Q_ASSERT(ctx);
-    if (!ctx) {
-        return;
-    }
     WWX190_CALL_MPVAPI(mpv_terminate_destroy, ctx)
 }
 
-int request_log_messages(mpv_handle *ctx, const QString &min_level)
+int mpv_request_log_messages(mpv_handle *ctx, const char *min_level)
 {
-    Q_ASSERT(ctx);
-    Q_ASSERT(!min_level.isEmpty());
-    if (!ctx || min_level.isEmpty()) {
-        return -1;
-    }
-    return WWX190_CALL_MPVAPI_RETURN(mpv_request_log_messages, -1, ctx, qUtf8Printable(min_level));
+    return WWX190_CALL_MPVAPI_RETURN(mpv_request_log_messages, -1, ctx, min_level);
 }
 
-mpv_event *wait_event(mpv_handle *ctx, qreal timeout)
+mpv_event *mpv_wait_event(mpv_handle *ctx, qreal timeout)
 {
-    Q_ASSERT(ctx);
-    if (!ctx) {
-        return nullptr;
-    }
     return WWX190_CALL_MPVAPI_RETURN(mpv_wait_event, nullptr, ctx, timeout);
 }
 
-mpv_handle *create()
+mpv_handle *mpv_create()
 {
     return WWX190_CALL_MPVAPI_RETURN(mpv_create, nullptr);
 }
 
-QString event_name(mpv_event_id event)
+const char *mpv_event_name(mpv_event_id event)
 {
-    return QString::fromUtf8(WWX190_CALL_MPVAPI_RETURN(mpv_event_name, nullptr, event));
+    return WWX190_CALL_MPVAPI_RETURN(mpv_event_name, nullptr, event);
 }
 
-} // namespace MPV::Qt
+void mpv_free_node_contents(mpv_node *node)
+{
+    WWX190_CALL_MPVAPI(mpv_free_node_contents, node)
+}

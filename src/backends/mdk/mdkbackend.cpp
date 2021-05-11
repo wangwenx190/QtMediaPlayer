@@ -29,7 +29,7 @@
 bool RegisterBackend(const char *name)
 {
     if (qstricmp(name, "mdk") == 0) {
-        if (MDK::Qt::mdkAvailable()) {
+        if (MDK::Qt::isMDKAvailable()) {
             const int typeId = QTMEDIAPLAYER_QML_REGISTER(QTMEDIAPLAYER_PREPEND_NAMESPACE(MDKPlayer));
             Q_UNUSED(typeId);
             return true;
@@ -41,4 +41,16 @@ bool RegisterBackend(const char *name)
 const char *GetBackendName()
 {
     return "MDK";
+}
+
+const char *GetBackendVersion()
+{
+    return qstrdup(qUtf8Printable(MDK::Qt::getMDKVersion()));
+}
+
+bool IsRHIBackendSupported(const int enumIntValue)
+{
+    // MDK supports all QtRHI backends.
+    Q_UNUSED(enumIntValue);
+    return true;
 }

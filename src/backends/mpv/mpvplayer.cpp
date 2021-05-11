@@ -25,6 +25,7 @@
 #include "mpvplayer.h"
 #include "mpvqthelper.h"
 #include "mpvvideotexturenode.h"
+#include "include/mpv/render.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtQuick/qquickwindow.h>
@@ -48,7 +49,7 @@ MPVPlayer::MPVPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {
     qDebug() << "Initializing the MPV backend ...";
 
-    if (!MPV::Qt::libmpvAvailable()) {
+    if (!MPV::Qt::isLibmpvAvailable()) {
         qFatal("libmpv is not available.");
     }
 
@@ -58,7 +59,7 @@ MPVPlayer::MPVPlayer(QQuickItem *parent) : MediaPlayer(parent)
 
     qRegisterMetaType<MPV::Qt::ErrorReturn>();
 
-    m_mpv = MPV::Qt::create();
+    m_mpv = mpv_create();
     if (!m_mpv) {
         qFatal("Failed to create mpv player.");
     }
@@ -83,9 +84,9 @@ MPVPlayer::MPVPlayer(QQuickItem *parent) : MediaPlayer(parent)
     // relay the wakeup in a thread-safe way.
     connect(this, &MPVPlayer::hasMpvEvents, this, &MPVPlayer::handleMpvEvents, Qt::QueuedConnection);
 
-    MPV::Qt::set_wakeup_callback(m_mpv, wakeup, this);
+    mpv_set_wakeup_callback(m_mpv, wakeup, this);
 
-    if (MPV::Qt::initialize(m_mpv) < 0) {
+    if (mpv_initialize(m_mpv) < 0) {
         qFatal("Failed to initialize mpv.");
     }
 
@@ -96,9 +97,9 @@ MPVPlayer::~MPVPlayer()
 {
     // Only initialized if something got drawn
     if (m_mpv_gl) {
-        MPV::Qt::render_context_free(m_mpv_gl);
+        mpv_render_context_free(m_mpv_gl);
     }
-    MPV::Qt::terminate_destroy(m_mpv);
+    mpv_terminate_destroy(m_mpv);
     if (!m_livePreview) {
         qDebug() << "Player destroyed.";
     }
@@ -120,7 +121,7 @@ QString MPVPlayer::backendName() const
 
 QString MPVPlayer::backendVersion() const
 {
-    return mpvGetProperty(QStringLiteral("mpv-version")).toString();
+    return MPV::Qt::getLibmpvVersion();
 }
 
 QString MPVPlayer::backendDescription() const
@@ -288,7 +289,7 @@ bool MPVPlayer::mpvSendCommand(const QVariant &arguments)
     }
     const int errorCode = MPV::Qt::get_error(MPV::Qt::command(m_mpv, arguments));
     if ((errorCode < 0) && !m_livePreview) {
-        qWarning() << "Failed to send command" << arguments << ':' << MPV::Qt::error_string(errorCode);
+        qWarning() << "Failed to send command" << arguments << ':' << mpv_error_string(errorCode);
     }
     return (errorCode >= 0);
 }
@@ -303,7 +304,7 @@ bool MPVPlayer::mpvSetProperty(const QString &name, const QVariant &value)
     }
     const int errorCode = MPV::Qt::set_property(m_mpv, name, value);
     if ((errorCode < 0) && !m_livePreview) {
-        qWarning() << "Failed to change property" << name << "to" << value << ':' << MPV::Qt::error_string(errorCode);
+        qWarning() << "Failed to change property" << name << "to" << value << ':' << mpv_error_string(errorCode);
     }
     return (errorCode >= 0);
 }
@@ -320,7 +321,7 @@ QVariant MPVPlayer::mpvGetProperty(const QString &name, const bool silent, bool 
     const int errorCode = MPV::Qt::get_error(result);
     if (!result.isValid() || (errorCode < 0)) {
         if (!silent && !m_livePreview) {
-            qWarning() << "Failed to query property" << name << ':' << MPV::Qt::error_string(errorCode);
+            qWarning() << "Failed to query property" << name << ':' << mpv_error_string(errorCode);
         }
     } else {
         if (ok) {
@@ -338,9 +339,9 @@ bool MPVPlayer::mpvObserveProperty(const QString &name)
     if (name.isEmpty()) {
         return false;
     }
-    const int errorCode = MPV::Qt::observe_property(m_mpv, name, 0);
+    const int errorCode = mpv_observe_property(m_mpv, 0, qUtf8Printable(name), MPV_FORMAT_NONE);
     if ((errorCode < 0) && !m_livePreview) {
-        qWarning() << "Failed to observe property" << name << ':' << MPV::Qt::error_string(errorCode);
+        qWarning() << "Failed to observe property" << name << ':' << mpv_error_string(errorCode);
     }
     return (errorCode >= 0);
 }
@@ -703,12 +704,12 @@ void MPVPlayer::setLogLevel(const LogLevel value)
     }
     const bool result1 = mpvSetProperty(QStringLiteral("terminal"), level != QStringLiteral("no"));
     const bool result2 = mpvSetProperty(QStringLiteral("msg-level"), QStringLiteral("all=%1").arg(level));
-    const int errorCode = MPV::Qt::request_log_messages(m_mpv, level);
+    const int errorCode = mpv_request_log_messages(m_mpv, qUtf8Printable(level));
     if (result1 && result2 && (errorCode >= 0)) {
         Q_EMIT logLevelChanged();
     } else {
         if (!m_livePreview) {
-            qWarning() << "Failed to change log level to" << level << ':' << MPV::Qt::error_string(errorCode);
+            qWarning() << "Failed to change log level to" << level << ':' << mpv_error_string(errorCode);
         }
     }
 }
@@ -838,7 +839,7 @@ void MPVPlayer::handleMpvEvents()
 {
     // Process all events, until the event queue is empty.
     while (m_mpv) {
-        const auto event = MPV::Qt::wait_event(m_mpv, 0.005);
+        const auto event = mpv_wait_event(m_mpv, 0.005);
         if (!event) {
             continue;
         }
@@ -952,7 +953,7 @@ void MPVPlayer::handleMpvEvents()
             break;
         }
         if (shouldOutput && !m_livePreview) {
-            qDebug() << MPV::Qt::event_name(event->event_id) << "event received.";
+            qDebug() << mpv_event_name(event->event_id) << "event received.";
         }
     }
 }
