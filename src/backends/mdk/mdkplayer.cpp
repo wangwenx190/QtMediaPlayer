@@ -630,6 +630,9 @@ void MDKPlayer::setLivePreview(const bool value)
             m_player->setState(MDK_NS_PREPEND(PlaybackState)::Paused);
             // We don't want the preview window play sound.
             m_player->setMute(true);
+            // Disable media tracks that are not needed.
+            m_player->setActiveTracks(MDK_NS_PREPEND(MediaType)::Audio, {});
+            m_player->setActiveTracks(MDK_NS_PREPEND(MediaType)::Subtitle, {});
             // Decode as soon as possible when media data received.
             m_player->setBufferRange(0);
             // Prevent player stop playing after EOF is reached.
@@ -638,6 +641,9 @@ void MDKPlayer::setLivePreview(const bool value)
         } else {
             // Restore everything to default.
             m_player->setBufferRange(1000);
+            // TODO
+            //m_player->setActiveTracks(MDK_NS_PREPEND(MediaType)::Audio, {});
+            //m_player->setActiveTracks(MDK_NS_PREPEND(MediaType)::Subtitle, {});
             m_player->setMute(m_mute);
             m_player->setProperty("continue_at_end", "0");
         }
@@ -843,27 +849,23 @@ void MDKPlayer::snapshot()
 void MDKPlayer::initMdkHandlers()
 {
     MDK_NS_PREPEND(setLogHandler)([this](MDK_NS_PREPEND(LogLevel) level, const char *msg) {
-        QString prefix = objectName();
         if (m_livePreview) {
-            if (prefix.isEmpty()) {
-                prefix = QStringLiteral("<TIME LINE PREVIEW>");
-            } else {
-                prefix.append(QStringLiteral(" (time line preview)"));
-            }
+            // We don't need log messages of the preview player.
+            return;
         }
         switch (level) {
         case MDK_NS_PREPEND(LogLevel)::Info:
-            qInfo().noquote() << prefix << msg;
+            qInfo().noquote() << msg;
             break;
         case MDK_NS_PREPEND(LogLevel)::All:
         case MDK_NS_PREPEND(LogLevel)::Debug:
-            qDebug().noquote() << prefix << msg;
+            qDebug().noquote() << msg;
             break;
         case MDK_NS_PREPEND(LogLevel)::Warning:
-            qWarning().noquote() << prefix << msg;
+            qWarning().noquote() << msg;
             break;
         case MDK_NS_PREPEND(LogLevel)::Error:
-            qCritical().noquote() << prefix << msg;
+            qCritical().noquote() << msg;
             break;
         default:
             break;

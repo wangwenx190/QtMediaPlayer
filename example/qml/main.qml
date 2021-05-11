@@ -206,6 +206,45 @@ Window {
         }
     }
 
+    ColumnLayout {
+        anchors {
+            verticalCenter: parent.verticalCenter
+            left: parent.left
+            leftMargin: 10
+        }
+        spacing: 10
+
+        Label {
+            Layout.fillWidth: true
+            text: qsTr("Backend name: %1").arg(mediaPlayer.backendName)
+            font {
+                bold: true
+                pointSize: 15
+            }
+            color: "white"
+        }
+
+        Label {
+            Layout.fillWidth: true
+            text: qsTr("Backend version: %1").arg(mediaPlayer.backendVersion)
+            font {
+                bold: true
+                pointSize: 15
+            }
+            color: "white"
+        }
+
+        Label {
+            Layout.fillWidth: true
+            text: qsTr("FFmpeg version: %1").arg(mediaPlayer.ffmpegVersion)
+            font {
+                bold: true
+                pointSize: 15
+            }
+            color: "white"
+        }
+    }
+
     MediaPlayer {
         id: preview
         visible: false

@@ -397,8 +397,8 @@ bool isLibmpvAvailable()
 QString getLibmpvVersion()
 {
     const auto fullVerNum = mpv_client_api_version();
-    const auto majorVerNum = fullVerNum >> 16;
-    const auto minorVerNum = fullVerNum;
+    const auto majorVerNum = (fullVerNum >> 16) & 0xff;
+    const auto minorVerNum = fullVerNum & 0xff;
     return QStringLiteral("%1.%2.0").arg(QString::number(majorVerNum), QString::number(minorVerNum));
 }
 
