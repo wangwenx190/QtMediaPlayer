@@ -202,7 +202,9 @@ private:
         {QStringLiteral("idle-active"), {"playbackStateChanged"}},
         {QStringLiteral("track-list"), {"mediaTracksChanged"}},
         {QStringLiteral("chapter-list"), {"chaptersChanged"}},
-        {QStringLiteral("metadata"), {"metaDataChanged"}}
+        {QStringLiteral("metadata"), {"metaDataChanged"}},
+        {QStringLiteral("video-unscaled"), {"fillModeChanged"}},
+        {QStringLiteral("keepaspect"), {"fillModeChanged"}}
     };
 
     // These properties are changing all the time during the playback process.

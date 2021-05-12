@@ -825,14 +825,39 @@ void MPVPlayer::setLivePreview(const bool value)
 
 MPVPlayer::FillMode MPVPlayer::fillMode() const
 {
-    // TODO
-    return FillMode::PreserveAspectFit;
+    bool ok = false;
+    const bool keepaspect = mpvGetProperty(QStringLiteral("keepaspect"), false, &ok).toBool();
+    if (!ok) {
+        return FillMode::PreserveAspectFit;
+    }
+    if (!keepaspect) {
+        return FillMode::Stretch;
+    }
+    const QString videoUnscaledStr = mpvGetProperty(QStringLiteral("video-unscaled")).toString();
+    if (videoUnscaledStr.isEmpty() || (videoUnscaledStr == QStringLiteral("no"))) {
+        return FillMode::PreserveAspectFit;
+    }
+    return FillMode::PreserveAspectCrop;
 }
 
 void MPVPlayer::setFillMode(const MPVPlayer::FillMode value)
 {
-    // TODO
-    Q_UNUSED(value);
+    if (fillMode() == value) {
+        return;
+    }
+    switch (value) {
+    case FillMode::PreserveAspectFit: {
+        mpvSetProperty(QStringLiteral("keepaspect"), true);
+        mpvSetProperty(QStringLiteral("video-unscaled"), QStringLiteral("no"));
+    } break;
+    case FillMode::PreserveAspectCrop: {
+        mpvSetProperty(QStringLiteral("keepaspect"), true);
+        mpvSetProperty(QStringLiteral("video-unscaled"), QStringLiteral("yes"));
+    } break;
+    case FillMode::Stretch:
+        mpvSetProperty(QStringLiteral("keepaspect"), false);
+        break;
+    }
 }
 
 void MPVPlayer::handleMpvEvents()
