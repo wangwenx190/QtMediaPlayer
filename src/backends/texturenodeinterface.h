@@ -24,42 +24,34 @@
 
 #pragma once
 
-#include "mdkbackend_global.h"
-#include "../texturenodeinterface.h"
+#include "../qtmediaplayer_global.h"
+#include <QtQuick/qsgtextureprovider.h>
+#include <QtQuick/qsgsimpletexturenode.h>
 
-namespace mdk
-{
-
-class Player;
-
-}
+QT_BEGIN_NAMESPACE
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
+QT_END_NAMESPACE
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class MDKPlayer;
-
-class MDKVideoTextureNode : public VideoTextureNode
+class VideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNode
 {
     Q_OBJECT
-    Q_DISABLE_COPY_MOVE(MDKVideoTextureNode)
+    Q_DISABLE_COPY_MOVE(VideoTextureNode)
 
 public:
-    explicit MDKVideoTextureNode(QQuickItem *item);
-    ~MDKVideoTextureNode() override;
+    explicit VideoTextureNode(QQuickItem *item);
+    ~VideoTextureNode() override;
 
-    void sync() override;
+    QSGTexture *texture() const override;
+
+    virtual void sync() = 0;
 
 protected Q_SLOTS:
-    void render() override;
+    virtual void render() = 0;
 
 protected:
-    TextureCoordinatesTransformMode m_transformMode = TextureCoordinatesTransformFlag::NoTransform;
-    QQuickWindow *m_window = nullptr;
-    MDKPlayer *m_item = nullptr;
-    QSize m_size = {};
-
-private:
-    QWeakPointer<mdk::Player> m_player;
+    virtual QSGTexture *ensureTexture(void *player, const QSize &size) = 0;
 };
 
 QTMEDIAPLAYER_END_NAMESPACE

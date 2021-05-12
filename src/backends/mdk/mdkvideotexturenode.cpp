@@ -30,15 +30,15 @@
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-MDKVideoTextureNode::MDKVideoTextureNode(MDKPlayer *item)
+MDKVideoTextureNode::MDKVideoTextureNode(QQuickItem *item) : VideoTextureNode(item)
 {
     Q_ASSERT(item);
     if (!item) {
         qFatal("null mdk player item.");
     }
-    m_item = item;
-    m_window = item->window();
-    m_player = item->m_player;
+    m_item = static_cast<MDKPlayer *>(item);
+    m_window = m_item->window();
+    m_player = m_item->m_player;
     connect(m_window, &QQuickWindow::beforeRendering, this, &MDKVideoTextureNode::render);
     connect(m_window, &QQuickWindow::screenChanged, this, [this](QScreen *screen){
         Q_UNUSED(screen);
@@ -48,7 +48,10 @@ MDKVideoTextureNode::MDKVideoTextureNode(MDKPlayer *item)
 
 MDKVideoTextureNode::~MDKVideoTextureNode()
 {
-    delete texture();
+    const auto tex = texture();
+    if (tex) {
+        delete tex;
+    }
     // When device lost occurs
     const auto player = m_player.lock();
     if (!player) {
@@ -56,11 +59,6 @@ MDKVideoTextureNode::~MDKVideoTextureNode()
     }
     player->setVideoSurfaceSize(-1, -1);
     qCDebug(lcQMPMDK) << "Renderer destroyed.";
-}
-
-QSGTexture *MDKVideoTextureNode::texture() const
-{
-    return QSGSimpleTextureNode::texture();
 }
 
 void MDKVideoTextureNode::sync()

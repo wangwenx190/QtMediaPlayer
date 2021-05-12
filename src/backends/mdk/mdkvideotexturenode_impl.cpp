@@ -73,7 +73,7 @@ class MDKVideoTextureNodeImpl final : public MDKVideoTextureNode
     Q_DISABLE_COPY_MOVE(MDKVideoTextureNodeImpl)
 
 public:
-    explicit MDKVideoTextureNodeImpl(MDKPlayer *item) : MDKVideoTextureNode(item)
+    explicit MDKVideoTextureNodeImpl(QQuickItem *item) : MDKVideoTextureNode(item)
     {
         Q_ASSERT(item);
         if (!item) {
@@ -92,8 +92,10 @@ public:
 #endif
     }
 
+protected:
+    QSGTexture *ensureTexture(void *player, const QSize &size) override;
+
 private:
-    QSGTexture *ensureTexture(MDK_NS_PREPEND(Player) *player, const QSize &size) override;
 #if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
     bool buildTexture(const QSize &size);
     void freeTexture();
@@ -127,7 +129,7 @@ MDKVideoTextureNode *createNode(MDKPlayer *item)
     return new MDKVideoTextureNodeImpl(item);
 }
 
-QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *player, const QSize &size)
+QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &size)
 {
     Q_ASSERT(player);
     Q_ASSERT(m_window);
@@ -153,7 +155,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
         fbo_gl.reset(new QOpenGLFramebufferObject(size));
         MDK_NS_PREPEND(GLRenderAPI) ra = {};
         ra.fbo = fbo_gl->handle();
-        player->setRenderAPI(&ra);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra);
         QMetaObject::invokeMethod(m_item, "rendererReady");
         const auto tex = fbo_gl->texture();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -186,7 +188,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
         }
         MDK_NS_PREPEND(D3D11RenderAPI) ra = {};
         ra.rtv = m_texture_d3d11.Get();
-        player->setRenderAPI(&ra);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra);
         QMetaObject::invokeMethod(m_item, "rendererReady");
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = reinterpret_cast<decltype(nativeObj)>(m_texture_d3d11.Get());
@@ -217,7 +219,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
         ra.texture = (__bridge void*)m_texture_mtl;
         ra.device = (__bridge void*)dev;
         ra.cmdQueue = rif->getResource(m_window, QSGRendererInterface::CommandQueueResource);
-        player->setRenderAPI(&ra);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra);
         QMetaObject::invokeMethod(m_item, "rendererReady");
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = decltype(nativeObj)(ra.texture);
@@ -266,7 +268,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
             const auto cmdBuf = *static_cast<VkCommandBuffer *>(rif->getResource(node->m_window, QSGRendererInterface::CommandListResource));
             return cmdBuf;
         };
-        player->setRenderAPI(&ra);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra);
         QMetaObject::invokeMethod(m_item, "rendererReady");
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         if (m_texture_vk) {

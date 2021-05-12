@@ -25,11 +25,9 @@
 #pragma once
 
 #include "mpvbackend_global.h"
-#include <QtQuick/qsgtextureprovider.h>
-#include <QtQuick/qsgsimpletexturenode.h>
+#include "../texturenodeinterface.h"
 
 QT_BEGIN_NAMESPACE
-QT_FORWARD_DECLARE_CLASS(QQuickWindow)
 QT_FORWARD_DECLARE_CLASS(QOpenGLFramebufferObject)
 QT_END_NAMESPACE
 
@@ -37,24 +35,22 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 class MPVPlayer;
 
-class MPVVideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNode
+class MPVVideoTextureNode final : public VideoTextureNode
 {
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(MPVVideoTextureNode)
 
 public:
-    explicit MPVVideoTextureNode(MPVPlayer *item);
+    explicit MPVVideoTextureNode(QQuickItem *item);
     ~MPVVideoTextureNode() override;
 
-    QSGTexture *texture() const override;
+    void sync() override;
 
-    void sync();
+protected Q_SLOTS:
+    void render() override;
 
-private Q_SLOTS:
-    void render();
-
-private:
-    QSGTexture *ensureTexture(const QSize &size);
+protected:
+    QSGTexture *ensureTexture(void *player, const QSize &size) override;
 
 private:
 #if QT_CONFIG(opengl)

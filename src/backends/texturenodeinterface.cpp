@@ -22,44 +22,20 @@
  * SOFTWARE.
  */
 
-#pragma once
-
-#include "mdkbackend_global.h"
-#include "../texturenodeinterface.h"
-
-namespace mdk
-{
-
-class Player;
-
-}
+#include "texturenodeinterface.h"
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class MDKPlayer;
-
-class MDKVideoTextureNode : public VideoTextureNode
+VideoTextureNode::VideoTextureNode(QQuickItem *item)
 {
-    Q_OBJECT
-    Q_DISABLE_COPY_MOVE(MDKVideoTextureNode)
+    Q_UNUSED(item);
+}
 
-public:
-    explicit MDKVideoTextureNode(QQuickItem *item);
-    ~MDKVideoTextureNode() override;
+VideoTextureNode::~VideoTextureNode() = default;
 
-    void sync() override;
-
-protected Q_SLOTS:
-    void render() override;
-
-protected:
-    TextureCoordinatesTransformMode m_transformMode = TextureCoordinatesTransformFlag::NoTransform;
-    QQuickWindow *m_window = nullptr;
-    MDKPlayer *m_item = nullptr;
-    QSize m_size = {};
-
-private:
-    QWeakPointer<mdk::Player> m_player;
-};
+QSGTexture *VideoTextureNode::texture() const
+{
+    return QSGSimpleTextureNode::texture();
+}
 
 QTMEDIAPLAYER_END_NAMESPACE

@@ -56,14 +56,14 @@ static inline void on_mpv_redraw(void *ctx)
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-MPVVideoTextureNode::MPVVideoTextureNode(MPVPlayer *item)
+MPVVideoTextureNode::MPVVideoTextureNode(QQuickItem *item) : VideoTextureNode(item)
 {
     Q_ASSERT(item);
     if (!item) {
         qFatal("null mpv player item.");
     }
-    m_item = item;
-    m_window = item->window();
+    m_item = static_cast<MPVPlayer *>(item);
+    m_window = m_item->window();
     connect(m_window, &QQuickWindow::beforeRendering, this, &MPVVideoTextureNode::render);
     connect(m_window, &QQuickWindow::screenChanged, this, [this](QScreen *screen){
         Q_UNUSED(screen);
@@ -78,11 +78,6 @@ MPVVideoTextureNode::~MPVVideoTextureNode()
         delete tex;
     }
     qCDebug(lcQMPMPV) << "Renderer destroyed.";
-}
-
-QSGTexture *MPVVideoTextureNode::texture() const
-{
-    return QSGSimpleTextureNode::texture();
 }
 
 void MPVVideoTextureNode::sync()
@@ -106,7 +101,7 @@ void MPVVideoTextureNode::sync()
         return;
     }
     m_size = newSize;
-    const auto tex = ensureTexture(m_size);
+    const auto tex = ensureTexture(nullptr, m_size);
     if (!tex) {
         return;
     }
@@ -173,8 +168,10 @@ void MPVVideoTextureNode::render()
 #endif
 }
 
-QSGTexture* MPVVideoTextureNode::ensureTexture(const QSize &size)
+QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
 {
+    Q_UNUSED(player);
+
     Q_ASSERT(m_item);
     Q_ASSERT(m_window);
     if (!m_item || !m_window) {

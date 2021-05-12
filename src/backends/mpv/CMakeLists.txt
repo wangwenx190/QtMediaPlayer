@@ -11,13 +11,15 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
 
 set(SOURCES
     # Official MPV headers
-    include/mpv/client.h
+    #[[include/mpv/client.h
     include/mpv/render.h
     include/mpv/render_gl.h
-    include/mpv/stream_cb.h
-    # Backend interface
+    include/mpv/stream_cb.h]]
+    # Interfaces
     ../backendinterface.h
     ../backendinterface.cpp
+    ../texturenodeinterface.h
+    ../texturenodeinterface.cpp
     # MPV backend
     mpvbackend_global.h
     mpvqthelper.h
