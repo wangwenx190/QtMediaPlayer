@@ -18,7 +18,7 @@ cmake --build .
 cmake --install .
 ```
 
-Currently two backends are available: [MDK](https://sourceforge.net/projects/mdk-sdk/) and [MPV](https://mpv.io/). [VLC](https://www.videolan.org/vlc/libvlc.html) is on plan. All backends will be loaded dynamically at run-time.
+Currently two backends are available: [MDK](https://sourceforge.net/projects/mdk-sdk/files/) and [MPV](https://sourceforge.net/projects/mpv-player-windows/files/). [VLC](http://download.videolan.org/pub/videolan/vlc/last/) is on plan. All backends will be loaded dynamically at run-time.
 
 ## Usage
 
