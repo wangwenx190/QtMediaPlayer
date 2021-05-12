@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     cmdLineParser.addPositionalArgument(QStringLiteral("url"), QCoreApplication::translate("main", "URL to play."));
 
     const QCommandLineOption rhiBackendOption(QStringLiteral("rhi-backend"),
-                                              QCoreApplication::translate("main", "Set the Qt RHI backend. Available backends: Direct3D, Vulkan, Metal, OpenGL, OpenGLES, Software, Auto."),
+                                              QCoreApplication::translate("main", "Set the Qt RHI backend. Available backends: Direct3D, Vulkan, Metal, OpenGL, Software, Auto."),
                                               QCoreApplication::translate("main", "backend"));
     cmdLineParser.addOption(rhiBackendOption);
 
@@ -99,23 +99,6 @@ int main(int argc, char *argv[])
 #else
             QQuickWindow::setSceneGraphBackend(QSGRendererInterface::OpenGLRhi);
 #endif
-            QSurfaceFormat surfaceFormat = QSurfaceFormat::defaultFormat();
-            if (rhiBackendParamValue.contains(QStringLiteral("es"), Qt::CaseInsensitive)) {
-                qDebug() << "Setting Qt RHI backend to OpenGL ES ...";
-                // OpenGL ES, performance is better than desktop OpenGL.
-                surfaceFormat.setRenderableType(QSurfaceFormat::OpenGLES);
-                // The latest OpenGL ES version is V3.2 and will never be updated again in
-                // the future because the next generation of OpenGL (ES) is Vulkan.
-                surfaceFormat.setVersion(3, 2);
-            } else {
-                qDebug() << "Setting Qt RHI backend to OpenGL ...";
-                // Desktop OpenGL
-                surfaceFormat.setRenderableType(QSurfaceFormat::OpenGL);
-                // The latest OpenGL version is V4.6, released on October 22, 2019.
-                surfaceFormat.setVersion(4, 6);
-            }
-            surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
-            QSurfaceFormat::setDefaultFormat(surfaceFormat);
         } else if ((rhiBackendParamValue == QStringLiteral("metal"))
                    || (rhiBackendParamValue == QStringLiteral("mt"))) {
             qDebug() << "Setting Qt RHI backend to Metal ...";
@@ -137,7 +120,7 @@ int main(int argc, char *argv[])
             // Let Qt itself decide which RHI backend to use.
         } else {
             qWarning() << "Can't recognize the given RHI backend:" << rhiBackendParamValue;
-            qDebug() << "Acceptable RHI backend names: Direct3D, Vulkan, Metal, OpenGL, OpenGLES, Software, Auto.";
+            qDebug() << "Acceptable RHI backend names: Direct3D, Vulkan, Metal, OpenGL, Software, Auto.";
             return -1;
         }
     }

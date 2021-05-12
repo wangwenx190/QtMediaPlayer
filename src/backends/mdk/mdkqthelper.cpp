@@ -41,11 +41,11 @@
 #ifndef WWX190_RESOLVE_MDKAPI
 #define WWX190_RESOLVE_MDKAPI(funcName) \
     if (!m_lp_##funcName) { \
-        qDebug() << "Resolving function:" << #funcName; \
+        qCDebug(lcQMPMDK) << "Resolving function:" << #funcName; \
         m_lp_##funcName = reinterpret_cast<_WWX190_MDKAPI_lp_##funcName>(library.resolve(#funcName)); \
         Q_ASSERT(m_lp_##funcName); \
         if (!m_lp_##funcName) { \
-            qWarning() << "Failed to resolve function:" << #funcName; \
+            qCWarning(lcQMPMDK) << "Failed to resolve function:" << #funcName; \
         } \
     }
 #endif
@@ -124,12 +124,12 @@ public:
     {
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
-            qWarning() << "Failed to load MDK: empty library path.";
+            qCWarning(lcQMPMDK) << "Failed to load MDK: empty library path.";
             return false;
         }
 
         if (isLoaded()) {
-            qDebug() << "MDK already loaded. Unloading ...";
+            qCDebug(lcQMPMDK) << "MDK already loaded. Unloading ...";
             if (!unload()) {
                 return false;
             }
@@ -141,10 +141,10 @@ public:
             // We can't get the full file name if QLibrary is not loaded.
             QFileInfo fi(library.fileName());
             fi.makeAbsolute();
-            qDebug() << "Start loading MDK from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
+            qCDebug(lcQMPMDK) << "Start loading MDK from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
         } else {
-            qDebug() << "Start loading MDK from:" << QDir::toNativeSeparators(path);
-            qWarning() << "Failed to load MDK:" << library.errorString();
+            qCDebug(lcQMPMDK) << "Start loading MDK from:" << QDir::toNativeSeparators(path);
+            qCWarning(lcQMPMDK) << "Failed to load MDK:" << library.errorString();
             return false;
         }
 
@@ -175,7 +175,7 @@ public:
         WWX190_RESOLVE_MDKAPI(mdkVideoFrameAPI_new)
         WWX190_RESOLVE_MDKAPI(mdkVideoFrameAPI_delete)
 
-        qDebug() << "MDK loaded successfully.";
+        qCDebug(lcQMPMDK) << "MDK loaded successfully.";
         return true;
     }
 
@@ -210,12 +210,12 @@ public:
 
         if (library.isLoaded()) {
             if (!library.unload()) {
-                qWarning() << "Failed to unload MDK:" << library.errorString();
+                qCWarning(lcQMPMDK) << "Failed to unload MDK:" << library.errorString();
                 return false;
             }
         }
 
-        qDebug() << "MDK unloaded successfully.";
+        qCDebug(lcQMPMDK) << "MDK unloaded successfully.";
         return true;
     }
 

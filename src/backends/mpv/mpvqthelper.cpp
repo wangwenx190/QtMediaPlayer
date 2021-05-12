@@ -54,11 +54,11 @@
 #ifndef WWX190_RESOLVE_MPVAPI
 #define WWX190_RESOLVE_MPVAPI(funcName) \
     if (!m_lp_##funcName) { \
-        qDebug() << "Resolving function:" << #funcName; \
+        qCDebug(lcQMPMPV) << "Resolving function:" << #funcName; \
         m_lp_##funcName = reinterpret_cast<_WWX190_MPVAPI_lp_##funcName>(library.resolve(#funcName)); \
         Q_ASSERT(m_lp_##funcName); \
         if (!m_lp_##funcName) { \
-            qWarning() << "Failed to resolve function" << #funcName; \
+            qCWarning(lcQMPMPV) << "Failed to resolve function" << #funcName; \
         } \
     }
 #endif
@@ -107,7 +107,7 @@ struct MPVData
 {
 public:
     // client.h
-    WWX190_GENERATE_MPVAPI(mpv_client_api_version, quint64)
+    WWX190_GENERATE_MPVAPI(mpv_client_api_version, unsigned long)
     WWX190_GENERATE_MPVAPI(mpv_error_string, const char *, int)
     WWX190_GENERATE_MPVAPI(mpv_free, void, void *)
     WWX190_GENERATE_MPVAPI(mpv_client_name, const char *, mpv_handle *)
@@ -176,12 +176,12 @@ public:
     {
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
-            qWarning() << "Failed to load libmpv: empty library path.";
+            qCWarning(lcQMPMPV) << "Failed to load libmpv: empty library path.";
             return false;
         }
 
         if (isLoaded()) {
-            qDebug() << "libmpv already loaded. Unloading ...";
+            qCDebug(lcQMPMPV) << "libmpv already loaded. Unloading ...";
             if (!unload()) {
                 return false;
             }
@@ -193,10 +193,10 @@ public:
             // We can't get the full file name if QLibrary is not loaded.
             QFileInfo fi(library.fileName());
             fi.makeAbsolute();
-            qDebug() << "Start loading libmpv from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
+            qCDebug(lcQMPMPV) << "Start loading libmpv from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
         } else {
-            qDebug() << "Start loading libmpv from:" << QDir::toNativeSeparators(path);
-            qWarning() << "Failed to load libmpv:" << library.errorString();
+            qCDebug(lcQMPMPV) << "Start loading libmpv from:" << QDir::toNativeSeparators(path);
+            qCWarning(lcQMPMPV) << "Failed to load libmpv:" << library.errorString();
             return false;
         }
 
@@ -254,7 +254,7 @@ public:
         WWX190_RESOLVE_MPVAPI(mpv_render_context_report_swap)
         WWX190_RESOLVE_MPVAPI(mpv_render_context_free)
 
-        qDebug() << "libmpv loaded successfully.";
+        qCDebug(lcQMPMPV) << "libmpv loaded successfully.";
         return true;
     }
 
@@ -316,12 +316,12 @@ public:
 
         if (library.isLoaded()) {
             if (!library.unload()) {
-                qWarning() << "Failed to unload libmpv:" << library.errorString();
+                qCWarning(lcQMPMPV) << "Failed to unload libmpv:" << library.errorString();
                 return false;
             }
         }
 
-        qDebug() << "libmpv unloaded successfully.";
+        qCDebug(lcQMPMPV) << "libmpv unloaded successfully.";
         return true;
     }
 

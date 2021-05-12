@@ -26,6 +26,8 @@
 #include "mdkplayer.h"
 #include "mdkqthelper.h"
 
+Q_LOGGING_CATEGORY(lcQMPMDK, "wangwenx190.mediaplayer.mdk")
+
 bool RegisterBackend(const char *name)
 {
     if (qstricmp(name, "mdk") == 0) {
@@ -45,7 +47,7 @@ const char *GetBackendName()
 
 const char *GetBackendVersion()
 {
-    return qUtf8Printable(MDK::Qt::getMDKVersion());
+    return qstrdup(qUtf8Printable(MDK::Qt::getMDKVersion()));
 }
 
 bool IsRHIBackendSupported(const int enumIntValue)

@@ -25,7 +25,7 @@
 #pragma once
 
 #include <QtCore/qglobal.h>
-//#include <QtCore/qobject.h>
+#include <QtCore/qloggingcategory.h>
 
 #ifndef QTMEDIAPLAYER_API
 #ifdef QTMEDIAPLAYER_STATIC
@@ -80,3 +80,5 @@
 #define QTMEDIAPLAYER_QML_REGISTER(className) \
     qmlRegisterType<className>(QTMEDIAPLAYER_QML_URI, 1, 0, QTMEDIAPLAYER_QML_TYPENAME)
 #endif
+
+Q_DECLARE_LOGGING_CATEGORY(lcQMP)

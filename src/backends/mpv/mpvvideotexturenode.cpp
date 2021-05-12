@@ -77,7 +77,7 @@ MPVVideoTextureNode::~MPVVideoTextureNode()
     if (tex) {
         delete tex;
     }
-    qDebug() << "Renderer destroyed.";
+    qCDebug(lcQMPMPV) << "Renderer destroyed.";
 }
 
 QSGTexture *MPVVideoTextureNode::texture() const
@@ -257,10 +257,10 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(const QSize &size)
     case QSGRendererInterface::Software:
     {
         // TODO: libmpv also supports software as VO, implement this.
-        qWarning() << "TO BE IMPLEMENTED: Software backend of libmpv.";
+        qCWarning(lcQMPMPV) << "TO BE IMPLEMENTED: Software backend of libmpv.";
     } break;
     default:
-        qWarning() << "Unsupported backend of libmpv:" << rif->graphicsApi();
+        qCWarning(lcQMPMPV) << "Unsupported backend of libmpv:" << rif->graphicsApi();
         break;
     }
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))

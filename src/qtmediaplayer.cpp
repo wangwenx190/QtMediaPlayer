@@ -29,6 +29,8 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qlibrary.h>
 
+Q_LOGGING_CATEGORY(lcQMP, "wangwenx190.mediaplayer")
+
 static const char _qmp_backend_dir_envVar[] = "_QTMEDIAPLAYER_BACKEND_SEARCH_PATH";
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
@@ -61,12 +63,12 @@ public:
         }
         const QDir dir(searchPath);
         if (!dir.exists()) {
-            qWarning() << "Plugin directory" << searchPath << "doesn't exist.";
+            qCWarning(lcQMP) << "Plugin directory" << searchPath << "doesn't exist.";
             return;
         }
         const QFileInfoList entryInfoList = dir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable, QDir::Name);
         if (entryInfoList.isEmpty()) {
-            qWarning() << "Plugin directory" << searchPath << "doesn't contain any files.";
+            qCWarning(lcQMP) << "Plugin directory" << searchPath << "doesn't contain any files.";
             return;
         }
         for (auto &&entryInfo : qAsConst(entryInfoList)) {
@@ -100,7 +102,7 @@ void setPluginSearchPath(const QString &value)
         return;
     }
     if (!QFileInfo(value).isDir()) {
-        qWarning() << value << "is not a directory.";
+        qCWarning(lcQMP) << value << "is not a directory.";
         return;
     }
     qmpData()->searchPath = QDir::toNativeSeparators(value);
@@ -132,12 +134,12 @@ bool initializeBackend(const QString &value)
     }
     const QString loweredName = value.toLower();
     if (!qmpData()->availableBackends.contains(loweredName)) {
-        qWarning() << loweredName << "is not an available backend.";
+        qCWarning(lcQMP) << loweredName << "is not an available backend.";
         return false;
     }
     const auto m_lpRegisterBackend = reinterpret_cast<RegisterBackendPtr>(QLibrary::resolve(qmpData()->availableBackends.value(loweredName), "RegisterBackend"));
     if (!m_lpRegisterBackend) {
-        qWarning() << "Failed to resolve \"RegisterBackend()\" from the backend library.";
+        qCWarning(lcQMP) << "Failed to resolve \"RegisterBackend()\" from the backend library.";
         return false;
     }
     return m_lpRegisterBackend(qUtf8Printable(loweredName));
@@ -151,12 +153,12 @@ bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::Grap
     }
     const QString loweredName = name.toLower();
     if (!qmpData()->availableBackends.contains(loweredName)) {
-        qWarning() << loweredName << "is not an available backend.";
+        qCWarning(lcQMP) << loweredName << "is not an available backend.";
         return false;
     }
     const auto m_lpIsRHIBackendSupported = reinterpret_cast<IsRHIBackendSupportedPtr>(QLibrary::resolve(qmpData()->availableBackends.value(loweredName), "IsRHIBackendSupported"));
     if (!m_lpIsRHIBackendSupported) {
-        qWarning() << "Failed to resolve \"IsRHIBackendSupported()\" from the backend library.";
+        qCWarning(lcQMP) << "Failed to resolve \"IsRHIBackendSupported()\" from the backend library.";
         return false;
     }
     return m_lpIsRHIBackendSupported(static_cast<int>(api));

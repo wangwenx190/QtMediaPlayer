@@ -27,6 +27,8 @@
 #include "mpvqthelper.h"
 #include <QtQuick/qsgrendererinterface.h>
 
+Q_LOGGING_CATEGORY(lcQMPMPV, "wangwenx190.mediaplayer.mpv")
+
 bool RegisterBackend(const char *name)
 {
     if (qstricmp(name, "mpv") == 0) {
@@ -46,7 +48,7 @@ const char *GetBackendName()
 
 const char *GetBackendVersion()
 {
-    return qUtf8Printable(MPV::Qt::getLibmpvVersion());
+    return qstrdup(qUtf8Printable(MPV::Qt::getLibmpvVersion()));
 }
 
 bool IsRHIBackendSupported(const int enumIntValue)

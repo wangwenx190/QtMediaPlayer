@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "mdkbackend_global.h"
 #include <QtCore/qstring.h>
 
 namespace MDK::Qt

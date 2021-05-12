@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "mpvbackend_global.h"
 #include "include/mpv/client.h"
 #include <QtCore/qvariant.h>
 

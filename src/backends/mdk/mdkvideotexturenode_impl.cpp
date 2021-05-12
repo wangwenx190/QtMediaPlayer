@@ -59,7 +59,7 @@
     do { \
         VkResult __vkret__ = x; \
         if (__vkret__ != VK_SUCCESS) { \
-            qDebug() << #x " ERROR: " << __vkret__ << " @" << __LINE__ << __func__; \
+            qCDebug(lcQMPMDK) << #x " ERROR: " << __vkret__ << " @" << __LINE__ << __func__; \
             __VA_ARGS__; \
         } \
     } while (false)
@@ -174,14 +174,14 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
 #ifdef Q_OS_WINDOWS
         const auto dev = static_cast<ID3D11Device *>(rif->getResource(m_window, QSGRendererInterface::DeviceResource));
         if (!dev) {
-            qCritical() << "Failed to acquire D3D11 device resource.";
+            qCCritical(lcQMPMDK) << "Failed to acquire D3D11 device resource.";
             return nullptr;
         }
         const auto desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, size.width(), size.height(), 1, 1,
                                              D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
                                              D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
         if (FAILED(dev->CreateTexture2D(&desc, nullptr, &m_texture_d3d11))) {
-            qCritical() << "Failed to create D3D11 2D texture.";
+            qCCritical(lcQMPMDK) << "Failed to create D3D11 2D texture.";
             return nullptr;
         }
         MDK_NS_PREPEND(D3D11RenderAPI) ra = {};
@@ -279,10 +279,10 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(MDK_NS_PREPEND(Player) *playe
     case QSGRendererInterface::Software:
     {
         // TODO: implement this.
-        qWarning() << "TO BE IMPLEMENTED: Software backend of MDK.";
+        qCWarning(lcQMPMDK) << "TO BE IMPLEMENTED: Software backend of MDK.";
     } break;
     default:
-        qWarning() << "Unsupported backend of MDK:" << rif->graphicsApi();
+        qCWarning(lcQMPMDK) << "Unsupported backend of MDK:" << rif->graphicsApi();
         break;
     }
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))

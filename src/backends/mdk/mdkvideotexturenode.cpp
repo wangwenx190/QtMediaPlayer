@@ -55,7 +55,7 @@ MDKVideoTextureNode::~MDKVideoTextureNode()
         return;
     }
     player->setVideoSurfaceSize(-1, -1);
-    qDebug() << "Renderer destroyed.";
+    qCDebug(lcQMPMDK) << "Renderer destroyed.";
 }
 
 QSGTexture *MDKVideoTextureNode::texture() const
