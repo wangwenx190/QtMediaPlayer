@@ -27,7 +27,9 @@
 #include "mpvqthelper.h"
 #include <QtQuick/qsgrendererinterface.h>
 
+QTMEDIAPLAYER_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(lcQMPMPV, "wangwenx190.mediaplayer.mpv")
+QTMEDIAPLAYER_END_NAMESPACE
 
 bool RegisterBackend(const char *name)
 {

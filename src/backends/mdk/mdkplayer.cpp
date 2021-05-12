@@ -31,6 +31,10 @@
 #include <QtCore/qdatetime.h>
 #include <QtQuick/qquickwindow.h>
 
+QTMEDIAPLAYER_BEGIN_NAMESPACE
+
+extern MDKVideoTextureNode *createNode(MDKPlayer *item);
+
 static inline std::vector<std::string> qStringListToStdStringVector(const QStringList &stringList)
 {
     if (stringList.isEmpty()) {
@@ -56,10 +60,6 @@ static inline MDK_NS_PREPEND(LogLevel) _MDKPlayer_MDK_LogLevel()
 {
     return static_cast<MDK_NS_PREPEND(LogLevel)>(MDK_logLevel());
 }
-
-QTMEDIAPLAYER_BEGIN_NAMESPACE
-
-extern MDKVideoTextureNode *createNode(MDKPlayer *item);
 
 MDKPlayer::MDKPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {

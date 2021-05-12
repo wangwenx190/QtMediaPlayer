@@ -41,11 +41,11 @@
 #ifndef WWX190_RESOLVE_MDKAPI
 #define WWX190_RESOLVE_MDKAPI(funcName) \
     if (!m_lp_##funcName) { \
-        qCDebug(lcQMPMDK) << "Resolving function:" << #funcName; \
+        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Resolving function:" << #funcName; \
         m_lp_##funcName = reinterpret_cast<_WWX190_MDKAPI_lp_##funcName>(library.resolve(#funcName)); \
         Q_ASSERT(m_lp_##funcName); \
         if (!m_lp_##funcName) { \
-            qCWarning(lcQMPMDK) << "Failed to resolve function:" << #funcName; \
+            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to resolve function:" << #funcName; \
         } \
     }
 #endif
@@ -73,10 +73,10 @@
 #define WWX190_NOTNULL_MDKAPI(funcName) (m_lp_##funcName != nullptr)
 #endif
 
-static const char _mdkHelper_mdk_fileName_envVar[] = "_WWX190_MDKPLAYER_MDK_FILENAME";
-
 namespace MDK::Qt
 {
+
+static const char _mdkHelper_mdk_fileName_envVar[] = "_WWX190_MDKPLAYER_MDK_FILENAME";
 
 struct MDKData
 {
@@ -124,12 +124,12 @@ public:
     {
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
-            qCWarning(lcQMPMDK) << "Failed to load MDK: empty library path.";
+            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to load MDK: empty library path.";
             return false;
         }
 
         if (isLoaded()) {
-            qCDebug(lcQMPMDK) << "MDK already loaded. Unloading ...";
+            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "MDK already loaded. Unloading ...";
             if (!unload()) {
                 return false;
             }
@@ -141,10 +141,10 @@ public:
             // We can't get the full file name if QLibrary is not loaded.
             QFileInfo fi(library.fileName());
             fi.makeAbsolute();
-            qCDebug(lcQMPMDK) << "Start loading MDK from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
+            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Start loading MDK from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
         } else {
-            qCDebug(lcQMPMDK) << "Start loading MDK from:" << QDir::toNativeSeparators(path);
-            qCWarning(lcQMPMDK) << "Failed to load MDK:" << library.errorString();
+            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Start loading MDK from:" << QDir::toNativeSeparators(path);
+            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to load MDK:" << library.errorString();
             return false;
         }
 
@@ -175,7 +175,7 @@ public:
         WWX190_RESOLVE_MDKAPI(mdkVideoFrameAPI_new)
         WWX190_RESOLVE_MDKAPI(mdkVideoFrameAPI_delete)
 
-        qCDebug(lcQMPMDK) << "MDK loaded successfully.";
+        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "MDK loaded successfully.";
         return true;
     }
 
@@ -210,12 +210,12 @@ public:
 
         if (library.isLoaded()) {
             if (!library.unload()) {
-                qCWarning(lcQMPMDK) << "Failed to unload MDK:" << library.errorString();
+                qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to unload MDK:" << library.errorString();
                 return false;
             }
         }
 
-        qCDebug(lcQMPMDK) << "MDK unloaded successfully.";
+        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "MDK unloaded successfully.";
         return true;
     }
 

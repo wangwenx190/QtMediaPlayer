@@ -1,20 +1,4 @@
 /*
- * Copyright (C) 2017 the mpv developers
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-
-/*
  * MIT License
  *
  * Copyright (C) 2021 by wangwenx190 (Yuhang Zhao)
@@ -38,6 +22,22 @@
  * SOFTWARE.
  */
 
+/*
+ * Copyright (C) 2017 the mpv developers
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
 #include "mpvqthelper.h"
 #include "include/mpv/render_gl.h"
 #include <QtCore/qdebug.h>
@@ -54,11 +54,11 @@
 #ifndef WWX190_RESOLVE_MPVAPI
 #define WWX190_RESOLVE_MPVAPI(funcName) \
     if (!m_lp_##funcName) { \
-        qCDebug(lcQMPMPV) << "Resolving function:" << #funcName; \
+        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Resolving function:" << #funcName; \
         m_lp_##funcName = reinterpret_cast<_WWX190_MPVAPI_lp_##funcName>(library.resolve(#funcName)); \
         Q_ASSERT(m_lp_##funcName); \
         if (!m_lp_##funcName) { \
-            qCWarning(lcQMPMPV) << "Failed to resolve function" << #funcName; \
+            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to resolve function" << #funcName; \
         } \
     }
 #endif
@@ -86,10 +86,13 @@
     (MPV::Qt::mpvData()->m_lp_##funcName ? MPV::Qt::mpvData()->m_lp_##funcName(__VA_ARGS__) : defRet)
 #endif
 
+namespace MPV::Qt
+{
+
 static const char _mpvHelper_libmpv_fileName_envVar[] = "_WWX190_MPVPLAYER_LIBMPV_FILENAME";
 
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug d, const MPV::Qt::ErrorReturn &err)
+QDebug operator<<(QDebug d, const ErrorReturn &err)
 {
     const QDebugStateSaver saver(d);
     d.nospace();
@@ -99,9 +102,6 @@ QDebug operator<<(QDebug d, const MPV::Qt::ErrorReturn &err)
     return d;
 }
 #endif
-
-namespace MPV::Qt
-{
 
 struct MPVData
 {
@@ -176,12 +176,12 @@ public:
     {
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
-            qCWarning(lcQMPMPV) << "Failed to load libmpv: empty library path.";
+            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to load libmpv: empty library path.";
             return false;
         }
 
         if (isLoaded()) {
-            qCDebug(lcQMPMPV) << "libmpv already loaded. Unloading ...";
+            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "libmpv already loaded. Unloading ...";
             if (!unload()) {
                 return false;
             }
@@ -193,10 +193,10 @@ public:
             // We can't get the full file name if QLibrary is not loaded.
             QFileInfo fi(library.fileName());
             fi.makeAbsolute();
-            qCDebug(lcQMPMPV) << "Start loading libmpv from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
+            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Start loading libmpv from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
         } else {
-            qCDebug(lcQMPMPV) << "Start loading libmpv from:" << QDir::toNativeSeparators(path);
-            qCWarning(lcQMPMPV) << "Failed to load libmpv:" << library.errorString();
+            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Start loading libmpv from:" << QDir::toNativeSeparators(path);
+            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to load libmpv:" << library.errorString();
             return false;
         }
 
@@ -254,7 +254,7 @@ public:
         WWX190_RESOLVE_MPVAPI(mpv_render_context_report_swap)
         WWX190_RESOLVE_MPVAPI(mpv_render_context_free)
 
-        qCDebug(lcQMPMPV) << "libmpv loaded successfully.";
+        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "libmpv loaded successfully.";
         return true;
     }
 
@@ -316,12 +316,12 @@ public:
 
         if (library.isLoaded()) {
             if (!library.unload()) {
-                qCWarning(lcQMPMPV) << "Failed to unload libmpv:" << library.errorString();
+                qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to unload libmpv:" << library.errorString();
                 return false;
             }
         }
 
-        qCDebug(lcQMPMPV) << "libmpv unloaded successfully.";
+        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "libmpv unloaded successfully.";
         return true;
     }
 

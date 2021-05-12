@@ -29,8 +29,10 @@
 #include <QtCore/qdatetime.h>
 #include <QtQuick/qquickwindow.h>
 
+QTMEDIAPLAYER_BEGIN_NAMESPACE
+
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::Chapters &chapters)
+QDebug operator<<(QDebug d, const MediaPlayer::Chapters &chapters)
 {
     const QDebugStateSaver saver(d);
     d.nospace();
@@ -45,7 +47,7 @@ QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::
     return d;
 }
 
-QDebug operator<<(QDebug d, const QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer)::MediaTracks &tracks)
+QDebug operator<<(QDebug d, const MediaPlayer::MediaTracks &tracks)
 {
     const QDebugStateSaver saver(d);
     d.nospace();
@@ -78,8 +80,6 @@ static inline QStringList suffixesToMimeTypes(const QStringList &suffixes)
     }
     return mimeTypes;
 }
-
-QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
 {

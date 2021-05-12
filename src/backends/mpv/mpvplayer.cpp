@@ -30,6 +30,8 @@
 #include <QtCore/qdir.h>
 #include <QtQuick/qquickwindow.h>
 
+QTMEDIAPLAYER_BEGIN_NAMESPACE
+
 static inline void wakeup(void *ctx)
 {
     Q_ASSERT(ctx);
@@ -40,10 +42,8 @@ static inline void wakeup(void *ctx)
     // recursively from a thread that is calling the mpv API). Just notify
     // the Qt GUI thread to wake up (so that it can process events with
     // mpv_wait_event()), and return as quickly as possible.
-    QMetaObject::invokeMethod(static_cast<QTMEDIAPLAYER_PREPEND_NAMESPACE(MPVPlayer) *>(ctx), "hasMpvEvents", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(static_cast<MPVPlayer *>(ctx), "hasMpvEvents", Qt::QueuedConnection);
 }
-
-QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 MPVPlayer::MPVPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {

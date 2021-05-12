@@ -42,6 +42,8 @@
 #include <QtX11Extras/qx11info.h>
 #endif
 
+QTMEDIAPLAYER_BEGIN_NAMESPACE
+
 static inline void *get_proc_address_mpv(void *ctx, const char *name)
 {
     Q_UNUSED(ctx);
@@ -51,10 +53,8 @@ static inline void *get_proc_address_mpv(void *ctx, const char *name)
 
 static inline void on_mpv_redraw(void *ctx)
 {
-    QTMEDIAPLAYER_PREPEND_NAMESPACE(MPVPlayer)::on_update(ctx);
+    MPVPlayer::on_update(ctx);
 }
-
-QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 MPVVideoTextureNode::MPVVideoTextureNode(QQuickItem *item) : VideoTextureNode(item)
 {

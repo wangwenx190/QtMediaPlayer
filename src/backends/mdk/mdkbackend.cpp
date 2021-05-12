@@ -26,7 +26,9 @@
 #include "mdkplayer.h"
 #include "mdkqthelper.h"
 
+QTMEDIAPLAYER_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(lcQMPMDK, "wangwenx190.mediaplayer.mdk")
+QTMEDIAPLAYER_END_NAMESPACE
 
 bool RegisterBackend(const char *name)
 {

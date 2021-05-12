@@ -29,11 +29,11 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qlibrary.h>
 
+QTMEDIAPLAYER_BEGIN_NAMESPACE
+
 Q_LOGGING_CATEGORY(lcQMP, "wangwenx190.mediaplayer")
 
 static const char _qmp_backend_dir_envVar[] = "_QTMEDIAPLAYER_BACKEND_SEARCH_PATH";
-
-QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 using RegisterBackendPtr = bool(*)(const char *);
 using GetBackendNamePtr = const char *(*)();
