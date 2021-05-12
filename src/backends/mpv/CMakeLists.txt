@@ -10,11 +10,6 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Quick REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
 
 set(SOURCES
-    # Official MPV headers
-    #[[include/mpv/client.h
-    include/mpv/render.h
-    include/mpv/render_gl.h
-    include/mpv/stream_cb.h]]
     # Interfaces
     ../backendinterface.h
     ../backendinterface.cpp

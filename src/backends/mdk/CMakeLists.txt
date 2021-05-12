@@ -11,18 +11,6 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
 find_package(Vulkan)
 
 set(SOURCES
-    # Official MDK headers
-    #[[include/mdk/c/global.h
-    include/mdk/c/MediaInfo.h
-    include/mdk/c/module.h
-    include/mdk/c/Player.h
-    include/mdk/c/RenderAPI.h
-    include/mdk/c/VideoFrame.h
-    include/mdk/global.h
-    include/mdk/MediaInfo.h
-    include/mdk/Player.h
-    include/mdk/RenderAPI.h
-    include/mdk/VideoFrame.h]]
     # Interfaces
     ../backendinterface.h
     ../backendinterface.cpp
