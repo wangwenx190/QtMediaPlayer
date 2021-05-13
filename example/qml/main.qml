@@ -36,6 +36,8 @@ Window {
     height: 600
     title: (mediaPlayer.fileName.length > 0) ? (qsTr("Current playing: ") + mediaPlayer.fileName) : qsTr("QtMediaPlayer demo application")
 
+    property url urlFromAppArgs
+
     Timer {
         id: messageLabelTimer
         interval: 3000
@@ -68,6 +70,7 @@ Window {
                 }
             }
         }
+        onRendererReady: mediaPlayer.source = urlFromAppArgs
     }
 
     FileDialog {

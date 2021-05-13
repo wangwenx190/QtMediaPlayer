@@ -26,8 +26,8 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qcoreapplication.h>
 #include <QtCore/qlibrary.h>
+#include <QtCore/qlibraryinfo.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
@@ -48,7 +48,12 @@ public:
 
     explicit QMPData()
     {
-        searchPath = qEnvironmentVariable(_qmp_backend_dir_envVar, QDir::toNativeSeparators(QCoreApplication::applicationDirPath() + QStringLiteral("/QtMediaPlayerBackends")));
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+        const QString qtPluginsDirPath = QLibraryInfo::path(QLibraryInfo::PluginsPath);
+#else
+        const QString qtPluginsDirPath = QLibraryInfo::location(QLibraryInfo::PluginsPath);
+#endif
+        searchPath = qEnvironmentVariable(_qmp_backend_dir_envVar, QDir::toNativeSeparators(qtPluginsDirPath + QStringLiteral("/qtmediaplayer")));
         refreshCache();
     }
 

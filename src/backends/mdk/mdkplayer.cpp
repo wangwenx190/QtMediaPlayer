@@ -53,7 +53,7 @@ static inline QString urlToString(const QUrl &value, const bool display = false)
         return {};
     }
     return (value.isLocalFile() ? QDir::toNativeSeparators(value.toLocalFile())
-                                : (display ? value.toDisplayString() : value.url()));
+                                : (display ? value.toDisplayString() : value.toString()));
 }
 
 static inline MDK_NS_PREPEND(LogLevel) _MDKPlayer_MDK_LogLevel()

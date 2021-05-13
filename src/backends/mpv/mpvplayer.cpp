@@ -641,7 +641,7 @@ void MPVPlayer::setSource(const QUrl &value)
         return;
     }
     stop();
-    const bool result = mpvSendCommand(QVariantList{QStringLiteral("loadfile"), value.isLocalFile() ? QDir::toNativeSeparators(value.toLocalFile()) : value.url()});
+    const bool result = mpvSendCommand(QVariantList{QStringLiteral("loadfile"), value.isLocalFile() ? QDir::toNativeSeparators(value.toLocalFile()) : value.toString()});
     if (result) {
         if (m_livePreview || !m_autoStart) {
             mpvSetProperty(QStringLiteral("pause"), true);

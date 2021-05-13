@@ -133,6 +133,17 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
+    engine.setInitialProperties(
+        {
+            {
+                QStringLiteral("urlFromAppArgs"),
+                positionalArguments.isEmpty() ? QUrl{} : QUrl::fromUserInput(positionalArguments.constLast())
+            }
+        }
+    );
+
+    QTMEDIAPLAYER_PREPEND_NAMESPACE(setPluginSearchPath)(QCoreApplication::applicationDirPath() + QStringLiteral("/qtmediaplayer"));
+
     if (playerBackendParamValue.isEmpty() || (playerBackendParamValue == QStringLiteral("mdk"))) {
         qDebug() << "Setting player backend to MDK ...";
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
