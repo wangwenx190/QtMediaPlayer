@@ -124,35 +124,7 @@ QString MDKPlayer::backendVersion() const
     return MDK::Qt::getMDKVersion();
 }
 
-QString MDKPlayer::backendDescription() const
-{
-    // TODO
-    return tr("The MDK backend.");
-}
-
-QString MDKPlayer::backendVendor() const
-{
-    return QStringLiteral("Wang Bin");
-}
-
-QString MDKPlayer::backendCopyright() const
-{
-    // TODO
-    return {};
-}
-
-QUrl MDKPlayer::backendHomePage() const
-{
-    return QStringLiteral("https://sourceforge.net/projects/mdk-sdk/");
-}
-
 QString MDKPlayer::ffmpegVersion() const
-{
-    // TODO
-    return {};
-}
-
-QString MDKPlayer::ffmpegConfiguration() const
 {
     // TODO
     return {};
@@ -850,22 +822,26 @@ void MDKPlayer::initMdkHandlers()
 {
     MDK_NS_PREPEND(setLogHandler)([this](MDK_NS_PREPEND(LogLevel) level, const char *msg) {
         if (m_livePreview) {
-            // We don't need log messages of the preview player.
+            // We don't need log messages from the preview player.
+            return;
+        }
+        const QString text = QString::fromUtf8(msg).trimmed();
+        if (text.isEmpty()) {
             return;
         }
         switch (level) {
         case MDK_NS_PREPEND(LogLevel)::Info:
-            qCInfo(lcQMPMDK).noquote() << msg;
+            qCInfo(lcQMPMDK).noquote() << text;
             break;
         case MDK_NS_PREPEND(LogLevel)::All:
         case MDK_NS_PREPEND(LogLevel)::Debug:
-            qCDebug(lcQMPMDK).noquote() << msg;
+            qCDebug(lcQMPMDK).noquote() << text;
             break;
         case MDK_NS_PREPEND(LogLevel)::Warning:
-            qCWarning(lcQMPMDK).noquote() << msg;
+            qCWarning(lcQMPMDK).noquote() << text;
             break;
         case MDK_NS_PREPEND(LogLevel)::Error:
-            qCCritical(lcQMPMDK).noquote() << msg;
+            qCCritical(lcQMPMDK).noquote() << text;
             break;
         default:
             break;

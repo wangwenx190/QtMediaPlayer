@@ -36,7 +36,7 @@ Window {
     height: 600
     title: (mediaPlayer.fileName.length > 0) ? (qsTr("Current playing: ") + mediaPlayer.fileName) : qsTr("QtMediaPlayer demo application")
 
-    property url urlFromAppArgs
+    property url media_url: ""
 
     Timer {
         id: messageLabelTimer
@@ -56,9 +56,9 @@ Window {
     MediaPlayer {
         id: mediaPlayer
         anchors.fill: parent
-        source: fileDialog.file
         logLevel: MediaPlayer.LogLevel.Info
         hardwareDecoding: true
+        source: fileDialog.file
         onVideoSizeChanged: {
             if (window.visibility === Window.Windowed) {
                 var vs = mediaPlayer.videoSize;
@@ -70,7 +70,7 @@ Window {
                 }
             }
         }
-        onRendererReady: mediaPlayer.source = urlFromAppArgs
+        //onRendererReady: mediaPlayer.source = window.media_url
     }
 
     FileDialog {

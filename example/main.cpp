@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     engine.setInitialProperties(
         {
             {
-                QStringLiteral("urlFromAppArgs"),
+                QStringLiteral("media_url"),
                 positionalArguments.isEmpty() ? QUrl{} : QUrl::fromUserInput(positionalArguments.constLast())
             }
         }

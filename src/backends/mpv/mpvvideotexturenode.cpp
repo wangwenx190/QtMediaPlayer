@@ -47,12 +47,20 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 static inline void *get_proc_address_mpv(void *ctx, const char *name)
 {
     Q_UNUSED(ctx);
+    Q_ASSERT(name);
+    if (!name) {
+        return nullptr;
+    }
     const QOpenGLContext *const glctx = QOpenGLContext::currentContext();
-    return glctx ? reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name))) : nullptr;
+    return glctx ? reinterpret_cast<void *>(glctx->getProcAddress(name)) : nullptr;
 }
 
 static inline void on_mpv_redraw(void *ctx)
 {
+    Q_ASSERT(ctx);
+    if (!ctx) {
+        return;
+    }
     MPVPlayer::on_update(ctx);
 }
 

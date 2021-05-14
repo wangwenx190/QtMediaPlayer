@@ -124,36 +124,9 @@ QString MPVPlayer::backendVersion() const
     return MPV::Qt::getLibmpvVersion();
 }
 
-QString MPVPlayer::backendDescription() const
-{
-    // TODO
-    return tr("The MPV backend.");
-}
-
-QString MPVPlayer::backendVendor() const
-{
-    return QStringLiteral("The MPV developers");
-}
-
-QString MPVPlayer::backendCopyright() const
-{
-    // TODO
-    return QStringLiteral("GPLv3");
-}
-
-QUrl MPVPlayer::backendHomePage() const
-{
-    return QStringLiteral("https://mpv.io/");
-}
-
 QString MPVPlayer::ffmpegVersion() const
 {
     return mpvGetProperty(QStringLiteral("ffmpeg-version")).toString();
-}
-
-QString MPVPlayer::ffmpegConfiguration() const
-{
-    return mpvGetProperty(QStringLiteral("ffmpeg-configuration")).toString();
 }
 
 // Connected to onUpdate() signal makes sure it runs on the GUI thread
@@ -174,6 +147,9 @@ void MPVPlayer::processMpvLogMessage(void *event)
     const auto e = static_cast<mpv_event_log_message *>(event);
     // The log message from libmpv contains new line. Remove it.
     const QString message = QString::fromUtf8(e->text).trimmed();
+    if (message.isEmpty()) {
+        return;
+    }
     switch (e->log_level) {
     case MPV_LOG_LEVEL_V:
     case MPV_LOG_LEVEL_DEBUG:
