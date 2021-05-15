@@ -96,15 +96,15 @@ public:
     WWX190_GENERATE_VLCAPI(libvlc_free, void, void *)
     WWX190_GENERATE_VLCAPI(libvlc_event_attach, int, libvlc_event_manager_t *, libvlc_event_type_t, libvlc_callback_t, void *)
     WWX190_GENERATE_VLCAPI(libvlc_event_detach, void, libvlc_event_manager_t *, libvlc_event_type_t, libvlc_callback_t, void *)
-    WWX190_GENERATE_VLCAPI(libvlc_log_get_context, void, const libvlc_log_t *, const char **, const char **, unsigned *)
-    WWX190_GENERATE_VLCAPI(libvlc_log_get_object, void, const libvlc_log_t *, const char **, const char **, uintptr_t *)
+    WWX190_GENERATE_VLCAPI(libvlc_log_get_context, void, const libvlc_log_t *, const char **, const char **, quint32 *)
+    WWX190_GENERATE_VLCAPI(libvlc_log_get_object, void, const libvlc_log_t *, const char **, const char **, quintptr *)
     WWX190_GENERATE_VLCAPI(libvlc_log_unset, void, libvlc_instance_t *)
     WWX190_GENERATE_VLCAPI(libvlc_log_set, void, libvlc_instance_t *, libvlc_log_cb, void *)
     WWX190_GENERATE_VLCAPI(libvlc_log_set_file, void, libvlc_instance_t *, FILE *)
     WWX190_GENERATE_VLCAPI(libvlc_module_description_list_release, void, libvlc_module_description_t *)
     WWX190_GENERATE_VLCAPI(libvlc_audio_filter_list_get, libvlc_module_description_t *, libvlc_instance_t *)
     WWX190_GENERATE_VLCAPI(libvlc_video_filter_list_get, libvlc_module_description_t *, libvlc_instance_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_clock, int64_t)
+    WWX190_GENERATE_VLCAPI(libvlc_clock, qint64)
 
     // libvlc_renderer_discoverer.h
     WWX190_GENERATE_VLCAPI(libvlc_renderer_item_hold, libvlc_renderer_item_t *, libvlc_renderer_item_t *)
@@ -125,11 +125,11 @@ public:
     WWX190_GENERATE_VLCAPI(libvlc_picture_retain, void, libvlc_picture_t *)
     WWX190_GENERATE_VLCAPI(libvlc_picture_release, void, libvlc_picture_t *)
     WWX190_GENERATE_VLCAPI(libvlc_picture_save, int, const libvlc_picture_t *, const char *)
-    WWX190_GENERATE_VLCAPI(libvlc_picture_get_buffer, const unsigned char *, const libvlc_picture_t *, size_t *)
+    WWX190_GENERATE_VLCAPI(libvlc_picture_get_buffer, const uchar *, const libvlc_picture_t *, size_t *)
     WWX190_GENERATE_VLCAPI(libvlc_picture_type, libvlc_picture_type_t, const libvlc_picture_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_picture_get_stride, unsigned int, const libvlc_picture_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_picture_get_width, unsigned int, const libvlc_picture_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_picture_get_height, unsigned int, const libvlc_picture_t *)
+    WWX190_GENERATE_VLCAPI(libvlc_picture_get_stride, quint32, const libvlc_picture_t *)
+    WWX190_GENERATE_VLCAPI(libvlc_picture_get_width, quint32, const libvlc_picture_t *)
+    WWX190_GENERATE_VLCAPI(libvlc_picture_get_height, quint32, const libvlc_picture_t *)
     WWX190_GENERATE_VLCAPI(libvlc_picture_get_time, libvlc_time_t, const libvlc_picture_t *)
     WWX190_GENERATE_VLCAPI(libvlc_picture_list_count, size_t, const libvlc_picture_list_t *)
     WWX190_GENERATE_VLCAPI(libvlc_picture_list_at, libvlc_picture_t *, const libvlc_picture_list_t *, size_t)
@@ -142,7 +142,7 @@ public:
     WWX190_GENERATE_VLCAPI(libvlc_media_new_callbacks, libvlc_media_t *, libvlc_instance_t *, libvlc_media_open_cb, libvlc_media_read_cb, libvlc_media_seek_cb, libvlc_media_close_cb, void *)
     WWX190_GENERATE_VLCAPI(libvlc_media_new_as_node, libvlc_media_t *, libvlc_instance_t *, const char *)
     WWX190_GENERATE_VLCAPI(libvlc_media_add_option, void, libvlc_media_t *, const char *)
-    WWX190_GENERATE_VLCAPI(libvlc_media_add_option_flag, void, libvlc_media_t *, const char *, unsigned)
+    WWX190_GENERATE_VLCAPI(libvlc_media_add_option_flag, void, libvlc_media_t *, const char *, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_media_retain, void, libvlc_media_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_release, void, libvlc_media_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_get_mrl, char *, libvlc_media_t *)
@@ -161,16 +161,16 @@ public:
     WWX190_GENERATE_VLCAPI(libvlc_media_set_user_data, void, libvlc_media_t *, void *)
     WWX190_GENERATE_VLCAPI(libvlc_media_get_user_data, void *, libvlc_media_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_get_tracklist, libvlc_media_tracklist_t *, libvlc_media_t *, libvlc_track_type_t)
-    WWX190_GENERATE_VLCAPI(libvlc_media_get_codec_description, const char *, libvlc_track_type_t, uint32_t)
+    WWX190_GENERATE_VLCAPI(libvlc_media_get_codec_description, const char *, libvlc_track_type_t, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_media_get_type, libvlc_media_type_t, libvlc_media_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_media_thumbnail_request_by_time, libvlc_media_thumbnail_request_t *, libvlc_media_t *, libvlc_time_t, libvlc_thumbnailer_seek_speed_t, unsigned int, unsigned int, bool, libvlc_picture_type_t, libvlc_time_t)
-    WWX190_GENERATE_VLCAPI(libvlc_media_thumbnail_request_by_pos, libvlc_media_thumbnail_request_t *, libvlc_media_t *, float, libvlc_thumbnailer_seek_speed_t, unsigned int, unsigned int, bool, libvlc_picture_type_t, libvlc_time_t)
+    WWX190_GENERATE_VLCAPI(libvlc_media_thumbnail_request_by_time, libvlc_media_thumbnail_request_t *, libvlc_media_t *, libvlc_time_t, libvlc_thumbnailer_seek_speed_t, quint32, quint32, bool, libvlc_picture_type_t, libvlc_time_t)
+    WWX190_GENERATE_VLCAPI(libvlc_media_thumbnail_request_by_pos, libvlc_media_thumbnail_request_t *, libvlc_media_t *, float, libvlc_thumbnailer_seek_speed_t, quint32, quint32, bool, libvlc_picture_type_t, libvlc_time_t)
     WWX190_GENERATE_VLCAPI(libvlc_media_thumbnail_request_cancel, void, libvlc_media_thumbnail_request_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_thumbnail_request_destroy, void, libvlc_media_thumbnail_request_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_media_slaves_add, int, libvlc_media_t *, libvlc_media_slave_type_t, unsigned int, const char *)
+    WWX190_GENERATE_VLCAPI(libvlc_media_slaves_add, int, libvlc_media_t *, libvlc_media_slave_type_t, quint32, const char *)
     WWX190_GENERATE_VLCAPI(libvlc_media_slaves_clear, void, libvlc_media_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_media_slaves_get, unsigned int, libvlc_media_t *, libvlc_media_slave_t ***)
-    WWX190_GENERATE_VLCAPI(libvlc_media_slaves_release, void, libvlc_media_slave_t **, unsigned int)
+    WWX190_GENERATE_VLCAPI(libvlc_media_slaves_get, quint32, libvlc_media_t *, libvlc_media_slave_t ***)
+    WWX190_GENERATE_VLCAPI(libvlc_media_slaves_release, void, libvlc_media_slave_t **, quint32)
 
     // libvlc_media_player.h
     WWX190_GENERATE_VLCAPI(libvlc_media_player_new, libvlc_media_player_t *, libvlc_instance_t *)
@@ -187,20 +187,20 @@ public:
     WWX190_GENERATE_VLCAPI(libvlc_media_player_stop_async, int, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_set_renderer, int, libvlc_media_player_t *, libvlc_renderer_item_t *)
     WWX190_GENERATE_VLCAPI(libvlc_video_set_callbacks, void, libvlc_media_player_t *, libvlc_video_lock_cb, libvlc_video_unlock_cb, libvlc_video_display_cb, void *)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_format, void, libvlc_media_player_t *, const char *, unsigned, unsigned, unsigned)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_format, void, libvlc_media_player_t *, const char *, quint32, quint32, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_video_set_format_callbacks, void, libvlc_media_player_t *, libvlc_video_format_cb, libvlc_video_cleanup_cb)
     WWX190_GENERATE_VLCAPI(libvlc_video_set_output_callbacks, bool, libvlc_media_player_t *, libvlc_video_engine_t, libvlc_video_output_setup_cb, libvlc_video_output_cleanup_cb, libvlc_video_output_set_resize_cb, libvlc_video_update_output_cb, libvlc_video_swap_cb, libvlc_video_makeCurrent_cb, libvlc_video_getProcAddress_cb, libvlc_video_frameMetadata_cb, libvlc_video_output_select_plane_cb, void *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_set_nsobject, void, libvlc_media_player_t *, void *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_nsobject, void *, libvlc_media_player_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_media_player_set_xwindow, void, libvlc_media_player_t *, uint32_t)
-    WWX190_GENERATE_VLCAPI(libvlc_media_player_get_xwindow, uint32_t, libvlc_media_player_t *)
+    WWX190_GENERATE_VLCAPI(libvlc_media_player_set_xwindow, void, libvlc_media_player_t *, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_media_player_get_xwindow, quint32, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_set_hwnd, void, libvlc_media_player_t *, void *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_hwnd, void *, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_set_android_context, void, libvlc_media_player_t *, void *)
     WWX190_GENERATE_VLCAPI(libvlc_audio_set_callbacks, void, libvlc_media_player_t *, libvlc_audio_play_cb, libvlc_audio_pause_cb, libvlc_audio_resume_cb, libvlc_audio_flush_cb, libvlc_audio_drain_cb, void *)
     WWX190_GENERATE_VLCAPI(libvlc_audio_set_volume_callback, void, libvlc_media_player_t *, libvlc_audio_set_volume_cb)
     WWX190_GENERATE_VLCAPI(libvlc_audio_set_format_callbacks, void, libvlc_media_player_t *, libvlc_audio_setup_cb, libvlc_audio_cleanup_cb)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_set_format, void, libvlc_media_player_t *, const char *, unsigned, unsigned)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_set_format, void, libvlc_media_player_t *, const char *, quint32, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_length, libvlc_time_t, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_time, libvlc_time_t, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_set_time, int, libvlc_media_player_t *, libvlc_time_t, bool)
@@ -218,13 +218,13 @@ public:
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_rate, float, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_set_rate, int, libvlc_media_player_t *, float)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_state, libvlc_state_t, libvlc_media_player_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_media_player_has_vout, unsigned, libvlc_media_player_t *)
+    WWX190_GENERATE_VLCAPI(libvlc_media_player_has_vout, quint32, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_is_seekable, bool, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_can_pause, bool, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_program_scrambled, bool, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_next_frame, void, libvlc_media_player_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_media_player_navigate, void, libvlc_media_player_t *, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_media_player_set_video_title_display, void, libvlc_media_player_t *, libvlc_position_t, unsigned int)
+    WWX190_GENERATE_VLCAPI(libvlc_media_player_navigate, void, libvlc_media_player_t *, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_media_player_set_video_title_display, void, libvlc_media_player_t *, libvlc_position_t, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_tracklist, libvlc_media_tracklist_t *, libvlc_media_player_t *, libvlc_track_type_t)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_selected_track, libvlc_media_track_t *, libvlc_media_player_t *, libvlc_track_type_t)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_track_from_id, libvlc_media_track_t *, libvlc_media_player_t *, const char *)
@@ -244,41 +244,41 @@ public:
     WWX190_GENERATE_VLCAPI(libvlc_toggle_fullscreen, void, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_set_fullscreen, void, libvlc_media_player_t *, bool)
     WWX190_GENERATE_VLCAPI(libvlc_get_fullscreen, bool, libvlc_media_player_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_key_input, void, libvlc_media_player_t *, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_mouse_input, void, libvlc_media_player_t *, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_video_get_size, int, libvlc_media_player_t *, unsigned, unsigned *, unsigned *)
-    WWX190_GENERATE_VLCAPI(libvlc_video_get_cursor, int, libvlc_media_player_t *, unsigned, int *, int *)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_key_input, void, libvlc_media_player_t *, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_mouse_input, void, libvlc_media_player_t *, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_video_get_size, int, libvlc_media_player_t *, quint32, quint32 *, quint32 *)
+    WWX190_GENERATE_VLCAPI(libvlc_video_get_cursor, int, libvlc_media_player_t *, quint32, int *, int *)
     WWX190_GENERATE_VLCAPI(libvlc_video_get_scale, float, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_video_set_scale, void, libvlc_media_player_t *, float)
     WWX190_GENERATE_VLCAPI(libvlc_video_get_aspect_ratio, char *, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_video_set_aspect_ratio, void, libvlc_media_player_t *, const char *)
     WWX190_GENERATE_VLCAPI(libvlc_video_new_viewpoint, libvlc_video_viewpoint_t *)
     WWX190_GENERATE_VLCAPI(libvlc_video_update_viewpoint, int, libvlc_media_player_t *, const libvlc_video_viewpoint_t *, bool)
-    WWX190_GENERATE_VLCAPI(libvlc_video_get_spu_delay, int64_t, libvlc_media_player_t *)
+    WWX190_GENERATE_VLCAPI(libvlc_video_get_spu_delay, qint64, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_video_get_spu_text_scale, float, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_video_set_spu_text_scale, void, libvlc_media_player_t *, float)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_spu_delay, int, libvlc_media_player_t *, int64_t)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_spu_delay, int, libvlc_media_player_t *, qint64)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_full_title_descriptions, int, libvlc_media_player_t *, libvlc_title_description_t ***)
-    WWX190_GENERATE_VLCAPI(libvlc_title_descriptions_release, void, libvlc_title_description_t **, unsigned)
+    WWX190_GENERATE_VLCAPI(libvlc_title_descriptions_release, void, libvlc_title_description_t **, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_full_chapter_descriptions, int, libvlc_media_player_t *, int, libvlc_chapter_description_t ***)
-    WWX190_GENERATE_VLCAPI(libvlc_chapter_descriptions_release, void, libvlc_chapter_description_t **, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_crop_ratio, void, libvlc_media_player_t *, unsigned, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_crop_window, void, libvlc_media_player_t *, unsigned, unsigned, unsigned, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_crop_border, void, libvlc_media_player_t *, unsigned, unsigned, unsigned, unsigned)
+    WWX190_GENERATE_VLCAPI(libvlc_chapter_descriptions_release, void, libvlc_chapter_description_t **, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_crop_ratio, void, libvlc_media_player_t *, quint32, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_crop_window, void, libvlc_media_player_t *, quint32, quint32, quint32, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_crop_border, void, libvlc_media_player_t *, quint32, quint32, quint32, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_video_get_teletext, int, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_video_set_teletext, void, libvlc_media_player_t *, int)
-    WWX190_GENERATE_VLCAPI(libvlc_video_take_snapshot, int, libvlc_media_player_t *, unsigned, const char *, unsigned int, unsigned int)
+    WWX190_GENERATE_VLCAPI(libvlc_video_take_snapshot, int, libvlc_media_player_t *, quint32, const char *, quint32, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_video_set_deinterlace, void, libvlc_media_player_t *, int, const char *)
-    WWX190_GENERATE_VLCAPI(libvlc_video_get_marquee_int, int, libvlc_media_player_t *, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_marquee_int, void, libvlc_media_player_t *, unsigned, int)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_marquee_string, void, libvlc_media_player_t *, unsigned, const char *)
-    WWX190_GENERATE_VLCAPI(libvlc_video_get_logo_int, int, libvlc_media_player_t *, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_logo_int, void, libvlc_media_player_t *, unsigned, int)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_logo_string, void, libvlc_media_player_t *, unsigned, const char *)
-    WWX190_GENERATE_VLCAPI(libvlc_video_get_adjust_int, int, libvlc_media_player_t *, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_adjust_int, void, libvlc_media_player_t *, unsigned, int)
-    WWX190_GENERATE_VLCAPI(libvlc_video_get_adjust_float, float, libvlc_media_player_t *, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_video_set_adjust_float, void, libvlc_media_player_t *, unsigned, float)
+    WWX190_GENERATE_VLCAPI(libvlc_video_get_marquee_int, int, libvlc_media_player_t *, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_marquee_int, void, libvlc_media_player_t *, quint32, int)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_marquee_string, void, libvlc_media_player_t *, quint32, const char *)
+    WWX190_GENERATE_VLCAPI(libvlc_video_get_logo_int, int, libvlc_media_player_t *, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_logo_int, void, libvlc_media_player_t *, quint32, int)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_logo_string, void, libvlc_media_player_t *, quint32, const char *)
+    WWX190_GENERATE_VLCAPI(libvlc_video_get_adjust_int, int, libvlc_media_player_t *, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_adjust_int, void, libvlc_media_player_t *, quint32, int)
+    WWX190_GENERATE_VLCAPI(libvlc_video_get_adjust_float, float, libvlc_media_player_t *, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_video_set_adjust_float, void, libvlc_media_player_t *, quint32, float)
     WWX190_GENERATE_VLCAPI(libvlc_audio_output_list_get, libvlc_audio_output_t *, libvlc_instance_t *)
     WWX190_GENERATE_VLCAPI(libvlc_audio_output_list_release, void, libvlc_audio_output_t *)
     WWX190_GENERATE_VLCAPI(libvlc_audio_output_set, int, libvlc_media_player_t *, const char *)
@@ -294,22 +294,22 @@ public:
     WWX190_GENERATE_VLCAPI(libvlc_audio_set_volume, int, libvlc_media_player_t *, int)
     WWX190_GENERATE_VLCAPI(libvlc_audio_get_channel, int, libvlc_media_player_t *)
     WWX190_GENERATE_VLCAPI(libvlc_audio_set_channel, int, libvlc_media_player_t *, int)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_get_delay, int64_t, libvlc_media_player_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_set_delay, int, libvlc_media_player_t *, int64_t)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_preset_count, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_preset_name, const char *, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_band_count, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_band_frequency, float, unsigned)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_get_delay, qint64, libvlc_media_player_t *)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_set_delay, int, libvlc_media_player_t *, qint64)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_preset_count, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_preset_name, const char *, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_band_count, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_band_frequency, float, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_new, libvlc_equalizer_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_new_from_preset, libvlc_equalizer_t *, unsigned)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_new_from_preset, libvlc_equalizer_t *, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_release, void, libvlc_equalizer_t *)
     WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_set_preamp, int, libvlc_equalizer_t *, float)
     WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_preamp, float, libvlc_equalizer_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_set_amp_at_index, int, libvlc_equalizer_t *, float, unsigned)
-    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_amp_at_index, float, libvlc_equalizer_t *, unsigned)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_set_amp_at_index, int, libvlc_equalizer_t *, float, quint32)
+    WWX190_GENERATE_VLCAPI(libvlc_audio_equalizer_get_amp_at_index, float, libvlc_equalizer_t *, quint32)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_set_equalizer, int, libvlc_media_player_t *, libvlc_equalizer_t *)
     WWX190_GENERATE_VLCAPI(libvlc_media_player_get_role, int, libvlc_media_player_t *)
-    WWX190_GENERATE_VLCAPI(libvlc_media_player_set_role, int, libvlc_media_player_t *, unsigned)
+    WWX190_GENERATE_VLCAPI(libvlc_media_player_set_role, int, libvlc_media_player_t *, quint32)
 
     // libvlc_media_list.h
     WWX190_GENERATE_VLCAPI(libvlc_media_list_new, libvlc_media_list_t *)
@@ -1393,12 +1393,12 @@ void libvlc_event_detach(libvlc_event_manager_t *p_event_manager, libvlc_event_t
     WWX190_CALL_VLCAPI(libvlc_event_detach, p_event_manager, i_event_type, f_callback, p_user_data)
 }
 
-void libvlc_log_get_context(const libvlc_log_t *ctx, const char **module, const char **file, unsigned *line)
+void libvlc_log_get_context(const libvlc_log_t *ctx, const char **module, const char **file, quint32 *line)
 {
     WWX190_CALL_VLCAPI(libvlc_log_get_context, ctx, module, file, line)
 }
 
-void libvlc_log_get_object(const libvlc_log_t *ctx, const char **name, const char **header, uintptr_t *id)
+void libvlc_log_get_object(const libvlc_log_t *ctx, const char **name, const char **header, quintptr *id)
 {
     WWX190_CALL_VLCAPI(libvlc_log_get_object, ctx, name, header, id)
 }
@@ -1433,7 +1433,7 @@ libvlc_module_description_t *libvlc_video_filter_list_get(libvlc_instance_t *p_i
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_filter_list_get, nullptr, p_instance);
 }
 
-int64_t libvlc_clock()
+qint64 libvlc_clock()
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_clock, -1);
 }
@@ -1522,7 +1522,7 @@ int libvlc_picture_save(const libvlc_picture_t *pic, const char *path)
     return WWX190_CALL_VLCAPI_RETURN(libvlc_picture_save, -1, pic, path);
 }
 
-const unsigned char *libvlc_picture_get_buffer(const libvlc_picture_t *pic, size_t *size)
+const uchar *libvlc_picture_get_buffer(const libvlc_picture_t *pic, size_t *size)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_picture_get_buffer, nullptr, pic, size);
 }
@@ -1532,17 +1532,17 @@ libvlc_picture_type_t libvlc_picture_type(const libvlc_picture_t *pic)
     return WWX190_CALL_VLCAPI_RETURN(libvlc_picture_type, libvlc_picture_Argb, pic);
 }
 
-unsigned int libvlc_picture_get_stride(const libvlc_picture_t *pic)
+quint32 libvlc_picture_get_stride(const libvlc_picture_t *pic)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_picture_get_stride, 0, pic);
 }
 
-unsigned int libvlc_picture_get_width(const libvlc_picture_t *pic)
+quint32 libvlc_picture_get_width(const libvlc_picture_t *pic)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_picture_get_width, 0, pic);
 }
 
-unsigned int libvlc_picture_get_height(const libvlc_picture_t *pic)
+quint32 libvlc_picture_get_height(const libvlc_picture_t *pic)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_picture_get_height, 0, pic);
 }
@@ -1599,7 +1599,7 @@ void libvlc_media_add_option(libvlc_media_t *p_md, const char *psz_options)
     WWX190_CALL_VLCAPI(libvlc_media_add_option, p_md, psz_options)
 }
 
-void libvlc_media_add_option_flag(libvlc_media_t *p_md, const char *psz_options, unsigned i_flags)
+void libvlc_media_add_option_flag(libvlc_media_t *p_md, const char *psz_options, quint32 i_flags)
 {
     WWX190_CALL_VLCAPI(libvlc_media_add_option_flag, p_md, psz_options, i_flags)
 }
@@ -1694,7 +1694,7 @@ libvlc_media_tracklist_t *libvlc_media_get_tracklist(libvlc_media_t *p_md, libvl
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_get_tracklist, nullptr, p_md, type);
 }
 
-const char *libvlc_media_get_codec_description(libvlc_track_type_t i_type, uint32_t i_codec)
+const char *libvlc_media_get_codec_description(libvlc_track_type_t i_type, quint32 i_codec)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_get_codec_description, nullptr, i_type, i_codec);
 }
@@ -1704,12 +1704,12 @@ libvlc_media_type_t libvlc_media_get_type(libvlc_media_t *p_md)
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_get_type, libvlc_media_type_unknown, p_md);
 }
 
-libvlc_media_thumbnail_request_t *libvlc_media_thumbnail_request_by_time(libvlc_media_t *md, libvlc_time_t time, libvlc_thumbnailer_seek_speed_t speed, unsigned int width, unsigned int height, bool crop, libvlc_picture_type_t picture_type, libvlc_time_t timeout)
+libvlc_media_thumbnail_request_t *libvlc_media_thumbnail_request_by_time(libvlc_media_t *md, libvlc_time_t time, libvlc_thumbnailer_seek_speed_t speed, quint32 width, quint32 height, bool crop, libvlc_picture_type_t picture_type, libvlc_time_t timeout)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_thumbnail_request_by_time, nullptr, md, time, speed, width, height, crop, picture_type, timeout);
 }
 
-libvlc_media_thumbnail_request_t *libvlc_media_thumbnail_request_by_pos(libvlc_media_t *md, float pos, libvlc_thumbnailer_seek_speed_t speed, unsigned int width, unsigned int height, bool crop, libvlc_picture_type_t picture_type, libvlc_time_t timeout)
+libvlc_media_thumbnail_request_t *libvlc_media_thumbnail_request_by_pos(libvlc_media_t *md, float pos, libvlc_thumbnailer_seek_speed_t speed, quint32 width, quint32 height, bool crop, libvlc_picture_type_t picture_type, libvlc_time_t timeout)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_thumbnail_request_by_pos, nullptr, md, pos, speed, width, height, crop, picture_type, timeout);
 }
@@ -1724,7 +1724,7 @@ void libvlc_media_thumbnail_request_destroy(libvlc_media_thumbnail_request_t *p_
     WWX190_CALL_VLCAPI(libvlc_media_thumbnail_request_destroy, p_req)
 }
 
-int libvlc_media_slaves_add(libvlc_media_t *p_md, libvlc_media_slave_type_t i_type, unsigned int i_priority, const char *psz_uri)
+int libvlc_media_slaves_add(libvlc_media_t *p_md, libvlc_media_slave_type_t i_type, quint32 i_priority, const char *psz_uri)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_slaves_add, -1, p_md, i_type, i_priority, psz_uri);
 }
@@ -1734,12 +1734,12 @@ void libvlc_media_slaves_clear(libvlc_media_t *p_md)
     WWX190_CALL_VLCAPI(libvlc_media_slaves_clear, p_md)
 }
 
-unsigned int libvlc_media_slaves_get(libvlc_media_t *p_md, libvlc_media_slave_t ***ppp_slaves)
+quint32 libvlc_media_slaves_get(libvlc_media_t *p_md, libvlc_media_slave_t ***ppp_slaves)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_slaves_get, 0, p_md, ppp_slaves);
 }
 
-void libvlc_media_slaves_release(libvlc_media_slave_t **pp_slaves, unsigned int i_count)
+void libvlc_media_slaves_release(libvlc_media_slave_t **pp_slaves, quint32 i_count)
 {
     WWX190_CALL_VLCAPI(libvlc_media_slaves_release, pp_slaves, i_count)
 }
@@ -1816,7 +1816,7 @@ void libvlc_video_set_callbacks(libvlc_media_player_t *mp, libvlc_video_lock_cb 
     WWX190_CALL_VLCAPI(libvlc_video_set_callbacks, mp, lock, unlock, display, opaque)
 }
 
-void libvlc_video_set_format(libvlc_media_player_t *mp, const char *chroma, unsigned width, unsigned height, unsigned pitch)
+void libvlc_video_set_format(libvlc_media_player_t *mp, const char *chroma, quint32 width, quint32 height, quint32 pitch)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_format, mp, chroma, width, height, pitch)
 }
@@ -1841,12 +1841,12 @@ void *libvlc_media_player_get_nsobject(libvlc_media_player_t *p_mi)
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_player_get_nsobject, nullptr, p_mi);
 }
 
-void libvlc_media_player_set_xwindow(libvlc_media_player_t *p_mi, uint32_t drawable)
+void libvlc_media_player_set_xwindow(libvlc_media_player_t *p_mi, quint32 drawable)
 {
     WWX190_CALL_VLCAPI(libvlc_media_player_set_xwindow, p_mi, drawable)
 }
 
-uint32_t libvlc_media_player_get_xwindow(libvlc_media_player_t *p_mi)
+quint32 libvlc_media_player_get_xwindow(libvlc_media_player_t *p_mi)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_player_get_xwindow, 0, p_mi);
 }
@@ -1881,7 +1881,7 @@ void libvlc_audio_set_format_callbacks(libvlc_media_player_t *mp, libvlc_audio_s
     WWX190_CALL_VLCAPI(libvlc_audio_set_format_callbacks, mp, setup, cleanup)
 }
 
-void libvlc_audio_set_format(libvlc_media_player_t *mp, const char *format, unsigned rate, unsigned channels)
+void libvlc_audio_set_format(libvlc_media_player_t *mp, const char *format, quint32 rate, quint32 channels)
 {
     WWX190_CALL_VLCAPI(libvlc_audio_set_format, mp, format, rate, channels)
 }
@@ -1971,7 +1971,7 @@ libvlc_state_t libvlc_media_player_get_state(libvlc_media_player_t *p_mi)
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_player_get_state, libvlc_NothingSpecial, p_mi);
 }
 
-unsigned libvlc_media_player_has_vout(libvlc_media_player_t *p_mi)
+quint32 libvlc_media_player_has_vout(libvlc_media_player_t *p_mi)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_player_has_vout, 0, p_mi);
 }
@@ -1996,12 +1996,12 @@ void libvlc_media_player_next_frame(libvlc_media_player_t *p_mi)
     WWX190_CALL_VLCAPI(libvlc_media_player_next_frame, p_mi)
 }
 
-void libvlc_media_player_navigate(libvlc_media_player_t *p_mi, unsigned navigate)
+void libvlc_media_player_navigate(libvlc_media_player_t *p_mi, quint32 navigate)
 {
     WWX190_CALL_VLCAPI(libvlc_media_player_navigate, p_mi, navigate)
 }
 
-void libvlc_media_player_set_video_title_display(libvlc_media_player_t *p_mi, libvlc_position_t position, unsigned int timeout)
+void libvlc_media_player_set_video_title_display(libvlc_media_player_t *p_mi, libvlc_position_t position, quint32 timeout)
 {
     WWX190_CALL_VLCAPI(libvlc_media_player_set_video_title_display, p_mi, position, timeout)
 }
@@ -2101,22 +2101,22 @@ bool libvlc_get_fullscreen(libvlc_media_player_t *p_mi)
     return WWX190_CALL_VLCAPI_RETURN(libvlc_get_fullscreen, false, p_mi);
 }
 
-void libvlc_video_set_key_input(libvlc_media_player_t *p_mi, unsigned on)
+void libvlc_video_set_key_input(libvlc_media_player_t *p_mi, quint32 on)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_key_input, p_mi, on)
 }
 
-void libvlc_video_set_mouse_input(libvlc_media_player_t *p_mi, unsigned on)
+void libvlc_video_set_mouse_input(libvlc_media_player_t *p_mi, quint32 on)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_mouse_input, p_mi, on)
 }
 
-int libvlc_video_get_size(libvlc_media_player_t *p_mi, unsigned num, unsigned *px, unsigned *py)
+int libvlc_video_get_size(libvlc_media_player_t *p_mi, quint32 num, quint32 *px, quint32 *py)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_get_size, -1, p_mi, num, px, py);
 }
 
-int libvlc_video_get_cursor(libvlc_media_player_t *p_mi, unsigned num, int *px, int *py)
+int libvlc_video_get_cursor(libvlc_media_player_t *p_mi, quint32 num, int *px, int *py)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_get_cursor, -1, p_mi, num, px, py);
 }
@@ -2151,7 +2151,7 @@ int libvlc_video_update_viewpoint(libvlc_media_player_t *p_mi, const libvlc_vide
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_update_viewpoint, -1, p_mi, p_viewpoint, b_absolute);
 }
 
-int64_t libvlc_video_get_spu_delay(libvlc_media_player_t *p_mi)
+qint64 libvlc_video_get_spu_delay(libvlc_media_player_t *p_mi)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_get_spu_delay, -1, p_mi);
 }
@@ -2166,7 +2166,7 @@ void libvlc_video_set_spu_text_scale(libvlc_media_player_t *p_mi, float f_scale)
     WWX190_CALL_VLCAPI(libvlc_video_set_spu_text_scale, p_mi, f_scale)
 }
 
-int libvlc_video_set_spu_delay(libvlc_media_player_t *p_mi, int64_t i_delay)
+int libvlc_video_set_spu_delay(libvlc_media_player_t *p_mi, qint64 i_delay)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_spu_delay, p_mi, i_delay)
 }
@@ -2176,7 +2176,7 @@ int libvlc_media_player_get_full_title_descriptions(libvlc_media_player_t *p_mi,
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_player_get_full_title_descriptions, -1, p_mi, titles);
 }
 
-void libvlc_title_descriptions_release(libvlc_title_description_t **p_titles, unsigned i_count)
+void libvlc_title_descriptions_release(libvlc_title_description_t **p_titles, quint32 i_count)
 {
     WWX190_CALL_VLCAPI(libvlc_title_descriptions_release, p_titles, i_count)
 }
@@ -2186,22 +2186,22 @@ int libvlc_media_player_get_full_chapter_descriptions(libvlc_media_player_t *p_m
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_player_get_full_chapter_descriptions, -1, p_mi, i_chapters_of_title, pp_chapters);
 }
 
-void libvlc_chapter_descriptions_release(libvlc_chapter_description_t **p_chapters, unsigned i_count)
+void libvlc_chapter_descriptions_release(libvlc_chapter_description_t **p_chapters, quint32 i_count)
 {
     WWX190_CALL_VLCAPI(libvlc_chapter_descriptions_release, p_chapters, i_count)
 }
 
-void libvlc_video_set_crop_ratio(libvlc_media_player_t *mp, unsigned num, unsigned den)
+void libvlc_video_set_crop_ratio(libvlc_media_player_t *mp, quint32 num, quint32 den)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_crop_ratio, mp, num, den)
 }
 
-void libvlc_video_set_crop_window(libvlc_media_player_t *mp, unsigned x, unsigned y, unsigned width, unsigned height)
+void libvlc_video_set_crop_window(libvlc_media_player_t *mp, quint32 x, quint32 y, quint32 width, quint32 height)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_crop_window, mp, x, y, width, height)
 }
 
-void libvlc_video_set_crop_border(libvlc_media_player_t *mp, unsigned left, unsigned right, unsigned top, unsigned bottom)
+void libvlc_video_set_crop_border(libvlc_media_player_t *mp, quint32 left, quint32 right, quint32 top, quint32 bottom)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_crop_border, mp, left, right, top, bottom)
 }
@@ -2216,7 +2216,7 @@ void libvlc_video_set_teletext(libvlc_media_player_t *p_mi, int i_page)
     WWX190_CALL_VLCAPI(libvlc_video_set_teletext, p_mi, i_page)
 }
 
-int libvlc_video_take_snapshot(libvlc_media_player_t *p_mi, unsigned num, const char *psz_filepath, unsigned int i_width, unsigned int i_height)
+int libvlc_video_take_snapshot(libvlc_media_player_t *p_mi, quint32 num, const char *psz_filepath, quint32 i_width, quint32 i_height)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_take_snapshot, -1, p_mi, num, psz_filepath, i_width, i_height);
 }
@@ -2226,52 +2226,52 @@ void libvlc_video_set_deinterlace(libvlc_media_player_t *p_mi, int deinterlace, 
     WWX190_CALL_VLCAPI(libvlc_video_set_deinterlace, p_mi, deinterlace, psz_mode)
 }
 
-int libvlc_video_get_marquee_int(libvlc_media_player_t *p_mi, unsigned option)
+int libvlc_video_get_marquee_int(libvlc_media_player_t *p_mi, quint32 option)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_get_marquee_int, -1, p_mi, option);
 }
 
-void libvlc_video_set_marquee_int(libvlc_media_player_t *p_mi, unsigned option, int i_val)
+void libvlc_video_set_marquee_int(libvlc_media_player_t *p_mi, quint32 option, int i_val)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_marquee_int, p_mi, option, i_val)
 }
 
-void libvlc_video_set_marquee_string(libvlc_media_player_t *p_mi, unsigned option, const char *psz_text)
+void libvlc_video_set_marquee_string(libvlc_media_player_t *p_mi, quint32 option, const char *psz_text)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_marquee_string, p_mi, option, psz_text)
 }
 
-int libvlc_video_get_logo_int(libvlc_media_player_t *p_mi, unsigned option)
+int libvlc_video_get_logo_int(libvlc_media_player_t *p_mi, quint32 option)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_get_logo_int, -1, p_mi, option);
 }
 
-void libvlc_video_set_logo_int(libvlc_media_player_t *p_mi, unsigned option, int value)
+void libvlc_video_set_logo_int(libvlc_media_player_t *p_mi, quint32 option, int value)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_logo_int, p_mi, option, value)
 }
 
-void libvlc_video_set_logo_string(libvlc_media_player_t *p_mi, unsigned option, const char *psz_value)
+void libvlc_video_set_logo_string(libvlc_media_player_t *p_mi, quint32 option, const char *psz_value)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_logo_string, p_mi, option, psz_value)
 }
 
-int libvlc_video_get_adjust_int(libvlc_media_player_t *p_mi, unsigned option)
+int libvlc_video_get_adjust_int(libvlc_media_player_t *p_mi, quint32 option)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_get_adjust_int, -1, p_mi, option);
 }
 
-void libvlc_video_set_adjust_int(libvlc_media_player_t *p_mi, unsigned option, int value)
+void libvlc_video_set_adjust_int(libvlc_media_player_t *p_mi, quint32 option, int value)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_adjust_int, p_mi, option, value)
 }
 
-float libvlc_video_get_adjust_float(libvlc_media_player_t *p_mi, unsigned option)
+float libvlc_video_get_adjust_float(libvlc_media_player_t *p_mi, quint32 option)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_video_get_adjust_float, 0.0, p_mi, option);
 }
 
-void libvlc_video_set_adjust_float(libvlc_media_player_t *p_mi, unsigned option, float value)
+void libvlc_video_set_adjust_float(libvlc_media_player_t *p_mi, quint32 option, float value)
 {
     WWX190_CALL_VLCAPI(libvlc_video_set_adjust_float, p_mi, option, value)
 }
@@ -2351,32 +2351,32 @@ int libvlc_audio_set_channel(libvlc_media_player_t *p_mi, int channel)
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_set_channel, -1, p_mi, channel);
 }
 
-int64_t libvlc_audio_get_delay(libvlc_media_player_t *p_mi)
+qint64 libvlc_audio_get_delay(libvlc_media_player_t *p_mi)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_get_delay, -1, p_mi);
 }
 
-int libvlc_audio_set_delay(libvlc_media_player_t *p_mi, int64_t i_delay)
+int libvlc_audio_set_delay(libvlc_media_player_t *p_mi, qint64 i_delay)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_set_delay, -1, p_mi, i_delay);
 }
 
-unsigned libvlc_audio_equalizer_get_preset_count()
+quint32 libvlc_audio_equalizer_get_preset_count()
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_equalizer_get_preset_count, 0);
 }
 
-const char *libvlc_audio_equalizer_get_preset_name(unsigned u_index)
+const char *libvlc_audio_equalizer_get_preset_name(quint32 u_index)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_equalizer_get_preset_name, nullptr, u_index);
 }
 
-unsigned libvlc_audio_equalizer_get_band_count()
+quint32 libvlc_audio_equalizer_get_band_count()
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_equalizer_get_band_count, 0);
 }
 
-float libvlc_audio_equalizer_get_band_frequency(unsigned u_index)
+float libvlc_audio_equalizer_get_band_frequency(quint32 u_index)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_equalizer_get_band_frequency, 0.0, u_index);
 }
@@ -2386,7 +2386,7 @@ libvlc_equalizer_t *libvlc_audio_equalizer_new()
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_equalizer_new, nullptr);
 }
 
-libvlc_equalizer_t *libvlc_audio_equalizer_new_from_preset(unsigned u_index)
+libvlc_equalizer_t *libvlc_audio_equalizer_new_from_preset(quint32 u_index)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_equalizer_new_from_preset, nullptr, u_index);
 }
@@ -2406,12 +2406,12 @@ float libvlc_audio_equalizer_get_preamp(libvlc_equalizer_t *p_equalizer)
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_equalizer_get_preamp, 0.0, p_equalizer);
 }
 
-int libvlc_audio_equalizer_set_amp_at_index(libvlc_equalizer_t *p_equalizer, float f_amp, unsigned u_band)
+int libvlc_audio_equalizer_set_amp_at_index(libvlc_equalizer_t *p_equalizer, float f_amp, quint32 u_band)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_equalizer_set_amp_at_index, -1, p_equalizer, f_amp, u_band);
 }
 
-float libvlc_audio_equalizer_get_amp_at_index(libvlc_equalizer_t *p_equalizer, unsigned u_band)
+float libvlc_audio_equalizer_get_amp_at_index(libvlc_equalizer_t *p_equalizer, quint32 u_band)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_audio_equalizer_get_amp_at_index, 0.0, p_equalizer, u_band);
 }
@@ -2426,7 +2426,7 @@ int libvlc_media_player_get_role(libvlc_media_player_t *p_mi)
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_player_get_role, -1, p_mi);
 }
 
-int libvlc_media_player_set_role(libvlc_media_player_t *p_mi, unsigned role)
+int libvlc_media_player_set_role(libvlc_media_player_t *p_mi, quint32 role)
 {
     return WWX190_CALL_VLCAPI_RETURN(libvlc_media_player_set_role, -1, p_mi, role);
 }
