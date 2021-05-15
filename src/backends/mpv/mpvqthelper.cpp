@@ -162,7 +162,7 @@ public:
 
     explicit MPVData()
     {
-        const bool result = load(qEnvironmentVariable(_mpvHelper_libmpv_fileName_envVar, QStringLiteral("mpv")));
+        const bool result = load(qEnvironmentVariable(_mpvHelper_libmpv_fileName_envVar, QStringLiteral("mpv-1")));
         Q_UNUSED(result);
     }
 

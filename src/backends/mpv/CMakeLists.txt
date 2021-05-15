@@ -35,6 +35,10 @@ endif()
 add_library(${BACKEND_NAME} SHARED ${SOURCES})
 add_library(${PROJECT_NAME}::MPVBackend ALIAS ${BACKEND_NAME})
 
+target_include_directories(${BACKEND_NAME} PRIVATE
+    ./include/
+)
+
 set_target_properties(${BACKEND_NAME} PROPERTIES
     OUTPUT_NAME mpv
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qtmediaplayer
