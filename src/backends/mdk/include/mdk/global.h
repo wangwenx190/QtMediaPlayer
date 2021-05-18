@@ -168,6 +168,12 @@ static inline void setLogHandler(std::function<void(LogLevel, const char*)> cb) 
     };
     h.opaque = scb ? (void*)&scb : nullptr;
     MDK_setLogHandler(h);
+    static struct LogReset {
+        ~LogReset() {
+            mdkLogHandler stdh{};
+            MDK_setLogHandler(stdh); // reset log handler std to ensure no log go to scb after scb destroyed
+        }
+    } reset;
 }
 
 /*

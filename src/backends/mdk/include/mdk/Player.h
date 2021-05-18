@@ -186,8 +186,13 @@ public:
   so the final state is State::Stopped. Current solution is waitFor(State::Stopped) before setState(State::Playing).
   Usually no waitFor(State::Playing) because we want async load
 */
+// deprecated. use set(State)
     void setState(PlaybackState value) {
+        set(value);
+    }
+    Player& set(State value) {
         MDK_CALL(p, setState, MDK_State(value));
+        return *this;
     }
 
     PlaybackState state() const {
@@ -309,7 +314,7 @@ public:
   Predefined properties are:
   - "video.avfilter": ffmpeg avfilter filter graph string for video track. take effect immediately
   - "audio.avfilter": ffmpeg avfilter filter graph string for audio track. take effect immediately
-  - "continue_at_end": "0" or "1". do not stop playback when decode and render to end of stream. only setState(State::Stopped) can stop playback
+  - "continue_at_end": "0" or "1". do not stop playback when decode and render to end of stream. only setState(State::Stopped) can stop playback. Useful for timeline preview.
  */
     void setProperty(const std::string& key, const std::string& value) {
         MDK_CALL(p, setProperty, key.data(), value.data());
@@ -451,6 +456,8 @@ NOTE:
   Also invoked in setVideoSurfaceSize(), setVideoViewport(), setAspectRatio() and rotate(), take care of dead lock in callback and above functions.
   with vo_opaque, user can know which vo/renderer is rendering, useful for multiple renderers
   There may be no frames or playback not even started, but renderer update is required internally
+
+  DO NOT call renderVideo() in the callback, otherwise will results in dead lock
 */
     void setRenderCallback(std::function<void(void* vo_opaque)> cb) { // per vo?
         render_cb_ = cb;
@@ -519,17 +526,21 @@ NOTE:
     int64_t buffered(int64_t* bytes = nullptr) const {
         return MDK_CALL(p, buffered, bytes);
     }
-/*
+/*!
   \brief bufferRange
   set duration range of buffered data.
-  minMs: default 1000. wait for buffered duration >= minMs when before popping a packet from to decode
-  maxMs: default 2000. max buffered duration.
+  \param minMs default 1000. wait for buffered duration >= minMs when before popping a packet from to decode
+    If minMs < 0, then minMs, maxMs and drop will be reset to the default value
+  \param maxMs default 4000. max buffered duration.
+    If maxMs < 0, then maxMs and drop will be reset to the default value
+    If maxMs == 0, same as INT64_MAX
   drop = true: drop old non-key frame packets to reduce buffered duration until < maxMs.
   drop = false: wait for buffered duration < maxMs before pushing packets
 
+  For realtime streams like(rtp, rtsp sdp etc.), the default range is [0, INT64_MAX, true].
   Usually you don't need to call this api. This api can be used for low latency live videos, for example setBufferRange(0, 1000, true) will decode as soon as possible when media data received, also it ensures the max delay of rendered video is 1s, and no accumulated delay.
  */
-    void setBufferRange(int64_t minMs = 1000, int64_t maxMs = 2000, bool drop = false) {
+    void setBufferRange(int64_t minMs = -1, int64_t maxMs = -1, bool drop = false) {
         MDK_CALL(p, setBufferRange, minMs, maxMs, drop);
     }
 /*!

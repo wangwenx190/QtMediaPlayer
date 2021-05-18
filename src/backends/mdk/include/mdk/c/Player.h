@@ -335,14 +335,18 @@ NOTE:
     bool (*switchBitrateSingleConnection)(struct mdkPlayer*, const char *url, SwitchBitrateCallback cb);
 
     void (*onEvent)(struct mdkPlayer*, mdkMediaEventCallback cb, MDK_CallbackToken* token);
-/*
+/*!
   \brief bufferRange
   set duration range of buffered data.
-  minMs: default 4000. wait for buffered duration >= minMs when before popping a packet from to decode
-  maxMs: default 16000. max buffered duration.
+  \param minMs default 1000. wait for buffered duration >= minMs when before popping a packet from to decode
+    If minMs < 0, then minMs, maxMs and drop will be reset to the default value
+  \param maxMs default 4000. max buffered duration.
+    If maxMs < 0, then maxMs and drop will be reset to the default value
+    If maxMs == 0, same as INT64_MAX
   drop = true: drop old non-key frame packets to reduce buffered duration until < maxMs.
   drop = false: wait for buffered duration < maxMs before pushing packets
 
+  For realtime streams like(rtp, rtsp sdp etc.), the default range is [0, INT64_MAX, true].
   Usually you don't need to call this api. This api can be used for low latency live videos, for example setBufferRange(0, 1000, true) will decode as soon as possible when media data received, also it ensures the max delay of rendered video is 1s, and no accumulated delay.
  */
     void (*setBufferRange)(struct mdkPlayer*, int64_t minMs, int64_t maxMs, bool drop);

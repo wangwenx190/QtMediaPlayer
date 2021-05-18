@@ -56,11 +56,6 @@ static inline QString urlToString(const QUrl &value, const bool display = false)
                                 : (display ? value.toDisplayString() : value.toString()));
 }
 
-static inline MDK_NS_PREPEND(LogLevel) _MDKPlayer_MDK_LogLevel()
-{
-    return static_cast<MDK_NS_PREPEND(LogLevel)>(MDK_logLevel());
-}
-
 MDKPlayer::MDKPlayer(QQuickItem *parent) : MediaPlayer(parent)
 {
     qCDebug(lcQMPMDK) << "Initializing the MDK backend ...";
@@ -188,7 +183,7 @@ void MDKPlayer::setSource(const QUrl &value)
 {
     const auto realStop = [this]() -> void {
         m_player->setNextMedia(nullptr);
-        m_player->setState(MDK_NS_PREPEND(PlaybackState)::Stopped);
+        m_player->set(MDK_NS_PREPEND(PlaybackState)::Stopped);
         m_player->waitFor(MDK_NS_PREPEND(PlaybackState)::Stopped);
     };
     if (value.isEmpty()) {
@@ -202,7 +197,7 @@ void MDKPlayer::setSource(const QUrl &value)
     }
     if (value == source()) {
         if (isStopped() && !m_livePreview) {
-            m_player->setState(MDK_NS_PREPEND(PlaybackState)::Playing);
+            m_player->set(MDK_NS_PREPEND(PlaybackState)::Playing);
         }
         return;
     }
@@ -214,7 +209,7 @@ void MDKPlayer::setSource(const QUrl &value)
     // It's necessary to call "prepare()" otherwise we'll get no picture.
     m_player->prepare();
     if (m_autoStart && !m_livePreview) {
-        m_player->setState(MDK_NS_PREPEND(PlaybackState)::Playing);
+        m_player->set(MDK_NS_PREPEND(PlaybackState)::Playing);
     }
 }
 
@@ -328,14 +323,14 @@ void MDKPlayer::setPlaybackState(const MDKPlayer::PlaybackState value)
     switch (value) {
     case PlaybackState::Playing: {
         if (!m_livePreview) {
-            m_player->setState(MDK_NS_PREPEND(PlaybackState)::Playing);
+            m_player->set(MDK_NS_PREPEND(PlaybackState)::Playing);
         }
     } break;
     case PlaybackState::Paused:
-        m_player->setState(MDK_NS_PREPEND(PlaybackState)::Paused);
+        m_player->set(MDK_NS_PREPEND(PlaybackState)::Paused);
         break;
     case PlaybackState::Stopped:
-        m_player->setState(MDK_NS_PREPEND(PlaybackState)::Stopped);
+        m_player->set(MDK_NS_PREPEND(PlaybackState)::Stopped);
         break;
     }
 }
@@ -381,7 +376,7 @@ MDKPlayer::MediaStatus MDKPlayer::mediaStatus() const
 
 MDKPlayer::LogLevel MDKPlayer::logLevel() const
 {
-    switch (_MDKPlayer_MDK_LogLevel()) {
+    switch (static_cast<MDK_NS_PREPEND(LogLevel)>(MDK_logLevel())) {
     case MDK_NS_PREPEND(LogLevel)::Off:
         return LogLevel::Off;
     case MDK_NS_PREPEND(LogLevel)::Debug:
@@ -599,7 +594,7 @@ void MDKPlayer::setLivePreview(const bool value)
         m_livePreview = value;
         if (m_livePreview) {
             // We only need static images.
-            m_player->setState(MDK_NS_PREPEND(PlaybackState)::Paused);
+            m_player->set(MDK_NS_PREPEND(PlaybackState)::Paused);
             // We don't want the preview window play sound.
             m_player->setMute(true);
             // Disable media tracks that are not needed.
@@ -726,7 +721,7 @@ void MDKPlayer::play()
     if (!source().isValid() || m_livePreview) {
         return;
     }
-    m_player->setState(MDK_NS_PREPEND(PlaybackState)::Playing);
+    m_player->set(MDK_NS_PREPEND(PlaybackState)::Playing);
 }
 
 void MDKPlayer::pause()
@@ -734,7 +729,7 @@ void MDKPlayer::pause()
     if (!source().isValid()) {
         return;
     }
-    m_player->setState(MDK_NS_PREPEND(PlaybackState)::Paused);
+    m_player->set(MDK_NS_PREPEND(PlaybackState)::Paused);
 }
 
 void MDKPlayer::stop()
@@ -743,7 +738,7 @@ void MDKPlayer::stop()
         return;
     }
     m_player->setNextMedia(nullptr);
-    m_player->setState(MDK_NS_PREPEND(PlaybackState)::Stopped);
+    m_player->set(MDK_NS_PREPEND(PlaybackState)::Stopped);
 }
 
 void MDKPlayer::seek(const qint64 value)

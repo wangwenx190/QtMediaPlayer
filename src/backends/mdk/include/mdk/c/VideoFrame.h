@@ -55,14 +55,17 @@ typedef struct mdkVideoFrameAPI {
     double (*timestamp)(struct mdkVideoFrame*);
 
     struct mdkVideoFrameAPI* (*to)(struct mdkVideoFrame*, enum MDK_PixelFormat format, int width/*= -1*/, int height/*= -1*/);
+    bool (*save)(struct mdkVideoFrame*, const char* fileName, const char* format, float quality);
 
 /* The followings are not implemented */
     struct mdkVideoFrameAPI* (*toHost)(struct mdkVideoFrame*);
     struct mdkVideoFrameAPI* (*fromGL)();
     struct mdkVideoFrameAPI* (*fromMetal)();
-    struct mdkVideoFrameAPI* (*fromD3D11)();
     struct mdkVideoFrameAPI* (*fromVk)();
-    void* reserved[16];
+    struct mdkVideoFrameAPI* (*fromD3D9)();
+    struct mdkVideoFrameAPI* (*fromD3D11)();
+    struct mdkVideoFrameAPI* (*fromD3D12)();
+    void* reserved[13];
 } mdkVideoFrameAPI;
 
 
