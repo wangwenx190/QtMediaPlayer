@@ -40,6 +40,7 @@
 
 #include "mpvqthelper.h"
 #include "include/mpv/render_gl.h"
+#include "include/mpv/stream_cb.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qlibrary.h>
 #include <QtCore/qfileinfo.h>
@@ -160,6 +161,9 @@ public:
     WWX190_GENERATE_MPVAPI(mpv_render_context_report_swap, void, mpv_render_context *)
     WWX190_GENERATE_MPVAPI(mpv_render_context_free, void, mpv_render_context *)
 
+    // stream_cb.h
+    WWX190_GENERATE_MPVAPI(mpv_stream_cb_add_ro, int, mpv_handle *, const char *, void *, mpv_stream_cb_open_ro_fn)
+
     explicit MPVData()
     {
         const bool result = load(qEnvironmentVariable(_mpvHelper_libmpv_fileName_envVar, QStringLiteral("mpv-1")));
@@ -254,6 +258,9 @@ public:
         WWX190_RESOLVE_MPVAPI(mpv_render_context_report_swap)
         WWX190_RESOLVE_MPVAPI(mpv_render_context_free)
 
+        // stream_cb.h
+        WWX190_RESOLVE_MPVAPI(mpv_stream_cb_add_ro)
+
         qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "libmpv loaded successfully.";
         return true;
     }
@@ -313,6 +320,9 @@ public:
         WWX190_SETNULL_MPVAPI(mpv_render_context_render)
         WWX190_SETNULL_MPVAPI(mpv_render_context_report_swap)
         WWX190_SETNULL_MPVAPI(mpv_render_context_free)
+
+        // stream_cb.h
+        WWX190_SETNULL_MPVAPI(mpv_stream_cb_add_ro)
 
         if (library.isLoaded()) {
             if (!library.unload()) {
@@ -379,7 +389,9 @@ public:
                 WWX190_NOTNULL_MPVAPI(mpv_render_context_update) &&
                 WWX190_NOTNULL_MPVAPI(mpv_render_context_render) &&
                 WWX190_NOTNULL_MPVAPI(mpv_render_context_report_swap) &&
-                WWX190_NOTNULL_MPVAPI(mpv_render_context_free);
+                WWX190_NOTNULL_MPVAPI(mpv_render_context_free) &&
+                // stream_cb.h
+                WWX190_NOTNULL_MPVAPI(mpv_stream_cb_add_ro);
         return result;
     }
 
@@ -972,4 +984,11 @@ void mpv_render_context_report_swap(mpv_render_context *ctx)
 void mpv_render_context_free(mpv_render_context *ctx)
 {
     WWX190_CALL_MPVAPI(mpv_render_context_free, ctx)
+}
+
+// stream_cb.h
+
+int mpv_stream_cb_add_ro(mpv_handle *ctx, const char *protocol, void *user_data, mpv_stream_cb_open_ro_fn open_fn)
+{
+    return WWX190_CALL_MPVAPI_RETURN(mpv_stream_cb_add_ro, -1, ctx, protocol, user_data, open_fn);
 }
