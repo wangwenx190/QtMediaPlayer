@@ -13,8 +13,8 @@
 #define MDK_VERSION_INT(major, minor, patch) \
     (((major&0xff)<<16) | ((minor&0xff)<<8) | (patch&0xff))
 #define MDK_MAJOR 0
-#define MDK_MINOR 11
-#define MDK_MICRO 1
+#define MDK_MINOR 12
+#define MDK_MICRO 0
 #define MDK_VERSION MDK_VERSION_INT(MDK_MAJOR, MDK_MINOR, MDK_MICRO)
 #define MDK_VERSION_CHECK(a, b, c) (MDK_VERSION >= MDK_VERSION_INT(a, b, c))
 
@@ -176,6 +176,10 @@ MDK_API void MDK_setGlobalOptionInt32(const char* key, int value);
   - "jvm", "JavaVM": JavaVM*. android only
  */
 MDK_API void MDK_setGlobalOptionPtr(const char* key, void* value);
+
+MDK_API bool MDK_getGlobalOptionString(const char* key, const char** value);
+MDK_API bool MDK_getGlobalOptionInt32(const char* key, int* value);
+MDK_API bool MDK_getGlobalOptionPtr(const char* key, void** value);
 /*
   events:
   {timestamp(ms), "render.video", "1st_frame"}: when the first frame is rendererd

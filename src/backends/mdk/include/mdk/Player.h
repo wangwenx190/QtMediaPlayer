@@ -53,11 +53,27 @@ public:
 
     void setMute(bool value = true) {
         MDK_CALL(p, setMute, value);
+        mute_ = value;
     }
 
+    bool isMute() const { return mute_; }
+/*!
+  \brief setChannelVolume
+  Set audio volume level
+  \param value linear volume level, range is >=0. 1.0 is source volume
+  \param channel channel number, int value of AudioFormat::Channel, -1 for all channels.
+  The same as ms log2(SpeakerPosition), see https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ksmedia/ns-ksmedia-ksaudio_channel_config#remarks
+  setVolume(value, -1) equals to setVolume(value)
+ */
     void setVolume(float value) {
         MDK_CALL(p, setVolume, value);
+        volume_ = value;
     }
+    void setVolume(float value, int channel) {
+        MDK_CALL(p, setChannelVolume, value, channel);
+    }
+
+    float volume() const { return volume_; }
 
 /*!
   \brief setMedia
@@ -85,7 +101,7 @@ public:
   \brief setNextMedia
   Gapless play the next media after current media playback end
   \param flags seek flags if startPosition > 0, accurate or fast
-  setState(State::Stopped) only stops current media. Call setNextMedia(nullptr, -1) first to disable next media.
+  set(State::Stopped) only stops current media. Call setNextMedia(nullptr, -1) first to disable next media.
   Usually you can call `currentMediaChanged()` to set a callback which invokes `setNextMedia()`, then call `setMedia()`.
 */
     void setNextMedia(const char* url, int64_t startPosition = 0, SeekFlag flags = SeekFlag::FromStart) {
@@ -153,7 +169,7 @@ public:
 /*!
   \brief prepare
   Preload a media and then becomes State::Paused. \sa PrepareCallback
-  To play a media from a given position, call prepare(ms) then setState(State::Playing)
+  To play a media from a given position, call prepare(ms) then set(State::Playing)
   \param startPosition start from position, relative to media start position(i.e. MediaInfo.start_time)
   \param flags seek flag if startPosition != 0.
   For fast seek(has flag SeekFlag::Fast), the first frame is a key frame whose timestamp >= startPosition
@@ -176,20 +192,16 @@ public:
     }
 
 /*!
-  \brief setState
+  \brief set(State)
   Request a new state. It's async and may take effect later.
-  setState(State::Stopped) only stops current media. Call setNextMedia(nullptr, -1) before stop to disable next media.
-  setState(State::Stopped) will release all resouces and clear video renderer viewport. While a normal playback end will keep renderer resources
-  and the last video frame. Manually call setState(State::Stopped) to clear them.
+  set(State::Stopped) only stops current media. Call setNextMedia(nullptr, -1) before stop to disable next media.
+  set(State::Stopped) will release all resouces and clear video renderer viewport. While a normal playback end will keep renderer resources
+  and the last video frame. Manually call set(State::Stopped) to clear them.
   NOTE: the requested state is not queued. so set one state immediately after another may have no effect.
   e.g. State::Playing after State::Stopped may have no effect if playback have not been stopped and still in Playing state
-  so the final state is State::Stopped. Current solution is waitFor(State::Stopped) before setState(State::Playing).
+  so the final state is State::Stopped. Current solution is waitFor(State::Stopped) before set(State::Playing).
   Usually no waitFor(State::Playing) because we want async load
 */
-// deprecated. use set(State)
-    void setState(PlaybackState value) {
-        set(value);
-    }
     Player& set(State value) {
         MDK_CALL(p, setState, MDK_State(value));
         return *this;
@@ -314,7 +326,7 @@ public:
   Predefined properties are:
   - "video.avfilter": ffmpeg avfilter filter graph string for video track. take effect immediately
   - "audio.avfilter": ffmpeg avfilter filter graph string for audio track. take effect immediately
-  - "continue_at_end": "0" or "1". do not stop playback when decode and render to end of stream. only setState(State::Stopped) can stop playback. Useful for timeline preview.
+  - "continue_at_end": "0" or "1". do not stop playback when decode and render to end of stream. only set(State::Stopped) can stop playback. Useful for timeline preview.
  */
     void setProperty(const std::string& key, const std::string& value) {
         MDK_CALL(p, setProperty, key.data(), value.data());
@@ -708,9 +720,17 @@ NOTE:
     void setVideoDecoders(const std::vector<std::string>& names) {
         setDecoders(MediaType::Video, names);
     }
+#if (__cpp_attributes+0)
+[[deprecated("use set(State) instead")]]
+#endif
+    void setState(PlaybackState value) {
+        set(value);
+    }
 #endif
 private:
     const mdkPlayerAPI* p = nullptr;
+    bool mute_ = false;
+    float volume_ = 1.0f;
     std::function<void()> current_cb_ = nullptr;
     std::function<bool(int64_t ms)> timeout_cb_ = nullptr;
     std::function<bool(int64_t position, bool* boost)> prepare_cb_ = nullptr;

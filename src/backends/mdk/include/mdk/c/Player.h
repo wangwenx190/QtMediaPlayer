@@ -456,7 +456,16 @@ NOTE:
     void (*setActiveTracks)(struct mdkPlayer*, enum MDK_MediaType type, const int* tracks, size_t count);
 
     void (*setDecoders)(struct mdkPlayer*, enum MDK_MediaType type, const char* names[]);
-    void* reserved[6];
+/*!
+  \brief setChannelVolume
+  Set audio volume level
+  \param value linear volume level, range is >=0. 1.0 is source volume
+  \param channel channel number, int value of AudioFormat::Channel, -1 for all channels.
+  The same as ms log2(SpeakerPosition), see https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ksmedia/ns-ksmedia-ksaudio_channel_config#remarks
+  setChannelVolume(value, -1) equals to setVolume(value)
+ */
+    void (*setChannelVolume)(struct mdkPlayer*, float value, int channel);
+    void* reserved[5];
 } mdkPlayerAPI;
 
 MDK_API const mdkPlayerAPI* mdkPlayerAPI_new();

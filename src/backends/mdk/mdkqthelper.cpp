@@ -89,6 +89,9 @@ public:
     WWX190_GENERATE_MDKAPI(MDK_setGlobalOptionString, void, const char *, const char *)
     WWX190_GENERATE_MDKAPI(MDK_setGlobalOptionInt32, void, const char *, int)
     WWX190_GENERATE_MDKAPI(MDK_setGlobalOptionPtr, void, const char *, void *)
+    WWX190_GENERATE_MDKAPI(MDK_getGlobalOptionString, bool, const char *, const char **)
+    WWX190_GENERATE_MDKAPI(MDK_getGlobalOptionInt32, bool, const char *, int *)
+    WWX190_GENERATE_MDKAPI(MDK_getGlobalOptionPtr, bool, const char *, void **)
     WWX190_GENERATE_MDKAPI(MDK_strdup, char *, const char *)
     WWX190_GENERATE_MDKAPI(MDK_version, int)
 
@@ -156,6 +159,9 @@ public:
         WWX190_RESOLVE_MDKAPI(MDK_setGlobalOptionString)
         WWX190_RESOLVE_MDKAPI(MDK_setGlobalOptionInt32)
         WWX190_RESOLVE_MDKAPI(MDK_setGlobalOptionPtr)
+        WWX190_RESOLVE_MDKAPI(MDK_getGlobalOptionString)
+        WWX190_RESOLVE_MDKAPI(MDK_getGlobalOptionInt32)
+        WWX190_RESOLVE_MDKAPI(MDK_getGlobalOptionPtr)
         WWX190_RESOLVE_MDKAPI(MDK_strdup)
         WWX190_RESOLVE_MDKAPI(MDK_version)
 
@@ -189,6 +195,9 @@ public:
         WWX190_SETNULL_MDKAPI(MDK_setGlobalOptionString)
         WWX190_SETNULL_MDKAPI(MDK_setGlobalOptionInt32)
         WWX190_SETNULL_MDKAPI(MDK_setGlobalOptionPtr)
+        WWX190_SETNULL_MDKAPI(MDK_getGlobalOptionString)
+        WWX190_SETNULL_MDKAPI(MDK_getGlobalOptionInt32)
+        WWX190_SETNULL_MDKAPI(MDK_getGlobalOptionPtr)
         WWX190_SETNULL_MDKAPI(MDK_strdup)
         WWX190_SETNULL_MDKAPI(MDK_version)
 
@@ -230,6 +239,9 @@ public:
                 WWX190_NOTNULL_MDKAPI(MDK_setGlobalOptionString) &&
                 WWX190_NOTNULL_MDKAPI(MDK_setGlobalOptionInt32) &&
                 WWX190_NOTNULL_MDKAPI(MDK_setGlobalOptionPtr) &&
+                WWX190_NOTNULL_MDKAPI(MDK_getGlobalOptionString) &&
+                WWX190_NOTNULL_MDKAPI(MDK_getGlobalOptionInt32) &&
+                WWX190_NOTNULL_MDKAPI(MDK_getGlobalOptionPtr) &&
                 WWX190_NOTNULL_MDKAPI(MDK_strdup) &&
                 WWX190_NOTNULL_MDKAPI(MDK_version) &&
                 // MediaInfo.h
@@ -311,6 +323,21 @@ void MDK_setGlobalOptionInt32(const char *key, int value)
 void MDK_setGlobalOptionPtr(const char *key, void *value)
 {
     WWX190_CALL_MDKAPI(MDK_setGlobalOptionPtr, key, value)
+}
+
+bool MDK_getGlobalOptionString(const char *key, const char **value)
+{
+    return WWX190_CALL_MDKAPI_RETURN(MDK_getGlobalOptionString, false, key, value);
+}
+
+bool MDK_getGlobalOptionInt32(const char *key, int *value)
+{
+    return WWX190_CALL_MDKAPI_RETURN(MDK_getGlobalOptionInt32, false, key, value);
+}
+
+bool MDK_getGlobalOptionPtr(const char *key, void **value)
+{
+    return WWX190_CALL_MDKAPI_RETURN(MDK_getGlobalOptionPtr, false, key, value);
 }
 
 char *MDK_strdup(const char *value)

@@ -181,6 +181,7 @@ static inline void setLogHandler(std::function<void(LogLevel, const char*)> cb) 
  - "avutil_lib", "avcodec_lib", "avformat_lib", "swresample_lib", "avfilter_lib": path to ffmpeg runtime libraries
  - "plugins": plugin filenames or paths in pattern "p1:p2:p3"
  - "MDK_KEY": license key for your product
+ - "MDK_KEY_CODE_PAGE": license key code page used internally(windows only)
  - "ffmpeg.loglevel": ffmpeg log leve names, "trace", "debug", "verbose", "info", "warning", "error", "fatal", "panic", "quiet"
  - "logLevel": can be "Off", "Error", "Warning", "Info", "Debug", "All". same as SetGlobalOption("logLevel", LogLevel)
 */
@@ -188,6 +189,17 @@ static inline void SetGlobalOption(const char* key, const char* value)
 {
     MDK_setGlobalOptionString(key, value);
 }
+
+/*!
+  \return false if no such key
+  keys:
+  - "ffmpeg.configuration": ffmpeg major version. return false if no ffmpeg api was invoked internally.
+ */
+static inline bool GetGlobalOption(const char* key, const char** value)
+{
+    return MDK_getGlobalOptionString(key, value);
+}
+
 /*
   keys:
   - "videoout.clear_on_stop": 0/1. clear renderer using background color if playback stops
@@ -197,6 +209,17 @@ static inline void SetGlobalOption(const char* key, int value)
 {
     MDK_setGlobalOptionInt32(key, value);
 }
+
+/*!
+  \return false if no such key
+  keys:
+  - "ffmpeg.version": ffmpeg major version. return false if no ffmpeg api was invoked internally.
+ */
+static inline bool GetGlobalOption(const char* key, int* value)
+{
+    return MDK_getGlobalOptionInt32(key, value);
+}
+
 // key: "logLevel"
 static inline void SetGlobalOption(const char* key, LogLevel value)
 {
@@ -210,6 +233,12 @@ static inline void SetGlobalOption(const char* key, void* value)
 {
     MDK_setGlobalOptionPtr(key, value);
 }
+
+static inline bool GetGlobalOption(const char* key, void** value)
+{
+    return MDK_getGlobalOptionPtr(key, value);
+}
+
 /*!
   \brief javaVM
   Set/Get current java vm
