@@ -21,6 +21,8 @@ endif()
 add_library(${PROJECT_NAME} ${SOURCES})
 add_library(wangwenx190::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME}Lib)
+
 if(NOT BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME} PUBLIC
         QTMEDIAPLAYER_STATIC
