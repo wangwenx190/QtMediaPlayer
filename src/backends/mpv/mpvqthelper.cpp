@@ -261,7 +261,6 @@ public:
         // stream_cb.h
         WWX190_RESOLVE_MPVAPI(mpv_stream_cb_add_ro)
 
-        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "libmpv loaded successfully.";
         return true;
     }
 

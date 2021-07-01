@@ -181,7 +181,6 @@ public:
         WWX190_RESOLVE_MDKAPI(mdkVideoFrameAPI_new)
         WWX190_RESOLVE_MDKAPI(mdkVideoFrameAPI_delete)
 
-        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "MDK loaded successfully.";
         return true;
     }
 
