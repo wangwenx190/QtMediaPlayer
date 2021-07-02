@@ -30,7 +30,6 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qlibrary.h>
 #include <QtCore/qdir.h>
-#include <QtCore/qfileinfo.h>
 
 #ifndef WWX190_GENERATE_MDKAPI
 #define WWX190_GENERATE_MDKAPI(funcName, resultType, ...) \
@@ -139,14 +138,10 @@ public:
         }
 
         library.setFileName(path);
-        const bool result = library.load();
-        if (result) {
-            // We can't get the full file name if QLibrary is not loaded.
-            QFileInfo fi(library.fileName());
-            fi.makeAbsolute();
-            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Start loading MDK from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
+        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Start loading MDK from:" << QDir::toNativeSeparators(path);
+        if (library.load()) {
+            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "MDK has been loaded successfully.";
         } else {
-            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Start loading MDK from:" << QDir::toNativeSeparators(path);
             qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to load MDK:" << library.errorString();
             return false;
         }

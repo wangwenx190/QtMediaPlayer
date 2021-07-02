@@ -43,7 +43,6 @@
 #include "include/mpv/stream_cb.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qlibrary.h>
-#include <QtCore/qfileinfo.h>
 #include <QtCore/qdir.h>
 
 #ifndef WWX190_GENERATE_MPVAPI
@@ -192,14 +191,10 @@ public:
         }
 
         library.setFileName(path);
-        const bool result = library.load();
-        if (result) {
-            // We can't get the full file name if QLibrary is not loaded.
-            QFileInfo fi(library.fileName());
-            fi.makeAbsolute();
-            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Start loading libmpv from:" << QDir::toNativeSeparators(fi.canonicalFilePath());
+        qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Start loading libmpv from:" << QDir::toNativeSeparators(path);
+        if (library.load()) {
+            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "libmpv has been loaded successfully.";
         } else {
-            qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Start loading libmpv from:" << QDir::toNativeSeparators(path);
             qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to load libmpv:" << library.errorString();
             return false;
         }
