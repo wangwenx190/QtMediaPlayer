@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 WangBin <wbsecg1 at gmail.com>
+ * Copyright (c) 2019-2022 WangBin <wbsecg1 at gmail.com>
  * This file is part of MDK
  * MDK SDK: https://github.com/wang-bin/mdk-sdk
  * Free for opensource softwares or non-commercial use.
@@ -39,7 +39,14 @@ class VideoFrame;
 class Player
 {
 public:
-    // deprecated! MUST be called when a foreign OpenGL context previously used is being destroyed to release context resources. The context MUST be current.
+/*!
+  \brief foreignGLContextDestroyed()
+  Release GL resources bound to the context.
+  - MUST be called when a foreign OpenGL context previously used is being destroyed and player object is already destroyed. The context MUST be current.
+  - If player object is still alive, setVideoSurfaceSize(-1, -1, ...) is preferred.
+  - If forget to call both foreignGLContextDestroyed() and setVideoSurfaceSize(-1, -1, ...) in the context, resources will be released in the next draw in the same context.
+     But the context may be destroyed later, then resource will never be released
+*/
     static void foreignGLContextDestroyed() {
         MDK_foreignGLContextDestroyed();
     }
@@ -74,7 +81,17 @@ public:
     }
 
     float volume() const { return volume_; }
-
+/*!
+  \brief setFrameRate
+  Set frame rate, frames per seconds
+  \param value frame rate
+  - 0 (default): use frame timestamp, or default frame rate 25.0fps if stream has no timestamp
+  - <0: render ASAP.
+  - >0: target frame rate
+ */
+    void setFrameRate(float value) {
+        MDK_CALL(p, setFrameRate, value);
+    }
 /*!
   \brief setMedia
   Set a new media url. Current playback is not affected.
@@ -174,6 +191,7 @@ public:
   \param flags seek flag if startPosition != 0.
   For fast seek(has flag SeekFlag::Fast), the first frame is a key frame whose timestamp >= startPosition
   For accurate seek(no flag SeekFlag::Fast), the first frame is the nearest frame whose timestamp <= startPosition, but the position passed to callback is the key frame position <= startPosition
+  NOTE: the result position in PrepareCallback is usually <= requested startPosition, while timestamp of the first frame decoded after seek is the nearest position to requested startPosition
  */
     void prepare(int64_t startPosition = 0, PrepareCallback cb = nullptr, SeekFlag flags = SeekFlag::FromStart) {
         prepare_cb_ = cb;
@@ -284,6 +302,7 @@ public:
         // result width of snapshot image set by user, or the same as current frame width if 0. no renderer transform.
         // if both requested width and height are < 0, then result image is scaled image of current frame with ratio=width/height. no renderer transform.
         // if only one of width and height < 0, then the result size is video renderer viewport size, and all transforms will be applied.
+        // if both width and height == 0, then result size is region of interest size of video frame set by setPointMap(), or video frame size
         int width = 0;
         int height = 0;
         int stride = 0;
@@ -352,7 +371,7 @@ public:
 NOTE:
   If width or heigh < 0, corresponding video renderer (for vo_opaque) will be removed and gfx resources will be released(need the context to be current for GL).
   But subsequence call with this vo_opaque will create renderer again. So it can be used before destroying the renderer.
-  OpenGL: resources will never be released if setVideoSurfaceSize(-1, -1) is not called or not called in correct context.
+  OpenGL: resources must be released by setVideoSurfaceSize(-1, -1, ...) in a correct context. If player is destroyed before context, MUST call Player::foreignGLContextDestroyed() when destroying the context.
  */
     void setVideoSurfaceSize(int width, int height, void* vo_opaque = nullptr) {
         MDK_CALL(p, setVideoSurfaceSize, width, height, vo_opaque);
@@ -407,6 +426,16 @@ NOTE:
         MDK_CALL(p, mapPoint, MDK_MapDirection(dir), x, y, z, vo_opaque);
     }
 
+/*!
+  \brief setPointMap
+  Can be called on any thread
+  \param videoRoi: array of 2d point (x, y) in video frame. coordinate: top-left = (0, 0), bottom-right=(1, 1). set null to disable mapping
+  \param viewRoi: array of 2d point (x, y) in video renderer. coordinate: top-left = (0, 0), bottom-right=(1, 1)
+  \param count: point count. only support 2. set 0 to disable mapping
+ */
+    void setPointMap(const float* videoRoi, const float* viewRoi = nullptr, int count = 2, void* vo_opaque = nullptr) {
+        MDK_CALL(p, setPointMap, videoRoi, viewRoi, count, vo_opaque);
+    }
 /*
   RenderAPI
   RenderAPI provides platform/api dependent resources for video renderer and rendering context corresponding to vo_opaque. It's used by
@@ -506,7 +535,8 @@ NOTE:
   If pos > media time range with SeekFlag::AnyFrame, playback will stop unless setProperty("continue_at_end", "1") was called
   If SeekFlag::Frame, only pos > 0 with SeekFlag::FromNow is supported, i.e. step forward.
   FIXME: a/v sync broken if SeekFlag::Frame.
-  \param cb callback to be invoked when seek finished(ret >= 0), error occured(ret < 0, usually -1) or skipped because of unfinished previous seek(ret == -2)
+  \param cb callback to be invoked when stream seek finished and before any frame decoded(ret >= 0), error occured(ret < 0, usually -1) or skipped because of unfinished previous seek(ret == -2)
+  NOTE: the result position in seek callback is usually <= requested pos, while timestamp of the first frame decoded after seek is the nearest position to requested pos
  */
     bool seek(int64_t pos, SeekFlag flags, std::function<void(int64_t)> cb = nullptr) {
         seek_cb_ = cb;

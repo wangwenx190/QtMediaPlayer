@@ -33,15 +33,16 @@
 
 int main(int argc, char *argv[])
 {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)) && (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 #endif
-#endif
 
     QCoreApplication::setApplicationName(QStringLiteral("QtMediaPlayer Demo"));
+    QGuiApplication::setApplicationDisplayName(QStringLiteral("QtMediaPlayer Demo"));
     QCoreApplication::setApplicationVersion(QStringLiteral("1.0.0.0"));
     QCoreApplication::setOrganizationName(QStringLiteral("wangwenx190"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("wangwenx190.github.io"));
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
     const QString playerBackendParamValue = cmdLineParser.value(playerBackendOption).toLower();
     const QStringList positionalArguments = cmdLineParser.positionalArguments();
 
-    // Same as setting the environment variable "QSG_INFO".
+    // Same as setting the environment variable "QSG_INFO" to a non-zero value.
     QLoggingCategory::setFilterRules(QStringLiteral("qt.scenegraph.general=true\nqt.rhi.*=true"));
 
     if (!rhiBackendParamValue.isEmpty()) {
@@ -196,12 +197,12 @@ int main(int argc, char *argv[])
             if (object) {
                 QObject::disconnect(connection);
             } else {
-                QGuiApplication::exit(-1);
+                QCoreApplication::exit(-1);
             }
         },
         Qt::QueuedConnection);
 
     engine.load(homePageURL);
 
-    return QGuiApplication::exec();
+    return QCoreApplication::exec();
 }

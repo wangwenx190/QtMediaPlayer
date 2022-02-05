@@ -1,10 +1,14 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.4)
 
 project(QtMediaPlayer VERSION 1.0.0.0 LANGUAGES CXX)
 
 option(BUILD_EXAMPLE_APP "Build QtMediaPlayer example application." ON)
 
-set(CMAKE_CXX_STANDARD 20)
+if(NOT DEFINED BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS ON)
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -18,10 +22,6 @@ endif()
 
 if(NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
-endif()
-
-if(NOT (CMAKE_BUILD_TYPE STREQUAL "Debug"))
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
 if(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)

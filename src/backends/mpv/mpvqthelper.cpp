@@ -89,7 +89,7 @@
 namespace MPV::Qt
 {
 
-static const char _mpvHelper_libmpv_fileName_envVar[] = "_WWX190_MPVPLAYER_LIBMPV_FILENAME";
+static constexpr const char _mpvHelper_libmpv_fileName_envVar[] = "_WWX190_MPVPLAYER_LIBMPV_FILENAME";
 
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug d, const ErrorReturn &err)
@@ -105,7 +105,6 @@ QDebug operator<<(QDebug d, const ErrorReturn &err)
 
 struct MPVData
 {
-public:
     // client.h
     WWX190_GENERATE_MPVAPI(mpv_client_api_version, unsigned long)
     WWX190_GENERATE_MPVAPI(mpv_error_string, const char *, int)
@@ -165,8 +164,10 @@ public:
 
     explicit MPVData()
     {
-        const bool result = load(qEnvironmentVariable(_mpvHelper_libmpv_fileName_envVar, QStringLiteral("mpv-1")));
-        Q_UNUSED(result);
+        if (!load(qEnvironmentVariable(_mpvHelper_libmpv_fileName_envVar, QStringLiteral("mpv-2")))) {
+            const bool result = load(qEnvironmentVariable(_mpvHelper_libmpv_fileName_envVar, QStringLiteral("mpv-1")));
+            Q_UNUSED(result);
+        }
     }
 
     ~MPVData()

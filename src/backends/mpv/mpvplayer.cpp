@@ -60,6 +60,7 @@ MPVPlayer::MPVPlayer(QQuickItem *parent) : MediaPlayer(parent)
     qRegisterMetaType<MPV::Qt::ErrorReturn>();
 
     m_mpv = mpv_create();
+    Q_ASSERT(m_mpv);
     if (!m_mpv) {
         qFatal("Failed to create mpv player.");
     }

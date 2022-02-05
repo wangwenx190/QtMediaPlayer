@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 WangBin <wbsecg1 at gmail.com>
+ * Copyright (c) 2019-2022 WangBin <wbsecg1 at gmail.com>
  * This file is part of MDK
  * MDK SDK: https://github.com/wang-bin/mdk-sdk
  * Free for opensource softwares or non-commercial use.
@@ -22,7 +22,7 @@
 # define MDK_NS_END }
 # define MDK_NS_PREPEND(X) ::MDK_NS::X
 
-#define MDK_CALL(p, FN, ...) (assert(p->FN && "NOT IMPLEMENTED"), p->FN(p->object, ##__VA_ARGS__))
+#define MDK_CALL(p, FN, ...) (assert(p->FN && "NOT IMPLEMENTED! Runtime version < build version?"), p->FN(p->object, ##__VA_ARGS__))
 
 MDK_NS_BEGIN
 constexpr double TimestampEOS = DBL_MAX;
@@ -154,6 +154,7 @@ static inline void setLogLevel(LogLevel value) {
 
 /* \brief setLogHandler
   If log handler is not set, i.e. setLogHandler() was not called, log is disabled.
+  Set environment var `MDK_LOG=1` to enable log to stderr.
   If set to non-null handler, logs that >= logLevel() will be passed to the handler.
   If previous handler is set by user and not null, then call setLogHandler(nullptr) will print to stderr, and call setLogHandler(nullptr) again to silence the log
   To disable log, setLogHandler(nullptr) twice is better than simply setLogLevel(LogLevel::Off)
@@ -184,6 +185,7 @@ static inline void setLogHandler(std::function<void(LogLevel, const char*)> cb) 
  - "MDK_KEY_CODE_PAGE": license key code page used internally(windows only)
  - "ffmpeg.loglevel": ffmpeg log leve names, "trace", "debug", "verbose", "info", "warning", "error", "fatal", "panic", "quiet"
  - "logLevel": can be "Off", "Error", "Warning", "Info", "Debug", "All". same as SetGlobalOption("logLevel", LogLevel)
+ - "profiler.gpu": "0", "1"
 */
 static inline void SetGlobalOption(const char* key, const char* value)
 {
@@ -203,7 +205,9 @@ static inline bool GetGlobalOption(const char* key, const char** value)
 /*
   keys:
   - "videoout.clear_on_stop": 0/1. clear renderer using background color if playback stops
+  - "videoout.buffer_frames": N. max buffered frames to in the renderer
   - "logLevel": raw value of LogLevel
+  - "profiler.gpu": 0, 1
  */
 static inline void SetGlobalOption(const char* key, int value)
 {

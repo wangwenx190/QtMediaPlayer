@@ -155,7 +155,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         fbo_gl.reset(new QOpenGLFramebufferObject(size));
         MDK_NS_PREPEND(GLRenderAPI) ra = {};
         ra.fbo = fbo_gl->handle();
-        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
         QMetaObject::invokeMethod(m_item, "rendererReady");
         const auto tex = fbo_gl->texture();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -168,6 +168,8 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
             return QNativeInterface::QSGOpenGLTexture::fromNative(tex, m_window, size);
         }
 #endif
+#else
+        qFatal("Rebuild Qt with OpenGL support!");
 #endif
     } break;
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
@@ -188,7 +190,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         }
         MDK_NS_PREPEND(D3D11RenderAPI) ra = {};
         ra.rtv = m_texture_d3d11.Get();
-        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
         QMetaObject::invokeMethod(m_item, "rendererReady");
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = reinterpret_cast<decltype(nativeObj)>(m_texture_d3d11.Get());
@@ -219,7 +221,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         ra.texture = (__bridge void*)m_texture_mtl;
         ra.device = (__bridge void*)dev;
         ra.cmdQueue = rif->getResource(m_window, QSGRendererInterface::CommandQueueResource);
-        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
         QMetaObject::invokeMethod(m_item, "rendererReady");
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = decltype(nativeObj)(ra.texture);
@@ -268,13 +270,15 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
             const auto cmdBuf = *static_cast<VkCommandBuffer *>(rif->getResource(node->m_window, QSGRendererInterface::CommandListResource));
             return cmdBuf;
         };
-        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
         QMetaObject::invokeMethod(m_item, "rendererReady");
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         if (m_texture_vk) {
             return QNativeInterface::QSGVulkanTexture::fromNative(m_texture_vk, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_window, size);
         }
 #endif
+#else
+        qFatal("Rebuild Qt with Vulkan support!");
 #endif
     } break;
 #endif

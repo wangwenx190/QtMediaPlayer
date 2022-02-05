@@ -176,7 +176,7 @@ private:
     bool m_livePreview = false;
     bool m_autoStart = true;
 
-    const QHash<QString, QList<const char *>> properties =
+    static inline const QHash<QString, QList<const char *>> properties =
     {
         {QStringLiteral("dwidth"), {"videoSizeChanged"}},
         {QStringLiteral("dheight"), {"videoSizeChanged"}},
@@ -205,7 +205,7 @@ private:
     // These properties are changing all the time during the playback process.
     // So we have to add them to the black list, otherwise we'll get huge
     // message floods.
-    const QStringList propertyBlackList =
+    static inline const QStringList propertyBlackList =
     {
         QStringLiteral("time-pos"),
         QStringLiteral("playback-time"),

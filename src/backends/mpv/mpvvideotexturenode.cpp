@@ -39,7 +39,11 @@
 #include <QtQuick/qquickopenglutils.h>
 #endif
 #if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QtX11Extras/qx11info.h>
+#else
+// TODO
+#endif
 #endif
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
@@ -144,7 +148,7 @@ void MPVVideoTextureNode::render()
     m_window->resetOpenGLState();
 #endif
 
-    mpv_opengl_fbo mpvFBO;
+    mpv_opengl_fbo mpvFBO = {};
     mpvFBO.fbo = static_cast<int>(fbo_gl->handle());
     mpvFBO.w = fbo_gl->width();
     mpvFBO.h = fbo_gl->height();
@@ -206,7 +210,6 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
             mpv_opengl_init_params gl_init_params =
             {
                 get_proc_address_mpv,
-                nullptr,
                 nullptr
             };
             mpv_render_param display =
@@ -215,10 +218,14 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
                 nullptr
             };
 #if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
             if (QX11Info::isPlatformX11()) {
                 display.type = MPV_RENDER_PARAM_X11_DISPLAY;
                 display.data = QX11Info::display();
             }
+#else
+            // TODO
+#endif
 #endif
             mpv_render_param params[] =
             {
@@ -257,6 +264,8 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
             return QNativeInterface::QSGOpenGLTexture::fromNative(tex, m_window, size);
         }
 #endif
+#else
+        qFatal("Rebuild Qt with OpenGL support!");
 #endif
     } break;
     case QSGRendererInterface::Software:

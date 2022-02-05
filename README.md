@@ -5,12 +5,12 @@ A simple but powerful multimedia player **library** designed for Qt Quick.
 ## Features
 
 - Full-featured multimedia player
-- Cross-platform: support Windows, Linux, macOS, and mobile platforms in theory
+- Cross-platform: support Windows, Linux, macOS, and mobile platforms **in theory**
 - Easy to build and use
 
 ## Build
 
-Since this project makes heavy usage of [Qt RHI](https://doc.qt.io/qt-6/qtquick-visualcanvas-adaptations.html), you'll need **at least Qt 5.14** to use this project. It's recommended to use Qt 6.
+Since this project makes heavy usage of [Qt RHI](https://doc.qt.io/qt-6/qtquick-visualcanvas-adaptations.html), you'll need **at least Qt 5.14** to use this project. **It's recommended to use Qt6 or the latest version of Qt**.
 
 ```cmake
 cmake .

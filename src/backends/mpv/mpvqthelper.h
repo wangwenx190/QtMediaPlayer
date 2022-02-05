@@ -49,7 +49,7 @@ struct ErrorReturn
     int errorCode = -1;
 
     explicit ErrorReturn() = default;
-    explicit ErrorReturn(int code)
+    explicit ErrorReturn(const int code)
     {
         errorCode = code;
     }

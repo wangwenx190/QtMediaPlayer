@@ -65,6 +65,7 @@ MDKPlayer::MDKPlayer(QQuickItem *parent) : MediaPlayer(parent)
     }
 
     m_player.reset(new MDK_NS_PREPEND(Player));
+    Q_ASSERT(!m_player.isNull());
     if (m_player.isNull()) {
         qFatal("Failed to create mdk player.");
     }
@@ -540,12 +541,12 @@ void MDKPlayer::setHardwareDecoding(const bool value)
         QStringLiteral("DXVA"),
         QStringLiteral("CUDA"),
         QStringLiteral("NVDEC"),
-#elif defined(Q_OS_LINUX)
+#elif (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID))
         QStringLiteral("VAAPI"),
         QStringLiteral("VDPAU"),
         QStringLiteral("CUDA"),
         QStringLiteral("NVDEC"),
-#elif defined(Q_OS_DARWIN)
+#elif defined(Q_OS_MACOS)
         QStringLiteral("VT"),
         QStringLiteral("VideoToolbox"),
 #elif defined(Q_OS_ANDROID)

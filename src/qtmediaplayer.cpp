@@ -33,7 +33,7 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(lcQMP, "wangwenx190.mediaplayer")
 
-static const char _qmp_backend_dir_envVar[] = "_QTMEDIAPLAYER_BACKEND_SEARCH_PATH";
+static constexpr const char _qmp_backend_dir_envVar[] = "_QTMEDIAPLAYER_BACKEND_SEARCH_PATH";
 
 using RegisterBackendPtr = bool(*)(const char *);
 using GetBackendNamePtr = const char *(*)();
@@ -42,7 +42,6 @@ using IsRHIBackendSupportedPtr = bool(*)(const int);
 
 struct QMPData
 {
-public:
     QString searchPath = {};
     QHash<QString, QString> availableBackends = {};
 
@@ -106,12 +105,17 @@ void setPluginSearchPath(const QString &value)
     if (value.isEmpty()) {
         return;
     }
-    if (!QFileInfo(value).isDir()) {
+    const QFileInfo fileInfo(value);
+    if (!fileInfo.exists()) {
+        qCWarning(lcQMP) << value << "doesn't exist.";
+        return;
+    }
+    if (!fileInfo.isDir()) {
         qCWarning(lcQMP) << value << "is not a directory.";
         return;
     }
     qmpData()->searchPath = QDir::toNativeSeparators(value);
-    if (qmpData()->searchPath.endsWith(u'\\') || qmpData()->searchPath.endsWith(u'/')) {
+    while (qmpData()->searchPath.endsWith(u'\\') || qmpData()->searchPath.endsWith(u'/')) {
         qmpData()->searchPath.chop(1);
     }
     qmpData()->refreshCache();
@@ -119,11 +123,14 @@ void setPluginSearchPath(const QString &value)
 
 QString getPluginSearchPath()
 {
-    return qmpData()->searchPath;
+    return (qmpData()->searchPath.isEmpty() ? QString{} : QDir::toNativeSeparators(qmpData()->searchPath));
 }
 
 QStringList getAvailableBackends()
 {
+    if (qmpData()->availableBackends.isEmpty()) {
+        return {};
+    }
     QStringList list = {};
     for (auto &&backendName : qAsConst(qmpData()->availableBackends)) {
         list.append(backendName);

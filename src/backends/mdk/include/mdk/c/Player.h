@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 WangBin <wbsecg1 at gmail.com>
+ * Copyright (c) 2019-2022 WangBin <wbsecg1 at gmail.com>
  * This file is part of MDK
  * MDK SDK: https://github.com/wang-bin/mdk-sdk
  * Free for opensource softwares or non-commercial use.
@@ -100,6 +100,7 @@ typedef struct mdkSnapshotRequest {
    result width of snapshot image set by user, or the same as current frame width if 0. no renderer transform.
    if both requested width and height are < 0, then result image is scaled image of current frame with ratio=width/height. no renderer transform.
    if only one of width and height < 0, then the result size is video renderer viewport size, and all transforms will be applied.
+   if both width and height == 0, then result size is region of interest size of video frame set by setPointMap(), or video frame size
 */
     int width;
     int height;
@@ -241,7 +242,7 @@ typedef struct mdkPlayerAPI {
 NOTE:
   If width or heigh < 0, corresponding video renderer (for vo_opaque) will be removed and gfx resources will be released(need the context to be current for GL).
   But subsequence call with this vo_opaque will create renderer again. So it can be used before destroying the renderer.
-  OpenGL: resources will never be released if setVideoSurfaceSize(-1, -1) is not called or not called in correct context.
+  OpenGL: resources must be released by setVideoSurfaceSize(-1, -1, ...) in a correct context. If player is destroyed before context, MUST call Player::foreignGLContextDestroyed() when destroying the context.
  */
     void (*setVideoSurfaceSize)(struct mdkPlayer*, int width, int height, void* vo_opaque);
     void (*setVideoViewport)(struct mdkPlayer*, float x, float y, float w, float h, void* vo_opaque);
@@ -465,12 +466,21 @@ NOTE:
   setChannelVolume(value, -1) equals to setVolume(value)
  */
     void (*setChannelVolume)(struct mdkPlayer*, float value, int channel);
-    void* reserved[5];
+/*!
+  \brief setFrameRate
+  Set frame rate, frames per seconds
+  \param value frame rate
+  - 0 (default): use frame timestamp, or default frame rate 25.0fps if stream has no timestamp
+  - <0: render ASAP.
+  - >0: target frame rate
+ */
+    void (*setFrameRate)(struct mdkPlayer*, float value);
+    void (*setPointMap)(struct mdkPlayer*, const float* videoRoi, const float* viewRoi, int count, void* vo_opaque);
+    void* reserved[3];
 } mdkPlayerAPI;
 
 MDK_API const mdkPlayerAPI* mdkPlayerAPI_new();
 MDK_API void mdkPlayerAPI_delete(const struct mdkPlayerAPI**);
-/* deprecated! MUST be called when a foreign OpenGL context previously used is being destroyed to release context resources. The context MUST be current.*/
 MDK_API void MDK_foreignGLContextDestroyed();
 
 #ifdef __cplusplus

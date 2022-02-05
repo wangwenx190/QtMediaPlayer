@@ -75,11 +75,10 @@
 namespace MDK::Qt
 {
 
-static const char _mdkHelper_mdk_fileName_envVar[] = "_WWX190_MDKPLAYER_MDK_FILENAME";
+static constexpr const char _mdkHelper_mdk_fileName_envVar[] = "_WWX190_MDKPLAYER_MDK_FILENAME";
 
 struct MDKData
 {
-public:
     // global.h
     WWX190_GENERATE_MDKAPI(MDK_javaVM, void *, void *)
     WWX190_GENERATE_MDKAPI(MDK_setLogLevel, void, MDK_LogLevel)
