@@ -32,6 +32,9 @@ QTMEDIAPLAYER_END_NAMESPACE
 
 bool RegisterBackend(const char *name)
 {
+    if (!name) {
+        return false;
+    }
     if (qstricmp(name, "mdk") == 0) {
         if (MDK::Qt::isMDKAvailable()) {
             const int typeId = QTMEDIAPLAYER_QML_REGISTER(QTMEDIAPLAYER_PREPEND_NAMESPACE(MDKPlayer));

@@ -31,8 +31,8 @@
 namespace MPV::Qt
 {
 
-bool isLibmpvAvailable();
-QString getLibmpvVersion();
+[[nodiscard]] bool isLibmpvAvailable();
+[[nodiscard]] QString getLibmpvVersion();
 
 /**
  * This is used to return error codes wrapped in QVariant for functions which
@@ -61,12 +61,12 @@ struct ErrorReturn
  *
  * @return error code (<0) or success (>=0)
  */
-int get_error(const QVariant &v);
+[[nodiscard]] int get_error(const QVariant &v);
 
 /**
  * Return whether the QVariant carries a mpv error code.
  */
-bool is_error(const QVariant &v);
+[[nodiscard]] bool is_error(const QVariant &v);
 
 /**
  * Return the given property as mpv_node converted to QVariant, or QVariant()
@@ -75,14 +75,14 @@ bool is_error(const QVariant &v);
  * @param name the property name
  * @return the property value, or an ErrorReturn with the error code
  */
-QVariant get_property(mpv_handle *ctx, const QString &name);
+[[nodiscard]] QVariant get_property(mpv_handle *ctx, const QString &name);
 
 /**
  * Set the given property as mpv_node converted from the QVariant argument.
  *
  * @return mpv error code (<0 on error, >= 0 on success)
  */
-int set_property(mpv_handle *ctx, const QString &name, const QVariant &v);
+[[nodiscard]] int set_property(mpv_handle *ctx, const QString &name, const QVariant &v);
 
 /**
  * Set the given property asynchronously as mpv_node converted from the QVariant
@@ -90,7 +90,7 @@ int set_property(mpv_handle *ctx, const QString &name, const QVariant &v);
  *
  * @return mpv error code (<0 on error, >= 0 on success)
  */
-int set_property_async(mpv_handle *ctx, const QString &name, const QVariant &v, quint64 reply_userdata);
+[[nodiscard]] int set_property_async(mpv_handle *ctx, const QString &name, const QVariant &v, quint64 reply_userdata);
 
 /**
  * mpv_command_node() equivalent.
@@ -98,7 +98,7 @@ int set_property_async(mpv_handle *ctx, const QString &name, const QVariant &v, 
  * @param args command arguments, with args[0] being the command name as string
  * @return the property value, or an ErrorReturn with the error code
  */
-QVariant command(mpv_handle *ctx, const QVariant &args);
+[[nodiscard]] QVariant command(mpv_handle *ctx, const QVariant &args);
 
 /**
  * Send commands to mpv asynchronously.
@@ -106,7 +106,7 @@ QVariant command(mpv_handle *ctx, const QVariant &args);
  * @param args command arguments, with args[0] being the command name as string
  * @return mpv error code (<0 on error, >= 0 on success)
  */
-int command_async(mpv_handle *ctx, const QVariant &args, quint64 reply_userdata);
+[[nodiscard]] int command_async(mpv_handle *ctx, const QVariant &args, quint64 reply_userdata);
 
 } // namespace MPV::Qt
 

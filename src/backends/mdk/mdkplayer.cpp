@@ -35,7 +35,7 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 extern MDKVideoTextureNode *createNode(MDKPlayer *item);
 
-static inline std::vector<std::string> qStringListToStdStringVector(const QStringList &stringList)
+[[nodiscard]] static inline std::vector<std::string> qStringListToStdStringVector(const QStringList &stringList)
 {
     if (stringList.isEmpty()) {
         return {};
@@ -47,7 +47,7 @@ static inline std::vector<std::string> qStringListToStdStringVector(const QStrin
     return result;
 }
 
-static inline QString urlToString(const QUrl &value, const bool display = false)
+[[nodiscard]] static inline QString urlToString(const QUrl &value, const bool display = false)
 {
     if (!value.isValid()) {
         return {};
@@ -87,19 +87,24 @@ MDKPlayer::MDKPlayer(QQuickItem *parent) : MediaPlayer(parent)
 
     m_timer.setTimerType(Qt::CoarseTimer);
     m_timer.setInterval(500);
+#define EMIT_POS_SIG \
+    if (isPlaying()) { \
+        const qint64 currentPosition = position(); \
+        if (currentPosition != m_lastPosition) { \
+            m_lastPosition = currentPosition; \
+            Q_EMIT positionChanged(); \
+        } \
+    }
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 12, 0))
     m_timer.callOnTimeout(this, [this](){
-        if (isPlaying()) {
-            Q_EMIT positionChanged();
-        }
+        EMIT_POS_SIG
     });
 #else
     connect(&m_timer, &QTimer::timeout, this, [this](){
-        if (isPlaying()) {
-            Q_EMIT positionChanged();
-        }
+        EMIT_POS_SIG
     });
 #endif
+#undef EMIT_POS_SIG
     m_timer.start();
 }
 
@@ -122,8 +127,11 @@ QString MDKPlayer::backendVersion() const
 
 QString MDKPlayer::ffmpegVersion() const
 {
-    // TODO
-    return {};
+    int ver = 0;
+    if (!MDK_NS_PREPEND(GetGlobalOption("ffmpeg.version", &ver))) {
+        return QStringLiteral("Unknown");
+    }
+    return QString::number(ver);
 }
 
 // The beauty of using a true QSGNode: no need for complicated cleanup
@@ -851,6 +859,7 @@ void MDKPlayer::initMdkHandlers()
         if (!m_livePreview) {
             qCDebug(lcQMPMDK) << "Current media -->" << urlToString(url, true);
         }
+        m_lastPosition = 0;
         Q_EMIT sourceChanged();
     });
     m_player->onMediaStatusChanged([this](MDK_NS_PREPEND(MediaStatus) ms) {
@@ -912,6 +921,7 @@ void MDKPlayer::resetInternalData()
     // Make sure MDKPlayer::url() returns empty.
     m_player->setMedia(nullptr);
     m_mediaStatus = static_cast<int>(MDK_NS_PREPEND(MediaStatus)::NoMedia);
+    m_lastPosition = 0;
     Q_EMIT sourceChanged();
     Q_EMIT positionChanged();
     Q_EMIT durationChanged();

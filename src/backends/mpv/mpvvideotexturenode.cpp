@@ -48,7 +48,7 @@
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-static inline void *get_proc_address_mpv(void *ctx, const char *name)
+[[nodiscard]] static inline void *get_proc_address_mpv(void *ctx, const char *name)
 {
     Q_UNUSED(ctx);
     Q_ASSERT(name);
@@ -219,12 +219,19 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
             };
 #if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-            if (QX11Info::isPlatformX11()) {
+            if (QX11Info::isPlatformX11() && QX11Info::display()) {
                 display.type = MPV_RENDER_PARAM_X11_DISPLAY;
                 display.data = QX11Info::display();
             }
 #else
-            // TODO
+            if (QGuiApplication::platformName().contains(QStringLiteral("xcb"))) {
+                if (const auto ni = QGuiApplication::nativeInterface<QNativeInterface::QX11Application>()) {
+                    if (const auto dis = ni->display()) {
+                        display.type = MPV_RENDER_PARAM_X11_DISPLAY;
+                        display.data = dis;
+                    }
+                }
+            }
 #endif
 #endif
             mpv_render_param params[] =

@@ -51,7 +51,7 @@ protected Q_SLOTS:
     void render() override;
 
 protected:
-    QSGTexture *ensureTexture(void *player, const QSize &size) override;
+    Q_NODISCARD QSGTexture *ensureTexture(void *player, const QSize &size) override;
 
 private:
 #if QT_CONFIG(opengl)

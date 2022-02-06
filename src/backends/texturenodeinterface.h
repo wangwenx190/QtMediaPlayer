@@ -41,9 +41,9 @@ class VideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNode
 
 public:
     explicit VideoTextureNode(QQuickItem *item);
-    ~VideoTextureNode() override;
+    virtual ~VideoTextureNode() override;
 
-    QSGTexture *texture() const override;
+    Q_NODISCARD QSGTexture *texture() const override;
 
     virtual void sync() = 0;
 
@@ -51,7 +51,7 @@ protected Q_SLOTS:
     virtual void render() = 0;
 
 protected:
-    virtual QSGTexture *ensureTexture(void *player, const QSize &size) = 0;
+    Q_NODISCARD virtual QSGTexture *ensureTexture(void *player, const QSize &size) = 0;
 };
 
 QTMEDIAPLAYER_END_NAMESPACE

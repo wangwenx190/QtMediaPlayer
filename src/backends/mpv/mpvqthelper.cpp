@@ -42,6 +42,7 @@
 #include "include/mpv/render_gl.h"
 #include "include/mpv/stream_cb.h"
 #include <QtCore/qdebug.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qlibrary.h>
 #include <QtCore/qdir.h>
 
@@ -76,6 +77,7 @@
 
 #ifndef WWX190_CALL_MPVAPI
 #define WWX190_CALL_MPVAPI(funcName, ...) \
+    QMutexLocker locker(&MPV::Qt::mpvData()->mutex); \
     if (MPV::Qt::mpvData()->m_lp_##funcName) { \
         MPV::Qt::mpvData()->m_lp_##funcName(__VA_ARGS__); \
     }
@@ -83,7 +85,8 @@
 
 #ifndef WWX190_CALL_MPVAPI_RETURN
 #define WWX190_CALL_MPVAPI_RETURN(funcName, defRet, ...) \
-    (MPV::Qt::mpvData()->m_lp_##funcName ? MPV::Qt::mpvData()->m_lp_##funcName(__VA_ARGS__) : defRet)
+    QMutexLocker locker(&MPV::Qt::mpvData()->mutex); \
+    return (MPV::Qt::mpvData()->m_lp_##funcName ? MPV::Qt::mpvData()->m_lp_##funcName(__VA_ARGS__) : defRet);
 #endif
 
 namespace MPV::Qt
@@ -92,7 +95,7 @@ namespace MPV::Qt
 static constexpr const char _mpvHelper_libmpv_fileName_envVar[] = "_WWX190_MPVPLAYER_LIBMPV_FILENAME";
 
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug d, const ErrorReturn &err)
+[[nodiscard]] QDebug operator<<(QDebug d, const ErrorReturn &err)
 {
     const QDebugStateSaver saver(d);
     d.nospace();
@@ -105,6 +108,8 @@ QDebug operator<<(QDebug d, const ErrorReturn &err)
 
 struct MPVData
 {
+    mutable QMutex mutex = {};
+
     // client.h
     WWX190_GENERATE_MPVAPI(mpv_client_api_version, unsigned long)
     WWX190_GENERATE_MPVAPI(mpv_error_string, const char *, int)
@@ -191,6 +196,8 @@ struct MPVData
             }
         }
 
+        QMutexLocker locker(&mutex);
+
         library.setFileName(path);
         qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Start loading libmpv from:" << QDir::toNativeSeparators(path);
         if (library.load()) {
@@ -262,6 +269,8 @@ struct MPVData
 
     [[nodiscard]] bool unload()
     {
+        QMutexLocker locker(&mutex);
+
         // client.h
         WWX190_SETNULL_MPVAPI(mpv_client_api_version)
         WWX190_SETNULL_MPVAPI(mpv_error_string)
@@ -332,6 +341,7 @@ struct MPVData
 
     [[nodiscard]] bool isLoaded() const
     {
+        QMutexLocker locker(&mutex);
         const bool result =
                 // client.h
                 WWX190_NOTNULL_MPVAPI(mpv_client_api_version) &&
@@ -409,7 +419,7 @@ QString getLibmpvVersion()
     return QStringLiteral("%1.%2.0").arg(QString::number(majorVerNum), QString::number(minorVerNum));
 }
 
-static inline QVariant node_to_variant(const mpv_node *node)
+[[nodiscard]] static inline QVariant node_to_variant(const mpv_node *node)
 {
     Q_ASSERT(node);
     if (!node) {
@@ -458,7 +468,7 @@ struct node_builder
         free_node(&node_);
     }
 
-    mpv_node *node()
+    [[nodiscard]] mpv_node *node()
     {
         return &node_;
     }
@@ -468,7 +478,7 @@ private:
 
     mpv_node node_;
 
-    mpv_node_list *create_list(mpv_node *dst, bool is_map, int num)
+    [[nodiscard]] mpv_node_list *create_list(mpv_node *dst, bool is_map, int num) const
     {
         dst->format = is_map ? MPV_FORMAT_NODE_MAP : MPV_FORMAT_NODE_ARRAY;
         auto *list = new mpv_node_list();
@@ -491,7 +501,8 @@ private:
         free_node(dst);
         return nullptr;
     }
-    char *dup_qstring(const QString &s)
+
+    [[nodiscard]] char *dup_qstring(const QString &s) const
     {
         QByteArray b = s.toUtf8();
         char *r = new char[b.size() + 1];
@@ -500,7 +511,8 @@ private:
         }
         return r;
     }
-    bool test_type(const QVariant &v, QMetaType::Type t)
+
+    [[nodiscard]] bool test_type(const QVariant &v, QMetaType::Type t) const
     {
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         return static_cast<QMetaType::Type>(v.typeId()) == t;
@@ -508,7 +520,8 @@ private:
         return static_cast<QMetaType::Type>(v.type()) == t;
 #endif
     }
-    void set(mpv_node *dst, const QVariant &src)
+
+    void set(mpv_node *dst, const QVariant &src) const
     {
         if (test_type(src, QMetaType::QString)) {
             dst->format = MPV_FORMAT_STRING;
@@ -558,7 +571,8 @@ private:
     fail:
         dst->format = MPV_FORMAT_NONE;
     }
-    void free_node(mpv_node *dst)
+
+    void free_node(mpv_node *dst) const
     {
         switch (dst->format) {
         case MPV_FORMAT_STRING:
@@ -731,12 +745,12 @@ int command_async(mpv_handle *ctx, const QVariant &args, quint64 reply_userdata)
 
 unsigned long mpv_client_api_version()
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_client_api_version, MPV_CLIENT_API_VERSION);
+    WWX190_CALL_MPVAPI_RETURN(mpv_client_api_version, MPV_CLIENT_API_VERSION)
 }
 
 const char *mpv_error_string(int error)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_error_string, nullptr, error);
+    WWX190_CALL_MPVAPI_RETURN(mpv_error_string, nullptr, error)
 }
 
 void mpv_free(void *data)
@@ -746,22 +760,22 @@ void mpv_free(void *data)
 
 const char *mpv_client_name(mpv_handle *ctx)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_client_name, nullptr, ctx);
+    WWX190_CALL_MPVAPI_RETURN(mpv_client_name, nullptr, ctx)
 }
 
 qint64 mpv_client_id(mpv_handle *ctx)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_client_id, -1, ctx);
+    WWX190_CALL_MPVAPI_RETURN(mpv_client_id, -1, ctx)
 }
 
 mpv_handle *mpv_create()
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_create, nullptr);
+    WWX190_CALL_MPVAPI_RETURN(mpv_create, nullptr)
 }
 
 int mpv_initialize(mpv_handle *ctx)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_initialize, -1, ctx);
+    WWX190_CALL_MPVAPI_RETURN(mpv_initialize, -1, ctx)
 }
 
 void mpv_destroy(mpv_handle *ctx)
@@ -776,22 +790,22 @@ void mpv_terminate_destroy(mpv_handle *ctx)
 
 mpv_handle *mpv_create_client(mpv_handle *ctx, const char *name)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_create_client, nullptr, ctx, name);
+    WWX190_CALL_MPVAPI_RETURN(mpv_create_client, nullptr, ctx, name)
 }
 
 mpv_handle *mpv_create_weak_client(mpv_handle *ctx, const char *name)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_create_weak_client, nullptr, ctx, name);
+    WWX190_CALL_MPVAPI_RETURN(mpv_create_weak_client, nullptr, ctx, name)
 }
 
 int mpv_load_config_file(mpv_handle *ctx, const char *filename)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_load_config_file, -1, ctx, filename);
+    WWX190_CALL_MPVAPI_RETURN(mpv_load_config_file, -1, ctx, filename)
 }
 
 qint64 mpv_get_time_us(mpv_handle *ctx)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_get_time_us, -1, ctx);
+    WWX190_CALL_MPVAPI_RETURN(mpv_get_time_us, -1, ctx)
 }
 
 void mpv_free_node_contents(mpv_node *node)
@@ -801,42 +815,42 @@ void mpv_free_node_contents(mpv_node *node)
 
 int mpv_set_option(mpv_handle *ctx, const char *name, mpv_format format, void *data)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_set_option, -1, ctx, name, format, data);
+    WWX190_CALL_MPVAPI_RETURN(mpv_set_option, -1, ctx, name, format, data)
 }
 
 int mpv_set_option_string(mpv_handle *ctx, const char *name, const char *data)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_set_option_string, -1, ctx, name, data);
+    WWX190_CALL_MPVAPI_RETURN(mpv_set_option_string, -1, ctx, name, data)
 }
 
 int mpv_command(mpv_handle *ctx, const char **args)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_command, -1, ctx, args);
+    WWX190_CALL_MPVAPI_RETURN(mpv_command, -1, ctx, args)
 }
 
 int mpv_command_node(mpv_handle *ctx, mpv_node *args, mpv_node *result)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_command_node, -1, ctx, args, result);
+    WWX190_CALL_MPVAPI_RETURN(mpv_command_node, -1, ctx, args, result)
 }
 
 int mpv_command_ret(mpv_handle *ctx, const char **args, mpv_node *result)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_command_ret, -1, ctx, args, result);
+    WWX190_CALL_MPVAPI_RETURN(mpv_command_ret, -1, ctx, args, result)
 }
 
 int mpv_command_string(mpv_handle *ctx, const char *args)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_command_string, -1, ctx, args);
+    WWX190_CALL_MPVAPI_RETURN(mpv_command_string, -1, ctx, args)
 }
 
 int mpv_command_async(mpv_handle *ctx, quint64 reply_userdata, const char **args)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_command_async, -1, ctx, reply_userdata, args);
+    WWX190_CALL_MPVAPI_RETURN(mpv_command_async, -1, ctx, reply_userdata, args)
 }
 
 int mpv_command_node_async(mpv_handle *ctx, quint64 reply_userdata, mpv_node *args)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_command_node_async, -1, ctx, reply_userdata, args);
+    WWX190_CALL_MPVAPI_RETURN(mpv_command_node_async, -1, ctx, reply_userdata, args)
 }
 
 void mpv_abort_async_command(mpv_handle *ctx, quint64 reply_userdata)
@@ -846,72 +860,72 @@ void mpv_abort_async_command(mpv_handle *ctx, quint64 reply_userdata)
 
 int mpv_set_property(mpv_handle *ctx, const char *name, mpv_format format, void *data)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_set_property, -1, ctx, name, format, data);
+    WWX190_CALL_MPVAPI_RETURN(mpv_set_property, -1, ctx, name, format, data)
 }
 
 int mpv_set_property_string(mpv_handle *ctx, const char *name, const char *data)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_set_property_string, -1, ctx, name, data);
+    WWX190_CALL_MPVAPI_RETURN(mpv_set_property_string, -1, ctx, name, data)
 }
 
 int mpv_set_property_async(mpv_handle *ctx, quint64 reply_userdata, const char *name, mpv_format format, void *data)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_set_property_async, -1, ctx, reply_userdata, name, format, data);
+    WWX190_CALL_MPVAPI_RETURN(mpv_set_property_async, -1, ctx, reply_userdata, name, format, data)
 }
 
 int mpv_get_property(mpv_handle *ctx, const char *name, mpv_format format, void *data)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_get_property, -1, ctx, name, format, data);
+    WWX190_CALL_MPVAPI_RETURN(mpv_get_property, -1, ctx, name, format, data)
 }
 
 char *mpv_get_property_string(mpv_handle *ctx, const char *name)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_get_property_string, nullptr, ctx, name);
+    WWX190_CALL_MPVAPI_RETURN(mpv_get_property_string, nullptr, ctx, name)
 }
 
 char *mpv_get_property_osd_string(mpv_handle *ctx, const char *name)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_get_property_osd_string, nullptr, ctx, name);
+    WWX190_CALL_MPVAPI_RETURN(mpv_get_property_osd_string, nullptr, ctx, name)
 }
 
 int mpv_get_property_async(mpv_handle *ctx, quint64 reply_userdata, const char *name, mpv_format format)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_get_property_async, -1, ctx, reply_userdata, name, format);
+    WWX190_CALL_MPVAPI_RETURN(mpv_get_property_async, -1, ctx, reply_userdata, name, format)
 }
 
 int mpv_observe_property(mpv_handle *ctx, quint64 reply_userdata, const char *name, mpv_format format)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_observe_property, -1, ctx, reply_userdata, name, format);
+    WWX190_CALL_MPVAPI_RETURN(mpv_observe_property, -1, ctx, reply_userdata, name, format)
 }
 
 int mpv_unobserve_property(mpv_handle *ctx, quint64 registered_reply_userdata)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_unobserve_property, -1, ctx, registered_reply_userdata);
+    WWX190_CALL_MPVAPI_RETURN(mpv_unobserve_property, -1, ctx, registered_reply_userdata)
 }
 
 const char *mpv_event_name(mpv_event_id event)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_event_name, nullptr, event);
+    WWX190_CALL_MPVAPI_RETURN(mpv_event_name, nullptr, event)
 }
 
 int mpv_event_to_node(mpv_node *dst, mpv_event *src)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_event_to_node, -1, dst, src);
+    WWX190_CALL_MPVAPI_RETURN(mpv_event_to_node, -1, dst, src)
 }
 
 int mpv_request_event(mpv_handle *ctx, mpv_event_id event, int enable)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_request_event, -1, ctx, event, enable);
+    WWX190_CALL_MPVAPI_RETURN(mpv_request_event, -1, ctx, event, enable)
 }
 
 int mpv_request_log_messages(mpv_handle *ctx, const char *min_level)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_request_log_messages, -1, ctx, min_level);
+    WWX190_CALL_MPVAPI_RETURN(mpv_request_log_messages, -1, ctx, min_level)
 }
 
 mpv_event *mpv_wait_event(mpv_handle *ctx, qreal timeout)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_wait_event, nullptr, ctx, timeout);
+    WWX190_CALL_MPVAPI_RETURN(mpv_wait_event, nullptr, ctx, timeout)
 }
 
 void mpv_wakeup(mpv_handle *ctx)
@@ -931,29 +945,29 @@ void mpv_wait_async_requests(mpv_handle *ctx)
 
 int mpv_hook_add(mpv_handle *ctx, quint64 reply_userdata, const char *name, int priority)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_hook_add, -1, ctx, reply_userdata, name, priority);
+    WWX190_CALL_MPVAPI_RETURN(mpv_hook_add, -1, ctx, reply_userdata, name, priority)
 }
 
 int mpv_hook_continue(mpv_handle *ctx, quint64 id)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_hook_continue, -1, ctx, id);
+    WWX190_CALL_MPVAPI_RETURN(mpv_hook_continue, -1, ctx, id)
 }
 
 // render.h
 
 int mpv_render_context_create(mpv_render_context **res, mpv_handle *ctx, mpv_render_param *params)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_render_context_create, -1, res, ctx, params);
+    WWX190_CALL_MPVAPI_RETURN(mpv_render_context_create, -1, res, ctx, params)
 }
 
 int mpv_render_context_set_parameter(mpv_render_context *ctx, mpv_render_param param)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_render_context_set_parameter, -1, ctx, param);
+    WWX190_CALL_MPVAPI_RETURN(mpv_render_context_set_parameter, -1, ctx, param)
 }
 
 int mpv_render_context_get_info(mpv_render_context *ctx, mpv_render_param param)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_render_context_get_info, -1, ctx, param);
+    WWX190_CALL_MPVAPI_RETURN(mpv_render_context_get_info, -1, ctx, param)
 }
 
 void mpv_render_context_set_update_callback(mpv_render_context *ctx, mpv_render_update_fn callback, void *callback_ctx)
@@ -963,12 +977,12 @@ void mpv_render_context_set_update_callback(mpv_render_context *ctx, mpv_render_
 
 quint64 mpv_render_context_update(mpv_render_context *ctx)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_render_context_update, 0, ctx);
+    WWX190_CALL_MPVAPI_RETURN(mpv_render_context_update, 0, ctx)
 }
 
 int mpv_render_context_render(mpv_render_context *ctx, mpv_render_param *params)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_render_context_render, -1, ctx, params);
+    WWX190_CALL_MPVAPI_RETURN(mpv_render_context_render, -1, ctx, params)
 }
 
 void mpv_render_context_report_swap(mpv_render_context *ctx)
@@ -985,5 +999,5 @@ void mpv_render_context_free(mpv_render_context *ctx)
 
 int mpv_stream_cb_add_ro(mpv_handle *ctx, const char *protocol, void *user_data, mpv_stream_cb_open_ro_fn open_fn)
 {
-    return WWX190_CALL_MPVAPI_RETURN(mpv_stream_cb_add_ro, -1, ctx, protocol, user_data, open_fn);
+    WWX190_CALL_MPVAPI_RETURN(mpv_stream_cb_add_ro, -1, ctx, protocol, user_data, open_fn)
 }

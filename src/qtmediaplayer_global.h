@@ -54,6 +54,14 @@
 #define qAsConst(i) std::as_const(i)
 #endif
 
+#ifndef Q_NODISCARD
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+#define Q_NODISCARD [[nodiscard]]
+#else
+#define Q_NODISCARD
+#endif
+#endif
+
 #ifndef QTMEDIAPLAYER_NAMESPACE
 #define QTMEDIAPLAYER_NAMESPACE wangwenx190::QtMediaPlayer
 #endif

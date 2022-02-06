@@ -132,77 +132,77 @@ public:
     using MetaData = QVariantHash;
 
     explicit MediaPlayer(QQuickItem *parent = nullptr);
-    ~MediaPlayer() override;
+    virtual ~MediaPlayer() override;
 
-    virtual QString backendName() const = 0;
-    virtual QString backendVersion() const = 0;
-    virtual QString ffmpegVersion() const = 0;
-    QString qtRHIBackendName() const;
+    Q_NODISCARD virtual QString backendName() const = 0;
+    Q_NODISCARD virtual QString backendVersion() const = 0;
+    Q_NODISCARD virtual QString ffmpegVersion() const = 0;
+    Q_NODISCARD QString qtRHIBackendName() const;
 
-    virtual QUrl source() const = 0;
+    Q_NODISCARD virtual QUrl source() const = 0;
     virtual void setSource(const QUrl &value) = 0;
 
-    virtual QString fileName() const = 0;
+    Q_NODISCARD virtual QString fileName() const = 0;
 
-    virtual QString filePath() const = 0;
+    Q_NODISCARD virtual QString filePath() const = 0;
 
-    virtual qint64 position() const = 0;
+    Q_NODISCARD virtual qint64 position() const = 0;
     virtual void setPosition(const qint64 value) = 0;
 
-    virtual qint64 duration() const = 0;
+    Q_NODISCARD virtual qint64 duration() const = 0;
 
-    virtual QSizeF videoSize() const = 0;
+    Q_NODISCARD virtual QSizeF videoSize() const = 0;
 
-    virtual qreal volume() const = 0;
+    Q_NODISCARD virtual qreal volume() const = 0;
     virtual void setVolume(const qreal value) = 0;
 
-    virtual bool mute() const = 0;
+    Q_NODISCARD virtual bool mute() const = 0;
     virtual void setMute(const bool value) = 0;
 
-    virtual bool seekable() const = 0;
+    Q_NODISCARD virtual bool seekable() const = 0;
 
-    virtual PlaybackState playbackState() const = 0;
+    Q_NODISCARD virtual PlaybackState playbackState() const = 0;
     virtual void setPlaybackState(const PlaybackState value) = 0;
 
-    virtual MediaStatus mediaStatus() const = 0;
+    Q_NODISCARD virtual MediaStatus mediaStatus() const = 0;
 
-    virtual LogLevel logLevel() const = 0;
+    Q_NODISCARD virtual LogLevel logLevel() const = 0;
     virtual void setLogLevel(const LogLevel value) = 0;
 
-    virtual qreal playbackRate() const = 0;
+    Q_NODISCARD virtual qreal playbackRate() const = 0;
     virtual void setPlaybackRate(const qreal value) = 0;
 
-    virtual qreal aspectRatio() const = 0;
+    Q_NODISCARD virtual qreal aspectRatio() const = 0;
     virtual void setAspectRatio(const qreal value) = 0;
 
-    virtual QUrl snapshotDirectory() const = 0;
+    Q_NODISCARD virtual QUrl snapshotDirectory() const = 0;
     virtual void setSnapshotDirectory(const QUrl &value) = 0;
 
-    virtual QString snapshotFormat() const = 0;
+    Q_NODISCARD virtual QString snapshotFormat() const = 0;
     virtual void setSnapshotFormat(const QString &value) = 0;
 
-    virtual QString snapshotTemplate() const = 0;
+    Q_NODISCARD virtual QString snapshotTemplate() const = 0;
     virtual void setSnapshotTemplate(const QString &value) = 0;
 
-    virtual bool hardwareDecoding() const = 0;
+    Q_NODISCARD virtual bool hardwareDecoding() const = 0;
     virtual void setHardwareDecoding(const bool value) = 0;
 
-    virtual bool autoStart() const = 0;
+    Q_NODISCARD virtual bool autoStart() const = 0;
     virtual void setAutoStart(const bool value) = 0;
 
-    virtual bool livePreview() const = 0;
+    Q_NODISCARD virtual bool livePreview() const = 0;
     virtual void setLivePreview(const bool value) = 0;
 
-    virtual FillMode fillMode() const = 0;
+    Q_NODISCARD virtual FillMode fillMode() const = 0;
     virtual void setFillMode(const FillMode value) = 0;
 
-    virtual Chapters chapters() const = 0;
+    Q_NODISCARD virtual Chapters chapters() const = 0;
 
-    virtual MetaData metaData() const = 0;
+    Q_NODISCARD virtual MetaData metaData() const = 0;
 
-    virtual MediaTracks mediaTracks() const = 0;
+    Q_NODISCARD virtual MediaTracks mediaTracks() const = 0;
 
-    static inline QStringList videoFileSuffixes()
+    Q_NODISCARD static inline QStringList videoFileSuffixes()
     {
         static const QStringList list =
         {
@@ -259,7 +259,7 @@ public:
         return list;
     }
 
-    static inline QStringList audioFileSuffixes()
+    Q_NODISCARD static inline QStringList audioFileSuffixes()
     {
         static const QStringList list =
         {
@@ -278,7 +278,7 @@ public:
         return list;
     }
 
-    static inline QStringList subtitleFileSuffixes()
+    Q_NODISCARD static inline QStringList subtitleFileSuffixes()
     {
         static const QStringList list =
         {
@@ -300,9 +300,9 @@ public:
         return list;
     }
 
-    static QStringList videoFileMimeTypes();
+    Q_NODISCARD static QStringList videoFileMimeTypes();
 
-    static QStringList audioFileMimeTypes();
+    Q_NODISCARD static QStringList audioFileMimeTypes();
 
 public Q_SLOTS:
     virtual void play() = 0;
@@ -313,7 +313,7 @@ public Q_SLOTS:
 
     virtual void snapshot() = 0;
 
-    QString formatTime(const qint64 ms, const QString &pattern = QStringLiteral("hh:mm:ss")) const;
+    Q_NODISCARD QString formatTime(const qint64 ms, const QString &pattern = QStringLiteral("hh:mm:ss")) const;
 
 Q_SIGNALS:
     void rendererReady();

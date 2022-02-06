@@ -28,6 +28,7 @@
 #include "include/mdk/c/VideoFrame.h"
 #include "include/mdk/c/global.h"
 #include <QtCore/qdebug.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qlibrary.h>
 #include <QtCore/qdir.h>
 
@@ -51,6 +52,7 @@
 
 #ifndef WWX190_CALL_MDKAPI
 #define WWX190_CALL_MDKAPI(funcName, ...) \
+    QMutexLocker locker(&MDK::Qt::mdkData()->mutex); \
     if (MDK::Qt::mdkData()->m_lp_##funcName) { \
         MDK::Qt::mdkData()->m_lp_##funcName(__VA_ARGS__); \
     }
@@ -58,7 +60,8 @@
 
 #ifndef WWX190_CALL_MDKAPI_RETURN
 #define WWX190_CALL_MDKAPI_RETURN(funcName, defVal, ...) \
-    (MDK::Qt::mdkData()->m_lp_##funcName ? MDK::Qt::mdkData()->m_lp_##funcName(__VA_ARGS__) : defVal)
+    QMutexLocker locker(&MDK::Qt::mdkData()->mutex); \
+    return (MDK::Qt::mdkData()->m_lp_##funcName ? MDK::Qt::mdkData()->m_lp_##funcName(__VA_ARGS__) : defVal);
 #endif
 
 #ifndef WWX190_SETNULL_MDKAPI
@@ -79,6 +82,8 @@ static constexpr const char _mdkHelper_mdk_fileName_envVar[] = "_WWX190_MDKPLAYE
 
 struct MDKData
 {
+    mutable QMutex mutex = {};
+
     // global.h
     WWX190_GENERATE_MDKAPI(MDK_javaVM, void *, void *)
     WWX190_GENERATE_MDKAPI(MDK_setLogLevel, void, MDK_LogLevel)
@@ -136,6 +141,8 @@ struct MDKData
             }
         }
 
+        QMutexLocker locker(&mutex);
+
         library.setFileName(path);
         qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Start loading MDK from:" << QDir::toNativeSeparators(path);
         if (library.load()) {
@@ -180,6 +187,8 @@ struct MDKData
 
     [[nodiscard]] bool unload()
     {
+        QMutexLocker locker(&mutex);
+
         // global.h
         WWX190_SETNULL_MDKAPI(MDK_javaVM)
         WWX190_SETNULL_MDKAPI(MDK_setLogLevel)
@@ -223,6 +232,7 @@ struct MDKData
 
     [[nodiscard]] bool isLoaded() const
     {
+        QMutexLocker locker(&mutex);
         const bool result =
                 // global.h
                 WWX190_NOTNULL_MDKAPI(MDK_javaVM) &&
@@ -266,10 +276,10 @@ bool isMDKAvailable()
 
 QString getMDKVersion()
 {
-    const auto fullVerNum = MDK_version();
-    const auto majorVerNum = (fullVerNum >> 16) & 0xff;
-    const auto minorVerNum = (fullVerNum >> 8) & 0xff;
-    const auto patchVerNum = fullVerNum & 0xff;
+    const int fullVerNum = MDK_version();
+    const int majorVerNum = (fullVerNum >> 16) & 0xff;
+    const int minorVerNum = (fullVerNum >> 8) & 0xff;
+    const int patchVerNum = fullVerNum & 0xff;
     return QStringLiteral("%1.%2.%3").arg(QString::number(majorVerNum),
                                           QString::number(minorVerNum),
                                           QString::number(patchVerNum));
@@ -285,7 +295,7 @@ QString getMDKVersion()
 
 void *MDK_javaVM(void *value)
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_javaVM, nullptr, value);
+    WWX190_CALL_MDKAPI_RETURN(MDK_javaVM, nullptr, value)
 }
 
 void MDK_setLogLevel(MDK_LogLevel value)
@@ -295,7 +305,7 @@ void MDK_setLogLevel(MDK_LogLevel value)
 
 MDK_LogLevel MDK_logLevel()
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_logLevel, MDK_LogLevel_Debug);
+    WWX190_CALL_MDKAPI_RETURN(MDK_logLevel, MDK_LogLevel_Debug)
 }
 
 void MDK_setLogHandler(mdkLogHandler value)
@@ -320,27 +330,27 @@ void MDK_setGlobalOptionPtr(const char *key, void *value)
 
 bool MDK_getGlobalOptionString(const char *key, const char **value)
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_getGlobalOptionString, false, key, value);
+    WWX190_CALL_MDKAPI_RETURN(MDK_getGlobalOptionString, false, key, value)
 }
 
 bool MDK_getGlobalOptionInt32(const char *key, int *value)
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_getGlobalOptionInt32, false, key, value);
+    WWX190_CALL_MDKAPI_RETURN(MDK_getGlobalOptionInt32, false, key, value)
 }
 
 bool MDK_getGlobalOptionPtr(const char *key, void **value)
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_getGlobalOptionPtr, false, key, value);
+    WWX190_CALL_MDKAPI_RETURN(MDK_getGlobalOptionPtr, false, key, value)
 }
 
 char *MDK_strdup(const char *value)
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_strdup, nullptr, value);
+    WWX190_CALL_MDKAPI_RETURN(MDK_strdup, nullptr, value)
 }
 
 int MDK_version()
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_version, MDK_VERSION);
+    WWX190_CALL_MDKAPI_RETURN(MDK_version, MDK_VERSION)
 }
 
 // MediaInfo.h
@@ -352,7 +362,7 @@ void MDK_AudioStreamCodecParameters(const mdkAudioStreamInfo *asi, mdkAudioCodec
 
 bool MDK_AudioStreamMetadata(const mdkAudioStreamInfo *asi, mdkStringMapEntry *sme)
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_AudioStreamMetadata, false, asi, sme);
+    WWX190_CALL_MDKAPI_RETURN(MDK_AudioStreamMetadata, false, asi, sme)
 }
 
 void MDK_VideoStreamCodecParameters(const mdkVideoStreamInfo *vsi, mdkVideoCodecParameters *vcp)
@@ -362,19 +372,19 @@ void MDK_VideoStreamCodecParameters(const mdkVideoStreamInfo *vsi, mdkVideoCodec
 
 bool MDK_VideoStreamMetadata(const mdkVideoStreamInfo *vsi, mdkStringMapEntry *sme)
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_VideoStreamMetadata, false, vsi, sme);
+    WWX190_CALL_MDKAPI_RETURN(MDK_VideoStreamMetadata, false, vsi, sme)
 }
 
 bool MDK_MediaMetadata(const mdkMediaInfo *mi, mdkStringMapEntry *sme)
 {
-    return WWX190_CALL_MDKAPI_RETURN(MDK_MediaMetadata, false, mi, sme);
+    WWX190_CALL_MDKAPI_RETURN(MDK_MediaMetadata, false, mi, sme)
 }
 
 // Player.h
 
 const mdkPlayerAPI *mdkPlayerAPI_new()
 {
-    return WWX190_CALL_MDKAPI_RETURN(mdkPlayerAPI_new, nullptr);
+    WWX190_CALL_MDKAPI_RETURN(mdkPlayerAPI_new, nullptr)
 }
 
 void mdkPlayerAPI_delete(const struct mdkPlayerAPI **value)
@@ -391,7 +401,7 @@ void MDK_foreignGLContextDestroyed()
 
 mdkVideoFrameAPI *mdkVideoFrameAPI_new(int w, int h, enum MDK_PixelFormat f)
 {
-    return WWX190_CALL_MDKAPI_RETURN(mdkVideoFrameAPI_new, nullptr, w, h, f);
+    WWX190_CALL_MDKAPI_RETURN(mdkVideoFrameAPI_new, nullptr, w, h, f)
 }
 
 void mdkVideoFrameAPI_delete(struct mdkVideoFrameAPI **value)

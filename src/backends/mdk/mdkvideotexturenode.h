@@ -29,9 +29,7 @@
 
 namespace mdk
 {
-
 class Player;
-
 }
 
 QT_BEGIN_NAMESPACE

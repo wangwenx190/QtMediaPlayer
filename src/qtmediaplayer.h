@@ -30,9 +30,9 @@
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 QTMEDIAPLAYER_API void setPluginSearchPath(const QString &value);
-QTMEDIAPLAYER_API QString getPluginSearchPath();
-QTMEDIAPLAYER_API QStringList getAvailableBackends();
-QTMEDIAPLAYER_API bool initializeBackend(const QString &value);
-QTMEDIAPLAYER_API bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api);
+[[nodiscard]] QTMEDIAPLAYER_API QString getPluginSearchPath();
+[[nodiscard]] QTMEDIAPLAYER_API QStringList getAvailableBackends();
+[[nodiscard]] QTMEDIAPLAYER_API bool initializeBackend(const QString &value);
+[[nodiscard]] QTMEDIAPLAYER_API bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api);
 
 QTMEDIAPLAYER_END_NAMESPACE

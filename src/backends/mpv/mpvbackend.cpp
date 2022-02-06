@@ -33,6 +33,9 @@ QTMEDIAPLAYER_END_NAMESPACE
 
 bool RegisterBackend(const char *name)
 {
+    if (!name) {
+        return false;
+    }
     if (qstricmp(name, "mpv") == 0) {
         if (MPV::Qt::isLibmpvAvailable()) {
             const int typeId = QTMEDIAPLAYER_QML_REGISTER(QTMEDIAPLAYER_PREPEND_NAMESPACE(MPVPlayer));

@@ -24,6 +24,7 @@
 
 #include "qtmediaplayer.h"
 #include <QtCore/qdebug.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qlibrary.h>
@@ -42,6 +43,8 @@ using IsRHIBackendSupportedPtr = bool(*)(const int);
 
 struct QMPData
 {
+    QMutex mutex = {};
+
     QString searchPath = {};
     QHash<QString, QString> availableBackends = {};
 
@@ -52,12 +55,15 @@ struct QMPData
 #else
         const QString qtPluginsDirPath = QLibraryInfo::location(QLibraryInfo::PluginsPath);
 #endif
+        mutex.lock();
         searchPath = qEnvironmentVariable(_qmp_backend_dir_envVar, QDir::toNativeSeparators(qtPluginsDirPath + QStringLiteral("/qtmediaplayer")));
+        mutex.unlock();
         refreshCache();
     }
 
     void refreshCache()
     {
+        QMutexLocker locker(&mutex);
         Q_ASSERT(!searchPath.isEmpty());
         if (searchPath.isEmpty()) {
             return;
@@ -114,20 +120,21 @@ void setPluginSearchPath(const QString &value)
         qCWarning(lcQMP) << value << "is not a directory.";
         return;
     }
-    qmpData()->searchPath = QDir::toNativeSeparators(value);
-    while (qmpData()->searchPath.endsWith(u'\\') || qmpData()->searchPath.endsWith(u'/')) {
-        qmpData()->searchPath.chop(1);
-    }
+    qmpData()->mutex.lock();
+    qmpData()->searchPath = QDir::toNativeSeparators(fileInfo.canonicalFilePath());
+    qmpData()->mutex.unlock();
     qmpData()->refreshCache();
 }
 
 QString getPluginSearchPath()
 {
+    QMutexLocker locker(&qmpData()->mutex);
     return (qmpData()->searchPath.isEmpty() ? QString{} : QDir::toNativeSeparators(qmpData()->searchPath));
 }
 
 QStringList getAvailableBackends()
 {
+    QMutexLocker locker(&qmpData()->mutex);
     if (qmpData()->availableBackends.isEmpty()) {
         return {};
     }
@@ -145,6 +152,7 @@ bool initializeBackend(const QString &value)
         return false;
     }
     const QString loweredName = value.toLower();
+    QMutexLocker locker(&qmpData()->mutex);
     if (!qmpData()->availableBackends.contains(loweredName)) {
         qCWarning(lcQMP) << loweredName << "is not an available backend.";
         return false;
@@ -164,6 +172,7 @@ bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::Grap
         return false;
     }
     const QString loweredName = name.toLower();
+    QMutexLocker locker(&qmpData()->mutex);
     if (!qmpData()->availableBackends.contains(loweredName)) {
         qCWarning(lcQMP) << loweredName << "is not an available backend.";
         return false;

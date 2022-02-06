@@ -32,7 +32,7 @@
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug d, const MediaPlayer::Chapters &chapters)
+[[nodiscard]] QDebug operator<<(QDebug d, const MediaPlayer::Chapters &chapters)
 {
     const QDebugStateSaver saver(d);
     d.nospace();
@@ -47,7 +47,7 @@ QDebug operator<<(QDebug d, const MediaPlayer::Chapters &chapters)
     return d;
 }
 
-QDebug operator<<(QDebug d, const MediaPlayer::MediaTracks &tracks)
+[[nodiscard]] QDebug operator<<(QDebug d, const MediaPlayer::MediaTracks &tracks)
 {
     const QDebugStateSaver saver(d);
     d.nospace();
@@ -57,7 +57,7 @@ QDebug operator<<(QDebug d, const MediaPlayer::MediaTracks &tracks)
 }
 #endif
 
-static inline QStringList suffixesToMimeTypes(const QStringList &suffixes)
+[[nodiscard]] static inline QStringList suffixesToMimeTypes(const QStringList &suffixes)
 {
     if (suffixes.isEmpty()) {
         return {};

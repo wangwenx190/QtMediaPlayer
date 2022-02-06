@@ -127,7 +127,8 @@ QString MPVPlayer::backendVersion() const
 
 QString MPVPlayer::ffmpegVersion() const
 {
-    return mpvGetProperty(QStringLiteral("ffmpeg-version")).toString();
+    const QString ver = mpvGetProperty(QStringLiteral("ffmpeg-version")).toString();
+    return (ver.isEmpty() ? QStringLiteral("Unknown") : ver);
 }
 
 // Connected to onUpdate() signal makes sure it runs on the GUI thread

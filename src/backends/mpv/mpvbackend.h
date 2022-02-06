@@ -30,10 +30,10 @@
 extern "C" {
 #endif
 
-QTMEDIAPLAYER_BACKEND_API bool RegisterBackend(const char *name);
-QTMEDIAPLAYER_BACKEND_API const char *GetBackendName();
-QTMEDIAPLAYER_BACKEND_API const char *GetBackendVersion();
-QTMEDIAPLAYER_BACKEND_API bool IsRHIBackendSupported(const int enumIntValue);
+[[nodiscard]] QTMEDIAPLAYER_BACKEND_API bool RegisterBackend(const char *name);
+[[nodiscard]] QTMEDIAPLAYER_BACKEND_API const char *GetBackendName();
+[[nodiscard]] QTMEDIAPLAYER_BACKEND_API const char *GetBackendVersion();
+[[nodiscard]] QTMEDIAPLAYER_BACKEND_API bool IsRHIBackendSupported(const int enumIntValue);
 
 #ifdef __cplusplus
 }

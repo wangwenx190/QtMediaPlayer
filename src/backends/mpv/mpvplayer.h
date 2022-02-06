@@ -47,72 +47,72 @@ public:
 
     static void on_update(void *ctx);
 
-    QString backendName() const override;
-    QString backendVersion() const override;
-    QString ffmpegVersion() const override;
+    Q_NODISCARD QString backendName() const override;
+    Q_NODISCARD QString backendVersion() const override;
+    Q_NODISCARD QString ffmpegVersion() const override;
 
-    QUrl source() const override;
+    Q_NODISCARD QUrl source() const override;
     void setSource(const QUrl &value) override;
 
-    QString fileName() const override;
+    Q_NODISCARD QString fileName() const override;
 
-    QString filePath() const override;
+    Q_NODISCARD QString filePath() const override;
 
-    qint64 position() const override;
+    Q_NODISCARD qint64 position() const override;
     void setPosition(const qint64 value) override;
 
-    qint64 duration() const override;
+    Q_NODISCARD qint64 duration() const override;
 
-    QSizeF videoSize() const override;
+    Q_NODISCARD QSizeF videoSize() const override;
 
-    qreal volume() const override;
+    Q_NODISCARD qreal volume() const override;
     void setVolume(const qreal value) override;
 
-    bool mute() const override;
+    Q_NODISCARD bool mute() const override;
     void setMute(const bool value) override;
 
-    bool seekable() const override;
+    Q_NODISCARD bool seekable() const override;
 
-    PlaybackState playbackState() const override;
+    Q_NODISCARD PlaybackState playbackState() const override;
     void setPlaybackState(const PlaybackState value) override;
 
-    MediaStatus mediaStatus() const override;
+    Q_NODISCARD MediaStatus mediaStatus() const override;
 
-    LogLevel logLevel() const override;
+    Q_NODISCARD LogLevel logLevel() const override;
     void setLogLevel(const LogLevel value) override;
 
-    qreal playbackRate() const override;
+    Q_NODISCARD qreal playbackRate() const override;
     void setPlaybackRate(const qreal value) override;
 
-    qreal aspectRatio() const override;
+    Q_NODISCARD qreal aspectRatio() const override;
     void setAspectRatio(const qreal value) override;
 
-    QUrl snapshotDirectory() const override;
+    Q_NODISCARD QUrl snapshotDirectory() const override;
     void setSnapshotDirectory(const QUrl &value) override;
 
-    QString snapshotFormat() const override;
+    Q_NODISCARD QString snapshotFormat() const override;
     void setSnapshotFormat(const QString &value) override;
 
-    QString snapshotTemplate() const override;
+    Q_NODISCARD QString snapshotTemplate() const override;
     void setSnapshotTemplate(const QString &value) override;
 
-    bool hardwareDecoding() const override;
+    Q_NODISCARD bool hardwareDecoding() const override;
     void setHardwareDecoding(const bool value) override;
 
-    bool autoStart() const override;
+    Q_NODISCARD bool autoStart() const override;
     void setAutoStart(const bool value) override;
 
-    bool livePreview() const override;
+    Q_NODISCARD bool livePreview() const override;
     void setLivePreview(const bool value) override;
 
-    FillMode fillMode() const override;
+    Q_NODISCARD FillMode fillMode() const override;
     void setFillMode(const FillMode value) override;
 
-    Chapters chapters() const override;
+    Q_NODISCARD Chapters chapters() const override;
 
-    MetaData metaData() const override;
+    Q_NODISCARD MetaData metaData() const override;
 
-    MediaTracks mediaTracks() const override;
+    Q_NODISCARD MediaTracks mediaTracks() const override;
 
 public Q_SLOTS:
     void play() override;
@@ -127,7 +127,7 @@ protected Q_SLOTS:
     void handleMpvEvents();
 
 protected:
-    QSGNode *updatePaintNode(QSGNode *node, UpdatePaintNodeData *data) override;
+    Q_NODISCARD QSGNode *updatePaintNode(QSGNode *node, UpdatePaintNodeData *data) override;
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     void geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry) override;
 #else
@@ -141,18 +141,18 @@ private Q_SLOTS:
 private:
     void releaseResources() override;
 
-    bool mpvSendCommand(const QVariant &arguments);
-    bool mpvSetProperty(const QString &name, const QVariant &value);
-    QVariant mpvGetProperty(const QString &name, const bool silent = false, bool *ok = nullptr) const;
-    bool mpvObserveProperty(const QString &name);
+    Q_NODISCARD bool mpvSendCommand(const QVariant &arguments);
+    Q_NODISCARD bool mpvSetProperty(const QString &name, const QVariant &value);
+    Q_NODISCARD QVariant mpvGetProperty(const QString &name, const bool silent = false, bool *ok = nullptr) const;
+    Q_NODISCARD bool mpvObserveProperty(const QString &name);
 
     void processMpvLogMessage(void *event);
     void processMpvPropertyChange(void *event);
 
-    bool isLoaded() const;
-    bool isPlaying() const;
-    bool isPaused() const;
-    bool isStopped() const;
+    Q_NODISCARD bool isLoaded() const;
+    Q_NODISCARD bool isPlaying() const;
+    Q_NODISCARD bool isPaused() const;
+    Q_NODISCARD bool isStopped() const;
 
     void setMediaStatus(const MediaStatus mediaStatus);
 

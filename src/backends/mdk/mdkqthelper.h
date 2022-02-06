@@ -29,8 +29,6 @@
 
 namespace MDK::Qt
 {
-
-bool isMDKAvailable();
-QString getMDKVersion();
-
+[[nodiscard]] bool isMDKAvailable();
+[[nodiscard]] QString getMDKVersion();
 }
