@@ -725,6 +725,105 @@ MDKPlayer::MediaTracks MDKPlayer::mediaTracks() const
     return result;
 }
 
+int MDKPlayer::activeVideoTrack() const
+{
+    return m_activeVideoTrack;
+}
+
+void MDKPlayer::setActiveVideoTrack(const int value)
+{
+    if (isStopped()) {
+        qCWarning(lcQMPMDK) << "Setting active track before the media is loaded has no effect."
+                            << "Please try again later when the media has been loaded successfully.";
+        return;
+    }
+    int track = value;
+    if (track < 0) {
+        track = 0;
+        qCWarning(lcQMPMDK) << "The minimum track number is zero, "
+                               "setting active track to a negative number equals to reset to default track.";
+    } else {
+        const int totalTrackCount = mediaTracks().video.count();
+        if (track >= totalTrackCount) {
+            track = totalTrackCount - 1;
+            qCWarning(lcQMPMDK) << "Total video track count is" << totalTrackCount
+                                << ". Can't set active track to a number greater or equal to it.";
+        }
+    }
+    if (m_activeVideoTrack == track) {
+        return;
+    }
+    m_activeVideoTrack = track;
+    m_player->setActiveTracks(MDK_NS_PREPEND(MediaType)::Video, {m_activeVideoTrack});
+    Q_EMIT activeVideoTrackChanged();
+}
+
+int MDKPlayer::activeAudioTrack() const
+{
+    return m_activeAudioTrack;
+}
+
+void MDKPlayer::setActiveAudioTrack(const int value)
+{
+    if (isStopped()) {
+        qCWarning(lcQMPMDK) << "Setting active track before the media is loaded has no effect."
+                            << "Please try again later when the media has been loaded successfully.";
+        return;
+    }
+    int track = value;
+    if (track < 0) {
+        track = 0;
+        qCWarning(lcQMPMDK) << "The minimum track number is zero, "
+                               "setting active track to a negative number equals to reset to default track.";
+    } else {
+        const int totalTrackCount = mediaTracks().audio.count();
+        if (track >= totalTrackCount) {
+            track = totalTrackCount - 1;
+            qCWarning(lcQMPMDK) << "Total audio track count is" << totalTrackCount
+                                << ". Can't set active track to a number greater or equal to it.";
+        }
+    }
+    if (m_activeAudioTrack == track) {
+        return;
+    }
+    m_activeAudioTrack = track;
+    m_player->setActiveTracks(MDK_NS_PREPEND(MediaType)::Audio, {m_activeAudioTrack});
+    Q_EMIT activeAudioTrackChanged();
+}
+
+int MDKPlayer::activeSubtitleTrack() const
+{
+    return m_activeSubtitleTrack;
+}
+
+void MDKPlayer::setActiveSubtitleTrack(const int value)
+{
+    if (isStopped()) {
+        qCWarning(lcQMPMDK) << "Setting active track before the media is loaded has no effect."
+                            << "Please try again later when the media has been loaded successfully.";
+        return;
+    }
+    int track = value;
+    if (track < 0) {
+        track = 0;
+        qCWarning(lcQMPMDK) << "The minimum track number is zero, "
+                               "setting active track to a negative number equals to reset to default track.";
+    } else {
+        const int totalTrackCount = mediaTracks().sub.count();
+        if (track >= totalTrackCount) {
+            track = totalTrackCount - 1;
+            qCWarning(lcQMPMDK) << "Total subtitle track count is" << totalTrackCount
+                                << ". Can't set active track to a number greater or equal to it.";
+        }
+    }
+    if (m_activeSubtitleTrack == track) {
+        return;
+    }
+    m_activeSubtitleTrack = track;
+    m_player->setActiveTracks(MDK_NS_PREPEND(MediaType)::Subtitle, {m_activeSubtitleTrack});
+    Q_EMIT activeSubtitleTrackChanged();
+}
+
 void MDKPlayer::play()
 {
     if (!source().isValid() || m_livePreview) {
@@ -859,11 +958,14 @@ void MDKPlayer::initMdkHandlers()
         if (!m_livePreview) {
             qCDebug(lcQMPMDK) << "Current media -->" << urlToString(url, true);
         }
-        m_lastPosition = 0;
         Q_EMIT sourceChanged();
     });
     m_player->onMediaStatusChanged([this](MDK_NS_PREPEND(MediaStatus) ms) {
         if (MDK_NS_PREPEND(flags_added)(static_cast<MDK_NS_PREPEND(MediaStatus)>(m_mediaStatus), ms, MDK_NS_PREPEND(MediaStatus)::Loaded)) {
+            m_lastPosition = 0;
+            m_activeVideoTrack = 0;
+            m_activeAudioTrack = 0;
+            m_activeSubtitleTrack = 0;
             Q_EMIT videoSizeChanged();
             Q_EMIT positionChanged();
             Q_EMIT durationChanged();
@@ -871,6 +973,9 @@ void MDKPlayer::initMdkHandlers()
             Q_EMIT chaptersChanged();
             Q_EMIT metaDataChanged();
             Q_EMIT mediaTracksChanged();
+            Q_EMIT activeVideoTrackChanged();
+            Q_EMIT activeAudioTrackChanged();
+            Q_EMIT activeSubtitleTrackChanged();
             Q_EMIT loaded();
             if (!m_livePreview) {
                 qCDebug(lcQMPMDK) << "Media loaded.";
@@ -922,6 +1027,9 @@ void MDKPlayer::resetInternalData()
     m_player->setMedia(nullptr);
     m_mediaStatus = static_cast<int>(MDK_NS_PREPEND(MediaStatus)::NoMedia);
     m_lastPosition = 0;
+    m_activeVideoTrack = 0;
+    m_activeAudioTrack = 0;
+    m_activeSubtitleTrack = 0;
     Q_EMIT sourceChanged();
     Q_EMIT positionChanged();
     Q_EMIT durationChanged();
@@ -930,6 +1038,9 @@ void MDKPlayer::resetInternalData()
     Q_EMIT metaDataChanged();
     Q_EMIT mediaTracksChanged();
     Q_EMIT mediaStatusChanged();
+    Q_EMIT activeVideoTrackChanged();
+    Q_EMIT activeAudioTrackChanged();
+    Q_EMIT activeSubtitleTrackChanged();
 }
 
 bool MDKPlayer::isLoaded() const

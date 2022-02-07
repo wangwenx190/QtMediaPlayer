@@ -69,6 +69,9 @@ class MediaPlayer : public QQuickItem
     Q_PROPERTY(Chapters chapters READ chapters NOTIFY chaptersChanged)
     Q_PROPERTY(MetaData metaData READ metaData NOTIFY metaDataChanged)
     Q_PROPERTY(MediaTracks mediaTracks READ mediaTracks NOTIFY mediaTracksChanged)
+    Q_PROPERTY(int activeVideoTrack READ activeVideoTrack WRITE setActiveVideoTrack NOTIFY activeVideoTrackChanged)
+    Q_PROPERTY(int activeAudioTrack READ activeAudioTrack WRITE setActiveAudioTrack NOTIFY activeAudioTrackChanged)
+    Q_PROPERTY(int activeSubtitleTrack READ activeSubtitleTrack WRITE setActiveSubtitleTrack NOTIFY activeSubtitleTrackChanged)
 
 public:
     enum class PlaybackState
@@ -201,6 +204,15 @@ public:
     Q_NODISCARD virtual MetaData metaData() const = 0;
 
     Q_NODISCARD virtual MediaTracks mediaTracks() const = 0;
+
+    Q_NODISCARD virtual int activeVideoTrack() const = 0;
+    virtual void setActiveVideoTrack(const int value) = 0;
+
+    Q_NODISCARD virtual int activeAudioTrack() const = 0;
+    virtual void setActiveAudioTrack(const int value) = 0;
+
+    Q_NODISCARD virtual int activeSubtitleTrack() const = 0;
+    virtual void setActiveSubtitleTrack(const int value) = 0;
 
     Q_NODISCARD static inline QStringList videoFileSuffixes()
     {
@@ -347,6 +359,9 @@ Q_SIGNALS:
     void chaptersChanged();
     void metaDataChanged();
     void mediaTracksChanged();
+    void activeVideoTrackChanged();
+    void activeAudioTrackChanged();
+    void activeSubtitleTrackChanged();
 };
 
 QTMEDIAPLAYER_END_NAMESPACE

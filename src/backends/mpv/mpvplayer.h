@@ -114,6 +114,15 @@ public:
 
     Q_NODISCARD MediaTracks mediaTracks() const override;
 
+    Q_NODISCARD int activeVideoTrack() const override;
+    void setActiveVideoTrack(const int value) override;
+
+    Q_NODISCARD int activeAudioTrack() const override;
+    void setActiveAudioTrack(const int value) override;
+
+    Q_NODISCARD int activeSubtitleTrack() const override;
+    void setActiveSubtitleTrack(const int value) override;
+
 public Q_SLOTS:
     void play() override;
     void pause() override;
@@ -199,7 +208,10 @@ private:
         {QStringLiteral("chapter-list"), {"chaptersChanged"}},
         {QStringLiteral("metadata"), {"metaDataChanged"}},
         {QStringLiteral("video-unscaled"), {"fillModeChanged"}},
-        {QStringLiteral("keepaspect"), {"fillModeChanged"}}
+        {QStringLiteral("keepaspect"), {"fillModeChanged"}},
+        {QStringLiteral("vid"), {"activeVideoTrackChanged"}},
+        {QStringLiteral("aid"), {"activeAudioTrackChanged"}},
+        {QStringLiteral("sid"), {"activeSubtitleTrackChanged"}}
     };
 
     // These properties are changing all the time during the playback process.

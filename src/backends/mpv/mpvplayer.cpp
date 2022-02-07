@@ -74,8 +74,8 @@ MPVPlayer::MPVPlayer(QQuickItem *parent) : MediaPlayer(parent)
     mpvSetProperty(QStringLiteral("input-cursor"), false);
     mpvSetProperty(QStringLiteral("cursor-autohide"), false);
 
-    auto iterator = properties.cbegin();
-    while (iterator != properties.cend()) {
+    auto iterator = properties.constBegin();
+    while (iterator != properties.constEnd()) {
         mpvObserveProperty(iterator.key());
         ++iterator;
     }
@@ -488,22 +488,121 @@ MPVPlayer::MediaTracks MPVPlayer::mediaTracks() const
         info.insert(QStringLiteral("external-filename"), trackInfo.value(QStringLiteral("external-filename")));
         info.insert(QStringLiteral("selected"), trackInfo.value(QStringLiteral("selected")));
         info.insert(QStringLiteral("decoder-desc"), trackInfo.value(QStringLiteral("decoder-desc")));
+        info.insert(QStringLiteral("albumart"), trackInfo.value(QStringLiteral("albumart")));
+        info.insert(QStringLiteral("image"), trackInfo.value(QStringLiteral("image")));
+        info.insert(QStringLiteral("main-selection"), trackInfo.value(QStringLiteral("main-selection")));
+        info.insert(QStringLiteral("ff-index"), trackInfo.value(QStringLiteral("ff-index")));
         if (type == QStringLiteral("video")) {
-            info.insert(QStringLiteral("albumart"), trackInfo.value(QStringLiteral("albumart")));
             info.insert(QStringLiteral("demux-w"), trackInfo.value(QStringLiteral("demux-w")));
             info.insert(QStringLiteral("demux-h"), trackInfo.value(QStringLiteral("demux-h")));
             info.insert(QStringLiteral("demux-fps"), trackInfo.value(QStringLiteral("demux-fps")));
+            info.insert(QStringLiteral("demux-rotation"), trackInfo.value(QStringLiteral("demux-rotation")));
+            info.insert(QStringLiteral("demux-par"), trackInfo.value(QStringLiteral("demux-par")));
             result.video.append(info);
         } else if (type == QStringLiteral("audio")) {
             info.insert(QStringLiteral("demux-channel-count"), trackInfo.value(QStringLiteral("demux-channel-count")));
             info.insert(QStringLiteral("demux-channels"), trackInfo.value(QStringLiteral("demux-channels")));
             info.insert(QStringLiteral("demux-samplerate"), trackInfo.value(QStringLiteral("demux-samplerate")));
+            info.insert(QStringLiteral("demux-bitrate"), trackInfo.value(QStringLiteral("demux-bitrate")));
             result.audio.append(info);
         } else if (type == QStringLiteral("sub")) {
             result.sub.append(info);
         }
     }
     return result;
+}
+
+int MPVPlayer::activeVideoTrack() const
+{
+    return isStopped() ? 0 : mpvGetProperty(QStringLiteral("vid")).toInt();
+}
+
+void MPVPlayer::setActiveVideoTrack(const int value)
+{
+    if (isStopped()) {
+        qCWarning(lcQMPMPV) << "Setting active track before the media is loaded has no effect."
+                            << "Please try again later when the media has been loaded successfully.";
+        return;
+    }
+    int track = value;
+    if (track < 0) {
+        track = 0;
+        qCWarning(lcQMPMPV) << "The minimum track number is zero, "
+                               "setting active track to a negative number equals to reset to default track.";
+    } else {
+        const int totalTrackCount = mediaTracks().video.count();
+        if (track >= totalTrackCount) {
+            track = totalTrackCount - 1;
+            qCWarning(lcQMPMPV) << "Total video track count is" << totalTrackCount
+                                << ". Can't set active track to a number greater or equal to it.";
+        }
+    }
+    if (activeVideoTrack() == track) {
+        return;
+    }
+    mpvSetProperty(QStringLiteral("vid"), track);
+}
+
+int MPVPlayer::activeAudioTrack() const
+{
+    return isStopped() ? 0 : mpvGetProperty(QStringLiteral("aid")).toInt();
+}
+
+void MPVPlayer::setActiveAudioTrack(const int value)
+{
+    if (isStopped()) {
+        qCWarning(lcQMPMPV) << "Setting active track before the media is loaded has no effect."
+                            << "Please try again later when the media has been loaded successfully.";
+        return;
+    }
+    int track = value;
+    if (track < 0) {
+        track = 0;
+        qCWarning(lcQMPMPV) << "The minimum track number is zero, "
+                               "setting active track to a negative number equals to reset to default track.";
+    } else {
+        const int totalTrackCount = mediaTracks().audio.count();
+        if (track >= totalTrackCount) {
+            track = totalTrackCount - 1;
+            qCWarning(lcQMPMPV) << "Total audio track count is" << totalTrackCount
+                                << ". Can't set active track to a number greater or equal to it.";
+        }
+    }
+    if (activeAudioTrack() == track) {
+        return;
+    }
+    mpvSetProperty(QStringLiteral("aid"), track);
+}
+
+int MPVPlayer::activeSubtitleTrack() const
+{
+    return isStopped() ? 0 : mpvGetProperty(QStringLiteral("sid")).toInt();
+}
+
+void MPVPlayer::setActiveSubtitleTrack(const int value)
+{
+    if (isStopped()) {
+        qCWarning(lcQMPMPV) << "Setting active track before the media is loaded has no effect."
+                            << "Please try again later when the media has been loaded successfully.";
+        return;
+    }
+    int track = value;
+    if (track < 0) {
+        track = 0;
+        qCWarning(lcQMPMPV) << "The minimum track number is zero, "
+                               "setting active track to a negative number equals to reset to default track.";
+    } else {
+        const int totalTrackCount = mediaTracks().sub.count();
+        if (track >= totalTrackCount) {
+            track = totalTrackCount - 1;
+            qCWarning(lcQMPMPV) << "Total subtitle track count is" << totalTrackCount
+                                << ". Can't set active track to a number greater or equal to it.";
+        }
+    }
+    if (activeSubtitleTrack() == track) {
+        return;
+    }
+    mpvSetProperty(QStringLiteral("sid"), track);
 }
 
 MPVPlayer::Chapters MPVPlayer::chapters() const
@@ -533,8 +632,8 @@ MPVPlayer::MetaData MPVPlayer::metaData() const
         return {};
     }
     MetaData result = {};
-    auto iterator = md.cbegin();
-    while (iterator != md.cend()) {
+    auto iterator = md.constBegin();
+    while (iterator != md.constEnd()) {
         result.insert(iterator.key(), iterator.value());
         ++iterator;
     }
