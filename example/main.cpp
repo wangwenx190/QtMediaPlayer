@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2021 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
         }
     );
 
-    QTMEDIAPLAYER_PREPEND_NAMESPACE(setPluginSearchPath)(QCoreApplication::applicationDirPath() + QStringLiteral("/qtmediaplayer"));
+    QTMEDIAPLAYER_PREPEND_NAMESPACE(addPluginSearchPath)(QCoreApplication::applicationDirPath() + QStringLiteral("/qtmediaplayer"));
 
     if (playerBackendParamValue.isEmpty() || (playerBackendParamValue == QStringLiteral("mdk"))) {
         qDebug() << "Setting player backend to MDK ...";

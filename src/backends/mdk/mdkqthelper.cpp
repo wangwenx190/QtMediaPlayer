@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2021 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -78,7 +78,7 @@
 namespace MDK::Qt
 {
 
-static constexpr const char _mdkHelper_mdk_fileName_envVar[] = "_WWX190_MDKPLAYER_MDK_FILENAME";
+static constexpr const char _mdkHelper_mdk_fileName_envVar[] = "QTMEDIAPLAYER_MDK_FILENAME";
 
 struct MDKData
 {
@@ -116,8 +116,21 @@ struct MDKData
 
     explicit MDKData()
     {
-        const bool result = load(qEnvironmentVariable(_mdkHelper_mdk_fileName_envVar, QStringLiteral("mdk")));
-        Q_UNUSED(result);
+        QStringList candidates = { QStringLiteral("mdk") };
+        const QString rawFileNames = qEnvironmentVariable(_mdkHelper_mdk_fileName_envVar);
+        if (!rawFileNames.isEmpty()) {
+            const QStringList fileNames = rawFileNames.split(u';', ::Qt::SkipEmptyParts, ::Qt::CaseInsensitive);
+            if (!fileNames.isEmpty()) {
+                candidates << fileNames;
+            }
+        }
+        for (auto &&fileName : qAsConst(candidates)) {
+            if (!fileName.isEmpty()) {
+                if (load(fileName)) {
+                    break;
+                }
+            }
+        }
     }
 
     ~MDKData()
@@ -126,7 +139,7 @@ struct MDKData
         Q_UNUSED(result);
     }
 
-    [[nodiscard]] bool load(const QString &path)
+    [[nodiscard]] inline bool load(const QString &path)
     {
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
@@ -185,7 +198,7 @@ struct MDKData
         return true;
     }
 
-    [[nodiscard]] bool unload()
+    [[nodiscard]] inline bool unload()
     {
         QMutexLocker locker(&mutex);
 
@@ -230,7 +243,7 @@ struct MDKData
         return true;
     }
 
-    [[nodiscard]] bool isLoaded() const
+    [[nodiscard]] inline bool isLoaded() const
     {
         QMutexLocker locker(&mutex);
         const bool result =
@@ -264,6 +277,7 @@ struct MDKData
     }
 
 private:
+    Q_DISABLE_COPY_MOVE(MDKData)
     QLibrary library;
 };
 

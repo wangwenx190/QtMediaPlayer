@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2021 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,8 @@
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-QTMEDIAPLAYER_API void setPluginSearchPath(const QString &value);
-[[nodiscard]] QTMEDIAPLAYER_API QString getPluginSearchPath();
+QTMEDIAPLAYER_API void addPluginSearchPath(const QString &value);
+[[nodiscard]] QTMEDIAPLAYER_API QStringList getPluginSearchPaths();
 [[nodiscard]] QTMEDIAPLAYER_API QStringList getAvailableBackends();
 [[nodiscard]] QTMEDIAPLAYER_API bool initializeBackend(const QString &value);
 [[nodiscard]] QTMEDIAPLAYER_API bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api);

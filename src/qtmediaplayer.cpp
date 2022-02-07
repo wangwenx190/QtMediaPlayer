@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2021 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,51 +34,71 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(lcQMP, "wangwenx190.mediaplayer")
 
-static constexpr const char _qmp_backend_dir_envVar[] = "_QTMEDIAPLAYER_BACKEND_SEARCH_PATH";
+static constexpr const char _qmp_backend_dir_envVar[] = "QTMEDIAPLAYER_BACKEND_SEARCH_PATH";
 
 using RegisterBackendPtr = bool(*)(const char *);
 using GetBackendNamePtr = const char *(*)();
 using GetBackendVersion = const char *(*)();
 using IsRHIBackendSupportedPtr = bool(*)(const int);
+using FreeStringPtr = void(*)(const char *);
 
 struct QMPData
 {
     QMutex mutex = {};
 
-    QString searchPath = {};
+    QStringList searchPaths = {};
     QHash<QString, QString> availableBackends = {};
 
     explicit QMPData()
     {
+        init();
+    }
+
+    ~QMPData() = default;
+
+    inline void init()
+    {
+        static bool inited = false;
+        if (inited) {
+            return;
+        }
+        inited = true;
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-        const QString qtPluginsDirPath = QLibraryInfo::path(QLibraryInfo::PluginsPath);
+        static const QString qtPluginsDirPath = QLibraryInfo::path(QLibraryInfo::PluginsPath);
 #else
-        const QString qtPluginsDirPath = QLibraryInfo::location(QLibraryInfo::PluginsPath);
+        static const QString qtPluginsDirPath = QLibraryInfo::location(QLibraryInfo::PluginsPath);
 #endif
-        mutex.lock();
-        searchPath = qEnvironmentVariable(_qmp_backend_dir_envVar, QDir::toNativeSeparators(qtPluginsDirPath + QStringLiteral("/qtmediaplayer")));
-        mutex.unlock();
+        if (!qtPluginsDirPath.isEmpty()) {
+            mutex.lock();
+            searchPaths << QDir::toNativeSeparators(qtPluginsDirPath + QStringLiteral("/qtmediaplayer"));
+            mutex.unlock();
+        }
+        const QString rawPathsFromEnvVar = qEnvironmentVariable(_qmp_backend_dir_envVar);
+        if (!rawPathsFromEnvVar.isEmpty()) {
+            const QStringList paths = rawPathsFromEnvVar.split(u';', Qt::SkipEmptyParts, Qt::CaseInsensitive);
+            if (!paths.isEmpty()) {
+                mutex.lock();
+                searchPaths << paths;
+                mutex.unlock();
+            }
+        }
         refreshCache();
     }
 
-    void refreshCache()
+    inline void loadFromDir(const QString &path)
     {
-        QMutexLocker locker(&mutex);
-        Q_ASSERT(!searchPath.isEmpty());
-        if (searchPath.isEmpty()) {
+        Q_ASSERT(!path.isEmpty());
+        if (path.isEmpty()) {
             return;
         }
-        if (!availableBackends.isEmpty()) {
-            availableBackends.clear();
-        }
-        const QDir dir(searchPath);
+        const QDir dir(path);
         if (!dir.exists()) {
-            qCWarning(lcQMP) << "Plugin directory" << searchPath << "doesn't exist.";
+            qCWarning(lcQMP) << "Plugin directory" << path << "doesn't exist.";
             return;
         }
-        const QFileInfoList entryInfoList = dir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable, QDir::Name);
+        const QFileInfoList entryInfoList = dir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable);
         if (entryInfoList.isEmpty()) {
-            qCWarning(lcQMP) << "Plugin directory" << searchPath << "doesn't contain any files.";
+            qCWarning(lcQMP) << "Plugin directory" << path << "doesn't contain any files.";
             return;
         }
         for (auto &&entryInfo : qAsConst(entryInfoList)) {
@@ -94,42 +114,78 @@ struct QMPData
             if (backendName.isEmpty()) {
                 continue;
             }
+            mutex.lock();
             Q_ASSERT(!availableBackends.contains(backendName));
             if (availableBackends.contains(backendName)) {
+                mutex.unlock();
                 continue;
             }
             availableBackends.insert(backendName, QDir::toNativeSeparators(entryInfo.canonicalFilePath()));
+            mutex.unlock();
         }
     }
+
+    inline void refreshCache()
+    {
+        mutex.lock();
+        Q_ASSERT(!searchPaths.isEmpty());
+        if (searchPaths.isEmpty()) {
+            mutex.unlock();
+            return;
+        }
+        if (!availableBackends.isEmpty()) {
+            availableBackends.clear();
+        }
+        const QStringList paths = searchPaths;
+        mutex.unlock();
+        for (auto &&path : qAsConst(paths)) {
+            if (!path.isEmpty()) {
+                loadFromDir(path);
+            }
+        }
+    }
+
+    inline void addSearchDir(const QString &path)
+    {
+        Q_ASSERT(!path.isEmpty());
+        if (path.isEmpty()) {
+            return;
+        }
+        const QFileInfo fileInfo(path);
+        if (!fileInfo.exists()) {
+            qCWarning(lcQMP) << path << "doesn't exist.";
+            return;
+        }
+        if (!fileInfo.isDir()) {
+            qCWarning(lcQMP) << path << "is not a directory.";
+            return;
+        }
+        const QString cleanPath = QDir::toNativeSeparators(fileInfo.canonicalFilePath());
+        mutex.lock();
+        if (searchPaths.contains(cleanPath)) {
+            mutex.unlock();
+            return;
+        }
+        searchPaths << cleanPath;
+        mutex.unlock();
+        loadFromDir(cleanPath);
+    }
+
+private:
+    Q_DISABLE_COPY_MOVE(QMPData)
 };
 
 Q_GLOBAL_STATIC(QMPData, qmpData)
 
-void setPluginSearchPath(const QString &value)
+void addPluginSearchPath(const QString &value)
 {
-    Q_ASSERT(!value.isEmpty());
-    if (value.isEmpty()) {
-        return;
-    }
-    const QFileInfo fileInfo(value);
-    if (!fileInfo.exists()) {
-        qCWarning(lcQMP) << value << "doesn't exist.";
-        return;
-    }
-    if (!fileInfo.isDir()) {
-        qCWarning(lcQMP) << value << "is not a directory.";
-        return;
-    }
-    qmpData()->mutex.lock();
-    qmpData()->searchPath = QDir::toNativeSeparators(fileInfo.canonicalFilePath());
-    qmpData()->mutex.unlock();
-    qmpData()->refreshCache();
+    qmpData()->addSearchDir(value);
 }
 
-QString getPluginSearchPath()
+QStringList getPluginSearchPaths()
 {
     QMutexLocker locker(&qmpData()->mutex);
-    return (qmpData()->searchPath.isEmpty() ? QString{} : QDir::toNativeSeparators(qmpData()->searchPath));
+    return qmpData()->searchPaths;
 }
 
 QStringList getAvailableBackends()

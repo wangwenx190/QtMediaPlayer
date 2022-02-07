@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2021 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -92,7 +92,7 @@
 namespace MPV::Qt
 {
 
-static constexpr const char _mpvHelper_libmpv_fileName_envVar[] = "_WWX190_MPVPLAYER_LIBMPV_FILENAME";
+static constexpr const char _mpvHelper_libmpv_fileName_envVar[] = "QTMEDIAPLAYER_LIBMPV_FILENAME";
 
 #ifndef QT_NO_DEBUG_STREAM
 [[nodiscard]] QDebug operator<<(QDebug d, const ErrorReturn &err)
@@ -169,9 +169,20 @@ struct MPVData
 
     explicit MPVData()
     {
-        if (!load(qEnvironmentVariable(_mpvHelper_libmpv_fileName_envVar, QStringLiteral("mpv-2")))) {
-            const bool result = load(qEnvironmentVariable(_mpvHelper_libmpv_fileName_envVar, QStringLiteral("mpv-1")));
-            Q_UNUSED(result);
+        QStringList candidates = { QStringLiteral("mpv-2"), QStringLiteral("mpv-1"), QStringLiteral("mpv") };
+        const QString rawFileNames = qEnvironmentVariable(_mpvHelper_libmpv_fileName_envVar);
+        if (!rawFileNames.isEmpty()) {
+            const QStringList fileNames = rawFileNames.split(u';', ::Qt::SkipEmptyParts, ::Qt::CaseInsensitive);
+            if (!fileNames.isEmpty()) {
+                candidates << fileNames;
+            }
+        }
+        for (auto &&fileName : qAsConst(candidates)) {
+            if (!fileName.isEmpty()) {
+                if (load(fileName)) {
+                    break;
+                }
+            }
         }
     }
 
@@ -181,7 +192,7 @@ struct MPVData
         Q_UNUSED(result);
     }
 
-    [[nodiscard]] bool load(const QString &path)
+    [[nodiscard]] inline bool load(const QString &path)
     {
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
@@ -267,7 +278,7 @@ struct MPVData
         return true;
     }
 
-    [[nodiscard]] bool unload()
+    [[nodiscard]] inline bool unload()
     {
         QMutexLocker locker(&mutex);
 
@@ -339,7 +350,7 @@ struct MPVData
         return true;
     }
 
-    [[nodiscard]] bool isLoaded() const
+    [[nodiscard]] inline bool isLoaded() const
     {
         QMutexLocker locker(&mutex);
         const bool result =
@@ -401,6 +412,7 @@ struct MPVData
     }
 
 private:
+    Q_DISABLE_COPY_MOVE(MPVData)
     QLibrary library;
 };
 

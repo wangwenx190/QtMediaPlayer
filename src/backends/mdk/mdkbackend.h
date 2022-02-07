@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2021 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ extern "C" {
 [[nodiscard]] QTMEDIAPLAYER_BACKEND_API const char *GetBackendName();
 [[nodiscard]] QTMEDIAPLAYER_BACKEND_API const char *GetBackendVersion();
 [[nodiscard]] QTMEDIAPLAYER_BACKEND_API bool IsRHIBackendSupported(const int enumIntValue);
+QTMEDIAPLAYER_BACKEND_API void FreeString(const char *str);
 
 #ifdef __cplusplus
 }

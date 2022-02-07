@@ -20,6 +20,10 @@ cmake --install .
 
 Currently two backends are available: [MDK](https://sourceforge.net/projects/mdk-sdk/files/) and [MPV](https://sourceforge.net/projects/mpv-player-windows/files/libmpv/). [VLC](http://download.videolan.org/pub/videolan/vlc/last/) is on plan. All backends will be loaded dynamically at run-time.
 
+Recommended pre-built FFmpeg binaries:
+- [Mile.FFmpeg](https://github.com/ProjectMile/Mile.FFmpeg/releases/latest) (currently Windows only, but is prefered)
+- [avbuild](https://sourceforge.net/projects/avbuild/files/) (multiple platforms, also have an additional lite version which is less than 10MB)
+
 ## Usage
 
 See [example](/example).
@@ -29,7 +33,7 @@ See [example](/example).
 ```text
 MIT License
 
-Copyright (C) 2021 by wangwenx190 (Yuhang Zhao)
+Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
