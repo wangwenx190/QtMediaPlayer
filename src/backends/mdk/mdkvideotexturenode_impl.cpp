@@ -24,6 +24,7 @@
 
 #include "mdkvideotexturenode.h"
 #include "mdkplayer.h"
+#include <cstring>
 #include <QtQuick/qquickwindow.h>
 
 #ifdef Q_OS_WINDOWS
@@ -120,7 +121,7 @@ private:
 #endif
 };
 
-MDKVideoTextureNode *createNode(MDKPlayer *item)
+[[nodiscard]] MDKVideoTextureNode *createNode(MDKPlayer *item)
 {
     Q_ASSERT(item);
     if (!item) {
@@ -141,14 +142,14 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     intmax_t nativeObj = 0;
     int nativeLayout = 0;
-#endif
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     switch (rif->graphicsApi()) {
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-    case QSGRendererInterface::OpenGL: // Equal to OpenGLRhi in Qt6.
-#endif
+    case QSGRendererInterface::OpenGLRhi: // Equal to QSGRendererInterface::OpenGL in Qt6.
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-    case QSGRendererInterface::OpenGLRhi:
-#endif
+    case QSGRendererInterface::OpenGL:
+#endif // (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     {
 #if QT_CONFIG(opengl)
         m_transformMode = TextureCoordinatesTransformFlag::MirrorVertically;
@@ -156,24 +157,28 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         MDK_NS_PREPEND(GLRenderAPI) ra = {};
         ra.fbo = fbo_gl->handle();
         static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
-        QMetaObject::invokeMethod(m_item, "rendererReady");
+        QMetaObject::invokeMethod(m_item, "setRendererReady", Q_ARG(bool, true));
         const auto tex = fbo_gl->texture();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = static_cast<decltype(nativeObj)>(tex);
 #if (QT_VERSION <= QT_VERSION_CHECK(5, 14, 0))
         return m_window->createTextureFromId(tex, size);
-#endif
-#else
+#endif // (QT_VERSION <= QT_VERSION_CHECK(5, 14, 0))
+#else // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         if (tex) {
             return QNativeInterface::QSGOpenGLTexture::fromNative(tex, m_window, size);
         }
-#endif
-#else
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+#else // QT_CONFIG(opengl)
         qFatal("Rebuild Qt with OpenGL support!");
-#endif
+#endif // QT_CONFIG(opengl)
     } break;
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-    case QSGRendererInterface::Direct3D11Rhi:
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    case QSGRendererInterface::Direct3D11:
+#else // (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    case QSGRendererInterface::Direct3D11Rhi: // Equal to QSGRendererInterface::Direct3D11 in Qt6.
+#endif // (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     {
 #ifdef Q_OS_WINDOWS
         const auto dev = static_cast<ID3D11Device *>(rif->getResource(m_window, QSGRendererInterface::DeviceResource));
@@ -191,17 +196,23 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         MDK_NS_PREPEND(D3D11RenderAPI) ra = {};
         ra.rtv = m_texture_d3d11.Get();
         static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
-        QMetaObject::invokeMethod(m_item, "rendererReady");
+        QMetaObject::invokeMethod(m_item, "setRendererReady", Q_ARG(bool, true));
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = reinterpret_cast<decltype(nativeObj)>(m_texture_d3d11.Get());
-#else
+#else // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         if (m_texture_d3d11) {
             return QNativeInterface::QSGD3D11Texture::fromNative(m_texture_d3d11.Get(), m_window, size);
         }
-#endif
-#endif
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+#else // defined(Q_OS_WINDOWS)
+        qFatal("The Direct3D11 backend is only supported on Windows!");
+#endif // defined(Q_OS_WINDOWS)
     } break;
-    case QSGRendererInterface::MetalRhi:
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    case QSGRendererInterface::Metal:
+#else // (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    case QSGRendererInterface::MetalRhi: // Equal to QSGRendererInterface::Metal in Qt6.
+#endif // (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     {
 #ifdef Q_OS_MACOS
         auto dev = (__bridge id<MTLDevice>)rif->getResource(m_window, QSGRendererInterface::DeviceResource);
@@ -222,22 +233,28 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         ra.device = (__bridge void*)dev;
         ra.cmdQueue = rif->getResource(m_window, QSGRendererInterface::CommandQueueResource);
         static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
-        QMetaObject::invokeMethod(m_item, "rendererReady");
+        QMetaObject::invokeMethod(m_item, "setRendererReady", Q_ARG(bool, true));
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = decltype(nativeObj)(ra.texture);
-#else
+#else // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         if (m_texture_mtl) {
             return QNativeInterface::QSGMetalTexture::fromNative(m_texture_mtl, m_window, size);
         }
-#endif
-#endif
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+#else // defined(Q_OS_MACOS)
+        qFatal("The Metal backend is only supported on macOS!");
+#endif // defined(Q_OS_MACOS)
     } break;
-    case QSGRendererInterface::VulkanRhi:
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    case QSGRendererInterface::Vulkan:
+#else // (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    case QSGRendererInterface::VulkanRhi: // Equal to QSGRendererInterface::Vulkan in Qt6.
+#endif // (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     {
 #if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-#endif
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         const auto inst = reinterpret_cast<QVulkanInstance *>(rif->getResource(m_window, QSGRendererInterface::VulkanInstanceResource));
         m_physDev = *static_cast<VkPhysicalDevice *>(rif->getResource(m_window, QSGRendererInterface::PhysicalDeviceResource));
         const auto newDev = *static_cast<VkDevice *>(rif->getResource(m_window, QSGRendererInterface::DeviceResource));
@@ -249,7 +266,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         buildTexture(size);
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = reinterpret_cast<decltype(nativeObj)>(m_texture_vk);
-#endif
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 
         MDK_NS_PREPEND(VulkanRenderAPI) ra = {};
         ra.device = m_dev;
@@ -271,24 +288,24 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
             return cmdBuf;
         };
         static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
-        QMetaObject::invokeMethod(m_item, "rendererReady");
+        QMetaObject::invokeMethod(m_item, "setRendererReady", Q_ARG(bool, true));
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         if (m_texture_vk) {
             return QNativeInterface::QSGVulkanTexture::fromNative(m_texture_vk, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_window, size);
         }
-#endif
-#else
+#endif // (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#else // QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
         qFatal("Rebuild Qt with Vulkan support!");
-#endif
+#endif // QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
     } break;
-#endif
+#endif // (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     case QSGRendererInterface::Software:
     {
         // TODO: implement this.
-        qCWarning(lcQMPMDK) << "TO BE IMPLEMENTED: Software backend of MDK.";
+        qFatal("TO BE IMPLEMENTED: Software backend of MDK.");
     } break;
     default:
-        qCWarning(lcQMPMDK) << "Unsupported backend of MDK:" << rif->graphicsApi();
+        qFatal("Unsupported backend of MDK: %d", static_cast<int>(rif->graphicsApi()));
         break;
     }
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -296,8 +313,8 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
     if (nativeObj) {
         return m_window->createTextureFromNativeObject(QQuickWindow::NativeObjectTexture, &nativeObj, nativeLayout, size);
     }
-#endif
-#endif
+#endif // (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     return nullptr;
 }
 
@@ -305,7 +322,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
 bool MDKVideoTextureNodeImpl::buildTexture(const QSize &size)
 {
     VkImageCreateInfo imageInfo;
-    memset(&imageInfo, 0, sizeof(imageInfo));
+    std::memset(&imageInfo, 0, sizeof(imageInfo));
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.flags = 0;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;

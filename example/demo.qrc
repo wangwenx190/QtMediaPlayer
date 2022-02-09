@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/dark/chrome-close.svg</file>
+        <file>images/dark/chrome-maximize.svg</file>
+        <file>images/dark/chrome-minimize.svg</file>
+        <file>images/dark/chrome-restore.svg</file>
+        <file>images/dark/windows-media-player.svg</file>
+        <file>images/light/chrome-close.svg</file>
+        <file>images/light/chrome-maximize.svg</file>
+        <file>images/light/chrome-minimize.svg</file>
+        <file>images/light/chrome-restore.svg</file>
+        <file>images/light/windows-media-player.svg</file>
+        <file>images/neutral/fullscreen-hover.svg</file>
+        <file>images/neutral/fullscreen-normal.svg</file>
+        <file>images/neutral/info-hover.svg</file>
+        <file>images/neutral/info-normal.svg</file>
+        <file>images/neutral/mute-hover.svg</file>
+        <file>images/neutral/mute-normal.svg</file>
+        <file>images/neutral/pause-hover.svg</file>
+        <file>images/neutral/pause-normal.svg</file>
+        <file>images/neutral/play-hover.svg</file>
+        <file>images/neutral/play-normal.svg</file>
+        <file>images/neutral/screenshot-hover.svg</file>
+        <file>images/neutral/screenshot-normal.svg</file>
+        <file>images/neutral/stop-hover.svg</file>
+        <file>images/neutral/stop-normal.svg</file>
+        <file>images/neutral/volume-hover.svg</file>
+        <file>images/neutral/volume-normal.svg</file>
+    </qresource>
+</RCC>

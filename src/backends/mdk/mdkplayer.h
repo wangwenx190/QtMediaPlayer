@@ -25,14 +25,14 @@
 #pragma once
 
 #include "mdkbackend_global.h"
-#include "../backendinterface.h"
+#include "../../common/playerinterface.h"
+#include "include/mdk/global.h"
 #include <QtCore/qurl.h>
 #include <QtCore/qtimer.h>
 
-namespace mdk
-{
+MDK_NS_BEGIN
 class Player;
-}
+MDK_NS_END
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
@@ -41,6 +41,9 @@ class MDKVideoTextureNode;
 class MDKPlayer : public MediaPlayer
 {
     Q_OBJECT
+#ifdef QML_NAMED_ELEMENT
+    QML_NAMED_ELEMENT(MediaPlayer)
+#endif
     Q_DISABLE_COPY_MOVE(MDKPlayer)
 
     friend class MDKVideoTextureNode;
@@ -51,7 +54,12 @@ public:
 
     Q_NODISCARD QString backendName() const override;
     Q_NODISCARD QString backendVersion() const override;
+    Q_NODISCARD QString backendAuthors() const override;
+    Q_NODISCARD QString backendCopyright() const override;
+    Q_NODISCARD QString backendLicenses() const override;
+    Q_NODISCARD QString backendHomepage() const override;
     Q_NODISCARD QString ffmpegVersion() const override;
+    Q_NODISCARD QString ffmpegConfiguration() const override;
 
     Q_NODISCARD QUrl source() const override;
     void setSource(const QUrl &value) override;
@@ -125,14 +133,20 @@ public:
     Q_NODISCARD int activeSubtitleTrack() const override;
     void setActiveSubtitleTrack(const int value) override;
 
+    Q_NODISCARD bool rendererReady() const override;
+
 public Q_SLOTS:
     void play() override;
     void pause() override;
     void stop() override;
-
     void seek(const qint64 value) override;
-
     void snapshot() override;
+
+public:
+    Q_NODISCARD Q_INVOKABLE bool isLoaded() const override;
+    Q_NODISCARD Q_INVOKABLE bool isPlaying() const override;
+    Q_NODISCARD Q_INVOKABLE bool isPaused() const override;
+    Q_NODISCARD Q_INVOKABLE bool isStopped() const override;
 
 protected:
     Q_NODISCARD QSGNode *updatePaintNode(QSGNode *node, UpdatePaintNodeData *data) override;
@@ -144,17 +158,13 @@ protected:
 
 private Q_SLOTS:
     void invalidateSceneGraph();
+    void setRendererReady(const bool value);
 
 private:
-    bool isLoaded() const;
-    bool isPlaying() const;
-    bool isPaused() const;
-    bool isStopped() const;
-
+    void initialize();
+    void deinitialize();
     void releaseResources() override;
-
     void initMdkHandlers();
-
     void resetInternalData();
 
 private:
@@ -162,7 +172,7 @@ private:
 
     QTimer m_timer;
 
-    QSharedPointer<mdk::Player> m_player;
+    QSharedPointer<MDK_NS_PREPEND(Player)> m_player;
 
     qreal m_volume = 1.0;
 
@@ -176,13 +186,18 @@ private:
     QString m_snapshotTemplate = QStringLiteral("${filename}_${datetime}_${frametime}");
 
     FillMode m_fillMode = FillMode::PreserveAspectFit;
-    int m_mediaStatus = 0;
+    MediaStatus m_mediaStatus = {};
 
     qint64 m_lastPosition = 0;
 
     int m_activeVideoTrack = 0;
     int m_activeAudioTrack = 0;
     int m_activeSubtitleTrack = 0;
+
+    QUrl m_cachedUrl = {};
+    bool m_rendererReady = false;
+
+    bool m_loaded = false;
 };
 
 QTMEDIAPLAYER_END_NAMESPACE

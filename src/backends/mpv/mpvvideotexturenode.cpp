@@ -55,8 +55,8 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
     if (!name) {
         return nullptr;
     }
-    const QOpenGLContext *const glctx = QOpenGLContext::currentContext();
-    return glctx ? reinterpret_cast<void *>(glctx->getProcAddress(name)) : nullptr;
+    const QOpenGLContext * const glctx = QOpenGLContext::currentContext();
+    return (glctx ? reinterpret_cast<void *>(glctx->getProcAddress(name)) : nullptr);
 }
 
 static inline void on_mpv_redraw(void *ctx)
@@ -109,6 +109,7 @@ void MPVVideoTextureNode::sync()
     if (texture() && (newSize == m_size)) {
         return;
     }
+    Q_ASSERT(m_item->m_mpv);
     if (!m_item->m_mpv) {
         return;
     }
@@ -138,7 +139,9 @@ void MPVVideoTextureNode::render()
         return;
     }
 
-    if (!m_item->m_mpv) {
+    Q_ASSERT(m_item->m_mpv);
+    Q_ASSERT(m_item->m_mpv_gl);
+    if (!m_item->m_mpv || !m_item->m_mpv_gl) {
         return;
     }
 
@@ -190,18 +193,23 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
         return nullptr;
     }
 
+    Q_ASSERT(m_item->m_mpv);
+    if (!m_item->m_mpv) {
+        return nullptr;
+    }
+
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     intmax_t nativeObj = 0;
     int nativeLayout = 0; // Only usable in Vulkan.
-#endif
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     const QSGRendererInterface *rif = m_window->rendererInterface();
     switch (rif->graphicsApi()) {
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-    case QSGRendererInterface::OpenGL: // Equal to OpenGLRhi in Qt6
-#endif
+    case QSGRendererInterface::OpenGLRhi: // Equal to OpenGL in Qt6
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-    case QSGRendererInterface::OpenGLRhi:
-#endif
+    case QSGRendererInterface::OpenGL:
+#endif // (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     {
 #if QT_CONFIG(opengl)
         fbo_gl.reset(new QOpenGLFramebufferObject(size));
@@ -223,7 +231,7 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
                 display.type = MPV_RENDER_PARAM_X11_DISPLAY;
                 display.data = QX11Info::display();
             }
-#else
+#else // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
             if (QGuiApplication::platformName().contains(QStringLiteral("xcb"))) {
                 if (const auto ni = QGuiApplication::nativeInterface<QNativeInterface::QX11Application>()) {
                     if (const auto dis = ni->display()) {
@@ -232,8 +240,8 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
                     }
                 }
             }
-#endif
-#endif
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+#endif // defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
             mpv_render_param params[] =
             {
                 {
@@ -256,32 +264,32 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
             }
             mpv_render_context_set_update_callback(m_item->m_mpv_gl, on_mpv_redraw, m_item);
 
-            // If you try to play any media before this signal is emitted,
-            // libmpv will create a separate window to display it.
-            QMetaObject::invokeMethod(m_item, "rendererReady");
+            // If you try to play any media before this signal is emitted, libmpv will create
+            // a separate window to display it instead of rendering in our own QQuickItem.
+            QMetaObject::invokeMethod(m_item, "setRendererReady", Q_ARG(bool, true));
         }
         const auto tex = fbo_gl->texture();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = static_cast<decltype(nativeObj)>(tex);
 #if (QT_VERSION <= QT_VERSION_CHECK(5, 14, 0))
         return m_window->createTextureFromId(tex, size);
-#endif
-#else
+#endif // (QT_VERSION <= QT_VERSION_CHECK(5, 14, 0))
+#else // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         if (tex) {
             return QNativeInterface::QSGOpenGLTexture::fromNative(tex, m_window, size);
         }
-#endif
-#else
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+#else // QT_CONFIG(opengl)
         qFatal("Rebuild Qt with OpenGL support!");
-#endif
+#endif // QT_CONFIG(opengl)
     } break;
     case QSGRendererInterface::Software:
     {
         // TODO: libmpv also supports software as VO, implement this.
-        qCWarning(lcQMPMPV) << "TO BE IMPLEMENTED: Software backend of libmpv.";
+        qFatal("TO BE IMPLEMENTED: Software backend of libmpv.");
     } break;
     default:
-        qCWarning(lcQMPMPV) << "Unsupported backend of libmpv:" << rif->graphicsApi();
+        qFatal("Unsupported backend of libmpv: %d", static_cast<int>(rif->graphicsApi()));
         break;
     }
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -289,8 +297,8 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
     if (nativeObj) {
         return m_window->createTextureFromNativeObject(QQuickWindow::NativeObjectTexture, &nativeObj, nativeLayout, size);
     }
-#endif
-#endif
+#endif // (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     return nullptr;
 }
 

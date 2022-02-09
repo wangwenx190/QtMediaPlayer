@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>licenses/LICENSE.GPL</file>
+        <file>licenses/LICENSE.LGPL</file>
+    </qresource>
+</RCC>

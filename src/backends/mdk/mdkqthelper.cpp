@@ -42,7 +42,7 @@
 #define WWX190_RESOLVE_MDKAPI(funcName) \
     if (!m_lp_##funcName) { \
         qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Resolving function:" << #funcName; \
-        m_lp_##funcName = reinterpret_cast<_WWX190_MDKAPI_lp_##funcName>(library.resolve(#funcName)); \
+        m_lp_##funcName = reinterpret_cast<_WWX190_MDKAPI_lp_##funcName>(m_library.resolve(#funcName)); \
         Q_ASSERT(m_lp_##funcName); \
         if (!m_lp_##funcName) { \
             qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to resolve function:" << #funcName; \
@@ -52,7 +52,7 @@
 
 #ifndef WWX190_CALL_MDKAPI
 #define WWX190_CALL_MDKAPI(funcName, ...) \
-    QMutexLocker locker(&MDK::Qt::mdkData()->mutex); \
+    QMutexLocker locker(&MDK::Qt::mdkData()->m_mutex); \
     if (MDK::Qt::mdkData()->m_lp_##funcName) { \
         MDK::Qt::mdkData()->m_lp_##funcName(__VA_ARGS__); \
     }
@@ -60,7 +60,7 @@
 
 #ifndef WWX190_CALL_MDKAPI_RETURN
 #define WWX190_CALL_MDKAPI_RETURN(funcName, defVal, ...) \
-    QMutexLocker locker(&MDK::Qt::mdkData()->mutex); \
+    QMutexLocker locker(&MDK::Qt::mdkData()->m_mutex); \
     return (MDK::Qt::mdkData()->m_lp_##funcName ? MDK::Qt::mdkData()->m_lp_##funcName(__VA_ARGS__) : defVal);
 #endif
 
@@ -82,7 +82,7 @@ static constexpr const char _mdkHelper_mdk_fileName_envVar[] = "QTMEDIAPLAYER_MD
 
 struct MDKData
 {
-    mutable QMutex mutex = {};
+    mutable QMutex m_mutex = {};
 
     // global.h
     WWX190_GENERATE_MDKAPI(MDK_javaVM, void *, void *)
@@ -116,7 +116,7 @@ struct MDKData
 
     explicit MDKData()
     {
-        QStringList candidates = { QStringLiteral("mdk") };
+        QStringList candidates = { QStringLiteral("mdk-0"), QStringLiteral("mdk") };
         const QString rawFileNames = qEnvironmentVariable(_mdkHelper_mdk_fileName_envVar);
         if (!rawFileNames.isEmpty()) {
             const QStringList fileNames = rawFileNames.split(u';', ::Qt::SkipEmptyParts, ::Qt::CaseInsensitive);
@@ -154,14 +154,15 @@ struct MDKData
             }
         }
 
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
 
-        library.setFileName(path);
+        m_library.unload(); // Unload first, to clear previous errors.
+        m_library.setFileName(path);
         qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Start loading MDK from:" << QDir::toNativeSeparators(path);
-        if (library.load()) {
+        if (m_library.load()) {
             qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "MDK has been loaded successfully.";
         } else {
-            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to load MDK:" << library.errorString();
+            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to load MDK:" << m_library.errorString();
             return false;
         }
 
@@ -200,7 +201,7 @@ struct MDKData
 
     [[nodiscard]] inline bool unload()
     {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
 
         // global.h
         WWX190_SETNULL_MDKAPI(MDK_javaVM)
@@ -232,9 +233,9 @@ struct MDKData
         WWX190_SETNULL_MDKAPI(mdkVideoFrameAPI_new)
         WWX190_SETNULL_MDKAPI(mdkVideoFrameAPI_delete)
 
-        if (library.isLoaded()) {
-            if (!library.unload()) {
-                qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to unload MDK:" << library.errorString();
+        if (m_library.isLoaded()) {
+            if (!m_library.unload()) {
+                qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMDK)) << "Failed to unload MDK:" << m_library.errorString();
                 return false;
             }
         }
@@ -245,7 +246,7 @@ struct MDKData
 
     [[nodiscard]] inline bool isLoaded() const
     {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
         const bool result =
                 // global.h
                 WWX190_NOTNULL_MDKAPI(MDK_javaVM) &&
@@ -278,7 +279,7 @@ struct MDKData
 
 private:
     Q_DISABLE_COPY_MOVE(MDKData)
-    QLibrary library;
+    QLibrary m_library;
 };
 
 Q_GLOBAL_STATIC(MDKData, mdkData)
@@ -304,6 +305,10 @@ QString getMDKVersion()
 ///////////////////////////////////////////
 /// MDK
 ///////////////////////////////////////////
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // global.h
 
@@ -422,3 +427,7 @@ void mdkVideoFrameAPI_delete(struct mdkVideoFrameAPI **value)
 {
     WWX190_CALL_MDKAPI(mdkVideoFrameAPI_delete, value)
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -25,7 +25,7 @@
 #pragma once
 
 #include "mpvbackend_global.h"
-#include "../texturenodeinterface.h"
+#include "../../common/texturenodeinterface.h"
 
 QT_BEGIN_NAMESPACE
 QT_FORWARD_DECLARE_CLASS(QOpenGLFramebufferObject)

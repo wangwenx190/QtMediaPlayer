@@ -1,62 +1,26 @@
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+#[[
+  MIT License
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+  Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Quick REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
 
-set(SOURCES
-    qtmediaplayer_global.h
-    qtmediaplayer.h
-    qtmediaplayer.cpp
-)
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
 
-if(WIN32 AND BUILD_SHARED_LIBS)
-    enable_language(RC)
-    list(APPEND SOURCES qtmediaplayer.rc)
-endif()
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+]]
 
-add_library(${PROJECT_NAME} ${SOURCES})
-add_library(wangwenx190::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
-
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME}Lib)
-
-if(NOT BUILD_SHARED_LIBS)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC
-        QTMEDIAPLAYER_STATIC
-    )
-endif()
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    QT_NO_CAST_FROM_ASCII
-    QT_NO_CAST_TO_ASCII
-    QT_NO_KEYWORDS
-    QT_USE_QSTRINGBUILDER
-    QT_DEPRECATED_WARNINGS
-    QT_DISABLE_DEPRECATED_BEFORE=0x060300
-    QTMEDIAPLAYER_BUILD_LIBRARY
-)
-
-if(WIN32)
-    set(_WIN32_WINNT_WIN10 0x0A00)
-    set(NTDDI_WIN10_CO 0x0A00000B)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        _CRT_NON_CONFORMING_SWPRINTFS _CRT_SECURE_NO_WARNINGS
-        _ENABLE_EXTENDED_ALIGNED_STORAGE NOMINMAX UNICODE
-        _UNICODE WIN32_LEAN_AND_MEAN WINRT_LEAN_AND_MEAN
-        WINVER=${_WIN32_WINNT_WIN10} _WIN32_WINNT=${_WIN32_WINNT_WIN10}
-        _WIN32_IE=${_WIN32_WINNT_WIN10} NTDDI_VERSION=${NTDDI_WIN10_CO}
-    )
-endif()
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    Qt${QT_VERSION_MAJOR}::Quick
-)
-
-target_include_directories(${PROJECT_NAME} PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
-)
-
+add_subdirectory(loader)
 add_subdirectory(backends)

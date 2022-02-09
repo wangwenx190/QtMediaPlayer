@@ -25,7 +25,7 @@
 #pragma once
 
 #include "mpvbackend_global.h"
-#include "../backendinterface.h"
+#include "../../common/playerinterface.h"
 
 struct mpv_handle;
 struct mpv_render_context;
@@ -37,6 +37,9 @@ class MPVVideoTextureNode;
 class MPVPlayer : public MediaPlayer
 {
     Q_OBJECT
+#ifdef QML_NAMED_ELEMENT
+    QML_NAMED_ELEMENT(MediaPlayer)
+#endif
     Q_DISABLE_COPY_MOVE(MPVPlayer)
 
     friend class MPVVideoTextureNode;
@@ -49,7 +52,12 @@ public:
 
     Q_NODISCARD QString backendName() const override;
     Q_NODISCARD QString backendVersion() const override;
+    Q_NODISCARD QString backendAuthors() const override;
+    Q_NODISCARD QString backendCopyright() const override;
+    Q_NODISCARD QString backendLicenses() const override;
+    Q_NODISCARD QString backendHomepage() const override;
     Q_NODISCARD QString ffmpegVersion() const override;
+    Q_NODISCARD QString ffmpegConfiguration() const override;
 
     Q_NODISCARD QUrl source() const override;
     void setSource(const QUrl &value) override;
@@ -123,14 +131,20 @@ public:
     Q_NODISCARD int activeSubtitleTrack() const override;
     void setActiveSubtitleTrack(const int value) override;
 
+    Q_NODISCARD bool rendererReady() const override;
+
 public Q_SLOTS:
     void play() override;
     void pause() override;
     void stop() override;
-
     void seek(const qint64 value) override;
-
     void snapshot() override;
+
+public:
+    Q_NODISCARD Q_INVOKABLE bool isLoaded() const override;
+    Q_NODISCARD Q_INVOKABLE bool isPlaying() const override;
+    Q_NODISCARD Q_INVOKABLE bool isPaused() const override;
+    Q_NODISCARD Q_INVOKABLE bool isStopped() const override;
 
 protected Q_SLOTS:
     void handleMpvEvents();
@@ -146,8 +160,12 @@ protected:
 private Q_SLOTS:
     void doUpdate();
     void invalidateSceneGraph();
+    void setRendererReady(const bool value);
 
 private:
+    void initialize();
+    void deinitialize();
+
     void releaseResources() override;
 
     Q_NODISCARD bool mpvSendCommand(const QVariant &arguments);
@@ -158,17 +176,8 @@ private:
     void processMpvLogMessage(void *event);
     void processMpvPropertyChange(void *event);
 
-    Q_NODISCARD bool isLoaded() const;
-    Q_NODISCARD bool isPlaying() const;
-    Q_NODISCARD bool isPaused() const;
-    Q_NODISCARD bool isStopped() const;
-
-    void setMediaStatus(const MediaStatus mediaStatus);
-
     void videoReconfig();
     void audioReconfig();
-
-    void playbackStateChangeEvent();
 
 Q_SIGNALS:
     void onUpdate();
@@ -181,9 +190,13 @@ private:
     MPVVideoTextureNode *m_node = nullptr;
 
     QUrl m_source = {};
-    MediaStatus m_mediaStatus = MediaStatus::NoMedia;
+    QUrl m_cachedUrl = {};
+    MediaStatus m_mediaStatus = {};
     bool m_livePreview = false;
     bool m_autoStart = true;
+    qint64 m_lastPosition = 0;
+    bool m_rendererReady = false;
+    bool m_loaded = false;
 
     static inline const QHash<QString, QList<const char *>> properties =
     {
@@ -191,8 +204,8 @@ private:
         {QStringLiteral("dheight"), {"videoSizeChanged"}},
         {QStringLiteral("duration"), {"durationChanged"}},
         {QStringLiteral("time-pos"), {"positionChanged"}},
-        {QStringLiteral("ao-volume"), {"volumeChanged"}},
-        {QStringLiteral("ao-mute"), {"muteChanged"}},
+        {QStringLiteral("volume"), {"volumeChanged"}},
+        {QStringLiteral("mute"), {"muteChanged"}},
         {QStringLiteral("seekable"), {"seekableChanged"}},
         {QStringLiteral("hwdec"), {"hardwareDecodingChanged"}},
         {QStringLiteral("video-out-params/aspect"), {"aspectRatioChanged"}},

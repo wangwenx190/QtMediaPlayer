@@ -41,6 +41,7 @@
 #include "mpvqthelper.h"
 #include "include/mpv/render_gl.h"
 #include "include/mpv/stream_cb.h"
+#include <cstring>
 #include <QtCore/qdebug.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qlibrary.h>
@@ -56,7 +57,7 @@
 #define WWX190_RESOLVE_MPVAPI(funcName) \
     if (!m_lp_##funcName) { \
         qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Resolving function:" << #funcName; \
-        m_lp_##funcName = reinterpret_cast<_WWX190_MPVAPI_lp_##funcName>(library.resolve(#funcName)); \
+        m_lp_##funcName = reinterpret_cast<_WWX190_MPVAPI_lp_##funcName>(m_library.resolve(#funcName)); \
         Q_ASSERT(m_lp_##funcName); \
         if (!m_lp_##funcName) { \
             qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to resolve function" << #funcName; \
@@ -77,7 +78,7 @@
 
 #ifndef WWX190_CALL_MPVAPI
 #define WWX190_CALL_MPVAPI(funcName, ...) \
-    QMutexLocker locker(&MPV::Qt::mpvData()->mutex); \
+    QMutexLocker locker(&MPV::Qt::mpvData()->m_mutex); \
     if (MPV::Qt::mpvData()->m_lp_##funcName) { \
         MPV::Qt::mpvData()->m_lp_##funcName(__VA_ARGS__); \
     }
@@ -85,7 +86,7 @@
 
 #ifndef WWX190_CALL_MPVAPI_RETURN
 #define WWX190_CALL_MPVAPI_RETURN(funcName, defRet, ...) \
-    QMutexLocker locker(&MPV::Qt::mpvData()->mutex); \
+    QMutexLocker locker(&MPV::Qt::mpvData()->m_mutex); \
     return (MPV::Qt::mpvData()->m_lp_##funcName ? MPV::Qt::mpvData()->m_lp_##funcName(__VA_ARGS__) : defRet);
 #endif
 
@@ -100,15 +101,14 @@ static constexpr const char _mpvHelper_libmpv_fileName_envVar[] = "QTMEDIAPLAYER
     const QDebugStateSaver saver(d);
     d.nospace();
     d.noquote();
-    const QString str = QStringLiteral("MPV::Qt::ErrorReturn(errorCode=%1)").arg(QString::number(err.errorCode));
-    d << str;
+    d << QStringLiteral("MPV::Qt::ErrorReturn(errorCode=%1)").arg(QString::number(err.errorCode));
     return d;
 }
 #endif
 
 struct MPVData
 {
-    mutable QMutex mutex = {};
+    mutable QMutex m_mutex = {};
 
     // client.h
     WWX190_GENERATE_MPVAPI(mpv_client_api_version, unsigned long)
@@ -207,14 +207,15 @@ struct MPVData
             }
         }
 
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
 
-        library.setFileName(path);
+        m_library.unload(); // Unload first, to clear previous errors.
+        m_library.setFileName(path);
         qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Start loading libmpv from:" << QDir::toNativeSeparators(path);
-        if (library.load()) {
+        if (m_library.load()) {
             qCDebug(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "libmpv has been loaded successfully.";
         } else {
-            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to load libmpv:" << library.errorString();
+            qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to load libmpv:" << m_library.errorString();
             return false;
         }
 
@@ -280,7 +281,7 @@ struct MPVData
 
     [[nodiscard]] inline bool unload()
     {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
 
         // client.h
         WWX190_SETNULL_MPVAPI(mpv_client_api_version)
@@ -339,9 +340,9 @@ struct MPVData
         // stream_cb.h
         WWX190_SETNULL_MPVAPI(mpv_stream_cb_add_ro)
 
-        if (library.isLoaded()) {
-            if (!library.unload()) {
-                qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to unload libmpv:" << library.errorString();
+        if (m_library.isLoaded()) {
+            if (!m_library.unload()) {
+                qCWarning(QTMEDIAPLAYER_PREPEND_NAMESPACE(lcQMPMPV)) << "Failed to unload libmpv:" << m_library.errorString();
                 return false;
             }
         }
@@ -352,7 +353,7 @@ struct MPVData
 
     [[nodiscard]] inline bool isLoaded() const
     {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
         const bool result =
                 // client.h
                 WWX190_NOTNULL_MPVAPI(mpv_client_api_version) &&
@@ -413,7 +414,7 @@ struct MPVData
 
 private:
     Q_DISABLE_COPY_MOVE(MPVData)
-    QLibrary library;
+    QLibrary m_library;
 };
 
 Q_GLOBAL_STATIC(MPVData, mpvData)
@@ -753,6 +754,10 @@ int command_async(mpv_handle *ctx, const QVariant &args, quint64 reply_userdata)
 /////         libmpv
 ///////////////////////////////////////////////////
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // client.h
 
 unsigned long mpv_client_api_version()
@@ -1013,3 +1018,7 @@ int mpv_stream_cb_add_ro(mpv_handle *ctx, const char *protocol, void *user_data,
 {
     WWX190_CALL_MPVAPI_RETURN(mpv_stream_cb_add_ro, -1, ctx, protocol, user_data, open_fn)
 }
+
+#ifdef __cplusplus
+}
+#endif

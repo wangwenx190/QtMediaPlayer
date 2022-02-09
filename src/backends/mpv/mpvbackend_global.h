@@ -24,19 +24,7 @@
 
 #pragma once
 
-#include "../../qtmediaplayer_global.h"
-
-#ifndef QTMEDIAPLAYER_BACKEND_API
-#ifdef QTMEDIAPLAYER_BACKEND_STATIC
-#define QTMEDIAPLAYER_BACKEND_API
-#else
-#ifdef QTMEDIAPLAYER_BACKEND_BUILD_LIBRARY
-#define QTMEDIAPLAYER_BACKEND_API Q_DECL_EXPORT
-#else
-#define QTMEDIAPLAYER_BACKEND_API Q_DECL_IMPORT
-#endif
-#endif
-#endif
+#include "../../loader/qtmediaplayer_global.h"
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 Q_DECLARE_LOGGING_CATEGORY(lcQMPMPV)

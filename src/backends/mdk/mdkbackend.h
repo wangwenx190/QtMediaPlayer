@@ -24,18 +24,10 @@
 
 #pragma once
 
-#include "mdkbackend_global.h"
+#include "../../loader/qtmediaplayer_global.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-[[nodiscard]] QTMEDIAPLAYER_BACKEND_API bool RegisterBackend(const char *name);
-[[nodiscard]] QTMEDIAPLAYER_BACKEND_API const char *GetBackendName();
-[[nodiscard]] QTMEDIAPLAYER_BACKEND_API const char *GetBackendVersion();
-[[nodiscard]] QTMEDIAPLAYER_BACKEND_API bool IsRHIBackendSupported(const int enumIntValue);
-QTMEDIAPLAYER_BACKEND_API void FreeString(const char *str);
+[[nodiscard]] const QVariantHash &metaData_mdk();
 
-#ifdef __cplusplus
-}
-#endif
+QTMEDIAPLAYER_END_NAMESPACE

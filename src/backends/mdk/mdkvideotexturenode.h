@@ -25,7 +25,7 @@
 #pragma once
 
 #include "mdkbackend_global.h"
-#include "../texturenodeinterface.h"
+#include "../../common/texturenodeinterface.h"
 
 namespace mdk
 {

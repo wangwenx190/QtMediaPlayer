@@ -1,3 +1,27 @@
+#[[
+  MIT License
+
+  Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+]]
+
 set(BACKEND_NAME MPVBackend)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -13,12 +37,15 @@ if(UNIX AND (NOT APPLE) AND (${QT_VERSION_MAJOR} LESS 6))
 endif()
 
 set(SOURCES
+    ../../common/playertypes.h
     # Interfaces
-    ../backendinterface.h
-    ../backendinterface.cpp
-    ../texturenodeinterface.h
-    ../texturenodeinterface.cpp
+    ../../common/backendinterface.h
+    ../../common/playerinterface.h
+    ../../common/playerinterface.cpp
+    ../../common/texturenodeinterface.h
+    ../../common/texturenodeinterface.cpp
     # MPV backend
+    mpvbackend.qrc
     mpvbackend_global.h
     mpvqthelper.h
     mpvqthelper.cpp
@@ -43,9 +70,10 @@ target_include_directories(${BACKEND_NAME} PRIVATE
 )
 
 set_target_properties(${BACKEND_NAME} PROPERTIES
-    #OUTPUT_NAME mpv
+    OUTPUT_NAME QtMediaPlayer_MPV
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qtmediaplayer
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/qtmediaplayer
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/qtmediaplayer
 )
 
 target_compile_definitions(${BACKEND_NAME} PRIVATE
@@ -54,23 +82,10 @@ target_compile_definitions(${BACKEND_NAME} PRIVATE
     QT_NO_KEYWORDS
     QT_USE_QSTRINGBUILDER
     QT_DEPRECATED_WARNINGS
-    QT_DISABLE_DEPRECATED_BEFORE=0x060300
-    QTMEDIAPLAYER_BACKEND_BUILD_LIBRARY
+    QT_DISABLE_DEPRECATED_BEFORE=0x060400
     MPV_ENABLE_DEPRECATED=0
     BUILD_MPV_STATIC # Needed by MPV's own headers
 )
-
-if(WIN32)
-    set(_WIN32_WINNT_WIN10 0x0A00)
-    set(NTDDI_WIN10_CO 0x0A00000B)
-    target_compile_definitions(${BACKEND_NAME} PRIVATE
-        _CRT_NON_CONFORMING_SWPRINTFS _CRT_SECURE_NO_WARNINGS
-        _ENABLE_EXTENDED_ALIGNED_STORAGE NOMINMAX UNICODE
-        _UNICODE WIN32_LEAN_AND_MEAN WINRT_LEAN_AND_MEAN
-        WINVER=${_WIN32_WINNT_WIN10} _WIN32_WINNT=${_WIN32_WINNT_WIN10}
-        _WIN32_IE=${_WIN32_WINNT_WIN10} NTDDI_VERSION=${NTDDI_WIN10_CO}
-    )
-endif()
 
 target_link_libraries(${BACKEND_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Quick
@@ -82,5 +97,5 @@ if(UNIX AND (NOT APPLE) AND (${QT_VERSION_MAJOR} LESS 6))
 endif()
 
 target_include_directories(${BACKEND_NAME} PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
 )

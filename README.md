@@ -8,9 +8,17 @@ A simple but powerful multimedia player **library** designed for Qt Quick.
 - Cross-platform: support Windows, Linux, macOS, and mobile platforms **in theory**
 - Easy to build and use
 
+## Known limitations
+
+Currently this library doesn't support reading from embeded resources or reading from `QIODevice`. It can only read from real local files or online streams.
+
+## Why not just use QtMultimedia or own FFmpeg implementation?
+
+Currently this project uses **MDK** and **MPV** as the player backends. They are world-famous multimedia frameworks with long time active developing, they are known to have good code quality and especially outstanding performance, however, QtMultimedia is only a simple implementation based on the operating system's default multimedia framework, it has a friendly interface but it's not designed for performance, and I'm also not convinced that the Qt company has deep experience on the multimedia area. And I also don't think some custom FFmpeg implementation can be better than these impressive frameworks.
+
 ## Build
 
-Since this project makes heavy usage of [Qt RHI](https://doc.qt.io/qt-6/qtquick-visualcanvas-adaptations.html), you'll need **at least Qt 5.14** to use this project. **It's recommended to use Qt6 or the latest version of Qt**.
+Since this project makes heavy usage of [Qt RHI](https://doc.qt.io/qt-6/qtquick-visualcanvas-adaptations.html), you'll need **at least Qt 5.14** to use this project. **It's recommended to use Qt 5.15 or Qt 6.2 or the latest version of Qt**.
 
 ```cmake
 cmake .
@@ -18,11 +26,18 @@ cmake --build .
 cmake --install .
 ```
 
-Currently two backends are available: [MDK](https://sourceforge.net/projects/mdk-sdk/files/) and [MPV](https://sourceforge.net/projects/mpv-player-windows/files/libmpv/). [VLC](http://download.videolan.org/pub/videolan/vlc/last/) is on plan. All backends will be loaded dynamically at run-time.
+Currently two player backends are available: [MDK](https://sourceforge.net/projects/mdk-sdk/files/) and [MPV](https://sourceforge.net/projects/mpv-player-windows/files/libmpv/). [FFmpeg](https://ffmpeg.org/) is on plan. All backends will be loaded dynamically at run-time.
 
-Recommended pre-built FFmpeg binaries:
-- [Mile.FFmpeg](https://github.com/ProjectMile/Mile.FFmpeg/releases/latest) (currently Windows only, but is prefered)
-- [avbuild](https://sourceforge.net/projects/avbuild/files/) (multiple platforms, also have an additional lite version which is less than 10MB)
+**Notes for using the MDK backend**: you need to download a separate FFmpeg package yourself and put them into the application directory due to MDK doesn't link against FFmpeg statically.
+
+**Notes for using the MPV backend**: libmpv needs [ANGLE](https://github.com/google/angle) (libEGL.dll & libGLESv2.dll) and Microsoft's shader compiler (d3dcompiler_XX.dll), you need to put them into the application directory. The latter is shipped with Windows SDK, the former is shipped with Google Chrome/Mozilla Firefox/Visual Studio Code/etc. If you want to build ANGLE yourself, [vcpkg](https://github.com/microsoft/vcpkg) is a good choice.
+
+About the [VLC](https://artifacts.videolan.org/vlc/nightly-win64-llvm/) backend: There has been quite some work on the initial porting of the VLC backend, but it comes to an dead end. libVLC recommends to use a separate window to do the rendering to get the best performance and experience. It also supports get the decoded data and do the rendering ourself, but after some testing, I found there is significant performance lost, just like libVLC's official documentation said. And we want to use QtRHI to catch up Qt's latest design, however, libVLC's design is not suitable for doing so. It supports custom rendering through Direct3D and OpenGL, but it works quite differently with QtRHI's design. In one word: the VLC backend is abandoned due to significant performance lost and incompatible design with QtRHI.
+
+Recommended 3rd-party pre-built FFmpeg binaries:
+- **RECOMMENDED** [avbuild](https://sourceforge.net/projects/avbuild/files/) (desktop & mobile & embeded platforms, full featured & lite builds, shared & static libraries, LGPL & GPL)
+- [FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases/latest) (Win64 & Linux64, full featured builds, shared & static libraries, LGPL & GPL)
+- [Mile.FFmpeg](https://github.com/ProjectMile/Mile.FFmpeg/releases/latest) (based on vcpkg, currently Windows only, full featured builds, shared libraries only, LGPL)
 
 ## Usage
 
