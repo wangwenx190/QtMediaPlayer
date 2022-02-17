@@ -554,7 +554,7 @@ void MDKPlayer::setHardwareDecoding(const bool value)
         QStringLiteral("VDPAU"),
         QStringLiteral("CUDA"),
         QStringLiteral("NVDEC"),
-#elif defined(Q_OS_MACOS)
+#elif (defined(Q_OS_MACOS) || defined(Q_OS_IOS))
         QStringLiteral("VT"),
         QStringLiteral("VideoToolbox"),
 #elif defined(Q_OS_ANDROID)
@@ -695,12 +695,14 @@ MDKPlayer::MediaTracks MDKPlayer::mediaTracks() const
         for (auto &&vsi : qAsConst(vs)) {
             QVariantHash info = {};
             info.insert(QStringLiteral("index"), vsi.index);
-            info.insert(QStringLiteral("start_time"), vsi.start_time);
-            info.insert(QStringLiteral("duration"), vsi.duration);
+            info.insert(QStringLiteral("start_time"), qint64(vsi.start_time));
+            info.insert(QStringLiteral("duration"), qint64(vsi.duration));
+            info.insert(QStringLiteral("frames"), qint64(vsi.frames));
+            info.insert(QStringLiteral("rotation"), vsi.rotation);
             info.insert(QStringLiteral("width"), vsi.codec.width);
             info.insert(QStringLiteral("height"), vsi.codec.height);
             info.insert(QStringLiteral("frame_rate"), vsi.codec.frame_rate);
-            info.insert(QStringLiteral("bit_rate"), vsi.codec.bit_rate);
+            info.insert(QStringLiteral("bit_rate"), qint64(vsi.codec.bit_rate));
             info.insert(QStringLiteral("codec"), QString::fromUtf8(vsi.codec.codec));
             info.insert(QStringLiteral("format_name"), QString::fromUtf8(vsi.codec.format_name));
             // What about metadata?
@@ -711,9 +713,11 @@ MDKPlayer::MediaTracks MDKPlayer::mediaTracks() const
         for (auto &&asi : qAsConst(as)) {
             QVariantHash info = {};
             info.insert(QStringLiteral("index"), asi.index);
-            info.insert(QStringLiteral("start_time"), asi.start_time);
-            info.insert(QStringLiteral("duration"), asi.duration);
-            info.insert(QStringLiteral("bit_rate"), asi.codec.bit_rate);
+            info.insert(QStringLiteral("start_time"), qint64(asi.start_time));
+            info.insert(QStringLiteral("duration"), qint64(asi.duration));
+            info.insert(QStringLiteral("frames"), qint64(asi.frames));
+            info.insert(QStringLiteral("bit_rate"), qint64(asi.codec.bit_rate));
+            info.insert(QStringLiteral("frame_rate"), asi.codec.frame_rate);
             info.insert(QStringLiteral("codec"), QString::fromUtf8(asi.codec.codec));
             info.insert(QStringLiteral("channels"), asi.codec.channels);
             info.insert(QStringLiteral("sample_rate"), asi.codec.sample_rate);

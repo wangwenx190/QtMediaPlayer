@@ -8,6 +8,9 @@ set(CMAKE_AUTORCC ON)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Quick REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
+if(UNIX AND (NOT APPLE) AND (${QT_VERSION_MAJOR} LESS 6))
+    find_package(Qt${QT_VERSION_MAJOR} COMPONENTS X11Extras REQUIRED)
+endif()
 
 set(SOURCES
     # Interfaces
@@ -72,6 +75,11 @@ endif()
 target_link_libraries(${BACKEND_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Quick
 )
+if(UNIX AND (NOT APPLE) AND (${QT_VERSION_MAJOR} LESS 6))
+    target_link_libraries(${BACKEND_NAME} PRIVATE
+        Qt${QT_VERSION_MAJOR}::X11Extras
+    )
+endif()
 
 target_include_directories(${BACKEND_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
