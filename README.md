@@ -41,7 +41,7 @@ Recommended 3rd-party pre-built FFmpeg binaries:
 
 ## Usage
 
-See [example](/example).
+See [demo](./demo).
 
 ## License
 

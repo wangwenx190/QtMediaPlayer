@@ -31,7 +31,9 @@ project(QtMediaPlayer
     HOMEPAGE_URL "https://github.com/wangwenx190/QtMediaPlayer/"
 )
 
-option(BUILD_EXAMPLE_APP "Build QtMediaPlayer example application." ON)
+option(BUILD_DEMO_APP "Build the QtMediaPlayer demo application." ON)
+option(BUILD_STATIC_LOADER "Build the QtMediaPlayer loader as a static library." ON)
+option(BUILD_STATIC_PLUGINS "Build the QtMediaPlayer player backend plugins as static libraries." ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -93,6 +95,6 @@ if(GIT_EXECUTABLE_PATH AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
 endif()
 
 add_subdirectory(src)
-if(BUILD_EXAMPLE_APP)
-    add_subdirectory(example)
+if(BUILD_DEMO_APP)
+    add_subdirectory(demo)
 endif()

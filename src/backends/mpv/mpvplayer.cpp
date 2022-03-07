@@ -129,7 +129,7 @@ void MPVPlayer::initialize()
     mpv_set_wakeup_callback(m_mpv, wakeup, this);
 
     if (mpv_initialize(m_mpv) < 0) {
-        qFatal("Failed to initialize mpv player.");
+        qFatal("Failed to initialize the mpv player.");
     }
 
     connect(this, &MPVPlayer::onUpdate, this, &MPVPlayer::doUpdate, Qt::QueuedConnection);
