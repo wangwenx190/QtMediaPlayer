@@ -39,6 +39,8 @@ set(SOURCES
     backendinterface.cpp
     dummybackend.h
     dummybackend.cpp
+    texturenodeinterface.h
+    texturenodeinterface.cpp
 )
 
 if(WIN32 AND (NOT BUILD_STATIC_COMMON))
@@ -64,8 +66,6 @@ qt_add_qml_module(${PROJ_NAME}
         playerinterface.cpp
         dummyplayer.h
         dummyplayer.cpp
-        texturenodeinterface.h
-        texturenodeinterface.cpp
 )
 
 if(BUILD_STATIC_COMMON)

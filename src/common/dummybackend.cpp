@@ -32,37 +32,38 @@ DummyBackend::~DummyBackend() = default;
 
 QString DummyBackend::name() const
 {
-
+    return QStringLiteral("Dummy");
 }
 
 QString DummyBackend::version() const
 {
-
+    return QStringLiteral("1.0.0");
 }
 
 bool DummyBackend::available() const
 {
-
+    return false;
 }
 
 bool DummyBackend::isGraphicsApiSupported(const int api) const
 {
-
+    Q_UNUSED(api);
+    return false;
 }
 
 QString DummyBackend::filePath() const
 {
-
+    return {};
 }
 
 QString DummyBackend::fileName() const
 {
-
+    return {};
 }
 
 bool DummyBackend::initialize() const
 {
-
+    return false;
 }
 
 QTMEDIAPLAYER_END_NAMESPACE
