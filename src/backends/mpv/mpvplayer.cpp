@@ -28,7 +28,6 @@
 #include "mpvvideotexturenode.h"
 #include "../../common/backendinterface.h"
 #include "include/mpv/render.h"
-#include <clocale>
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtQuick/qquickwindow.h>

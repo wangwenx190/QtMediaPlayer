@@ -46,6 +46,14 @@
 #ifdef Q_OS_WINDOWS
 Q_DECLARE_METATYPE(QMargins)
 
+#ifndef WM_NCUAHDRAWCAPTION
+#  define WM_NCUAHDRAWCAPTION (0x00AE)
+#endif
+
+#ifndef WM_NCUAHDRAWFRAME
+#  define WM_NCUAHDRAWFRAME (0x00AF)
+#endif
+
 #ifndef SM_CXPADDEDBORDER
 #  define SM_CXPADDEDBORDER (92)
 #endif
@@ -56,6 +64,10 @@ Q_DECLARE_METATYPE(QMargins)
 
 #ifndef WM_DWMCOMPOSITIONCHANGED
 #  define WM_DWMCOMPOSITIONCHANGED (0x031E)
+#endif
+
+#ifndef WM_DPICHANGED
+#  define WM_DPICHANGED (0x02E0)
 #endif
 
 #ifndef GET_X_LPARAM
@@ -73,6 +85,16 @@ Q_DECLARE_METATYPE(QMargins)
 #ifndef IsMaximized
 #  define IsMaximized(hwnd) IsZoomed(hwnd)
 #endif
+
+struct flh_timecaps_tag
+{
+    UINT wPeriodMin; // minimum period supported
+    UINT wPeriodMax; // maximum period supported
+};
+using flh_TIMECAPS = flh_timecaps_tag;
+using flh_PTIMECAPS = flh_timecaps_tag *;
+using flh_NPTIMECAPS = flh_timecaps_tag * NEAR;
+using flh_LPTIMECAPS = flh_timecaps_tag * FAR;
 #endif
 
 #ifdef Q_OS_WINDOWS
@@ -304,6 +326,61 @@ static inline void UpdateQtInternalFrame(QQuickWindow *window)
         platformWindow->setCustomMargins(qtMargins);
     }
 #endif
+}
+
+static inline void SyncWmPaintWithDwm()
+{
+    // No need to sync with DWM if DWM composition is disabled.
+    if (!IsDwmCompositionEnabled()) {
+        return;
+    }
+    QSystemLibrary winmmLib(QStringLiteral("winmm"));
+    static const auto ptimeGetDevCaps =
+        reinterpret_cast</*MMRESULT*/UINT(WINAPI *)(flh_LPTIMECAPS, UINT)>(winmmLib.resolve("timeGetDevCaps"));
+    static const auto ptimeBeginPeriod =
+        reinterpret_cast</*MMRESULT*/UINT(WINAPI *)(UINT)>(winmmLib.resolve("timeBeginPeriod"));
+    static const auto ptimeEndPeriod =
+        reinterpret_cast</*MMRESULT*/UINT(WINAPI *)(UINT)>(winmmLib.resolve("timeEndPeriod"));
+    static const auto pDwmGetCompositionTimingInfo =
+        reinterpret_cast<HRESULT(WINAPI *)(HWND, DWM_TIMING_INFO *)>(QSystemLibrary::resolve(QStringLiteral("dwmapi"), "DwmGetCompositionTimingInfo"));
+    if (!ptimeGetDevCaps || !ptimeBeginPeriod || !ptimeEndPeriod || !pDwmGetCompositionTimingInfo) {
+        return;
+    }
+    // Dirty hack to workaround the resize flicker caused by DWM.
+    LARGE_INTEGER freq = {};
+    QueryPerformanceFrequency(&freq);
+    flh_TIMECAPS tc = {};
+    ptimeGetDevCaps(&tc, sizeof(tc));
+    const UINT ms_granularity = tc.wPeriodMin;
+    ptimeBeginPeriod(ms_granularity);
+    LARGE_INTEGER now0 = {};
+    QueryPerformanceCounter(&now0);
+    // ask DWM where the vertical blank falls
+    DWM_TIMING_INFO dti;
+    SecureZeroMemory(&dti, sizeof(dti));
+    dti.cbSize = sizeof(dti);
+    pDwmGetCompositionTimingInfo(nullptr, &dti);
+    LARGE_INTEGER now1 = {};
+    QueryPerformanceCounter(&now1);
+    // - DWM told us about SOME vertical blank
+    //   - past or future, possibly many frames away
+    // - convert that into the NEXT vertical blank
+    const LONGLONG period = dti.qpcRefreshPeriod;
+    const LONGLONG dt = dti.qpcVBlank - now1.QuadPart;
+    LONGLONG w = 0, m = 0;
+    if (dt >= 0) {
+        w = dt / period;
+    } else {
+        // reach back to previous period
+        // - so m represents consistent position within phase
+        w = -1 + dt / period;
+    }
+    m = dt - (period * w);
+    Q_ASSERT(m >= 0);
+    Q_ASSERT(m < period);
+    const qreal m_ms = 1000.0 * static_cast<qreal>(m) / static_cast<qreal>(freq.QuadPart);
+    Sleep(static_cast<DWORD>(qRound(m_ms)));
+    ptimeEndPeriod(ms_granularity);
 }
 #endif
 
@@ -624,6 +701,7 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
                 }
             }
         }
+        SyncWmPaintWithDwm();
         // We want to reduce flicker during resize by returning "WVR_REDRAW"
         // but Windows will exhibits bugs where lient pixels and child windows
         // are mispositioned by the width/height of the upper-left nonclient area.
@@ -686,6 +764,57 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
     case WM_DWMCOMPOSITIONCHANGED: {
         UpdateWindowFrameMargins(msg->hwnd);
     } break;
+    case WM_DPICHANGED: {
+        // Sync the internal frame margins with the latest DPI settings.
+        UpdateQtInternalFrame(this);
+        TriggerFrameChange(msg->hwnd);
+    } break;
+    case WM_NCUAHDRAWCAPTION:
+    case WM_NCUAHDRAWFRAME: {
+        // These undocumented messages are sent to draw themed window
+        // borders. Block them to prevent drawing borders over the client
+        // area.
+        *result = 0;
+        return true;
+    }
+    case WM_NCPAINT: {
+        if (!IsDwmCompositionEnabled()) {
+            // Only block WM_NCPAINT when DWM composition is disabled. If
+            // it's blocked when DWM composition is enabled, the frame
+            // shadow won't be drawn.
+            *result = 0;
+            return true;
+        }
+    } break;
+    case WM_NCACTIVATE: {
+        if (IsDwmCompositionEnabled()) {
+            // DefWindowProc won't repaint the window border if lParam
+            // (normally a HRGN) is -1. See the following link's "lParam"
+            // section:
+            // https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
+            // Don't use "*result = 0" otherwise the window won't respond
+            // to the window active state change.
+            *result = DefWindowProcW(msg->hwnd, WM_NCACTIVATE, msg->wParam, -1);
+        } else {
+            *result = (msg->wParam ? FALSE : TRUE);
+        }
+        return true;
+    }
+    case WM_SETICON:
+    case WM_SETTEXT: {
+        // Disable painting while these messages are handled to prevent them
+        // from drawing a window caption over the client area.
+        const LONG_PTR oldStyle = GetWindowLongPtrW(msg->hwnd, GWL_STYLE);
+        // Prevent Windows from drawing the default title bar by temporarily
+        // toggling the WS_VISIBLE style.
+        SetWindowLongPtrW(msg->hwnd, GWL_STYLE, static_cast<LONG_PTR>(oldStyle & ~WS_VISIBLE));
+        TriggerFrameChange(msg->hwnd);
+        const LRESULT ret = DefWindowProcW(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+        SetWindowLongPtrW(msg->hwnd, GWL_STYLE, oldStyle);
+        TriggerFrameChange(msg->hwnd);
+        *result = ret;
+        return true;
+    }
     default:
         break;
     }
