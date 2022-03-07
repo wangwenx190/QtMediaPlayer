@@ -37,14 +37,6 @@ if(UNIX AND (NOT APPLE) AND (${QT_VERSION_MAJOR} LESS 6))
 endif()
 
 set(SOURCES
-    ../../common/playertypes.h
-    # Interfaces
-    ../../common/backendinterface.h
-    ../../common/playerinterface.h
-    ../../common/playerinterface.cpp
-    ../../common/texturenodeinterface.h
-    ../../common/texturenodeinterface.cpp
-    # MPV backend
     mpvbackend.qrc
     mpvbackend_global.h
     mpvqthelper.h
@@ -98,6 +90,7 @@ target_compile_definitions(${PROJ_NAME} PRIVATE
 
 target_link_libraries(${PROJ_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Quick
+    QtMediaPlayerCommon
 )
 if(UNIX AND (NOT APPLE) AND (${QT_VERSION_MAJOR} LESS 6))
     target_link_libraries(${PROJ_NAME} PRIVATE
@@ -108,3 +101,13 @@ endif()
 target_include_directories(${PROJ_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
 )
+
+if(MSVC)
+    target_compile_options(${PROJ_NAME} PRIVATE
+        /W4 /WX
+    )
+else()
+    target_compile_options(${PROJ_NAME} PRIVATE
+        -Wall -Wextra -Werror
+    )
+endif()

@@ -107,7 +107,7 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
 
 MediaPlayer::~MediaPlayer() = default;
 
-QString MediaPlayer::qtRHIBackendName() const
+QString MediaPlayer::graphicsApiName() const
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     switch (QQuickWindow::graphicsApi()) {
@@ -126,7 +126,6 @@ QString MediaPlayer::qtRHIBackendName() const
     default:
         return QStringLiteral("Unknown");
     }
-    return QStringLiteral("Unknown");
 #else
     return QQuickWindow::sceneGraphBackend();
 #endif

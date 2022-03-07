@@ -35,7 +35,7 @@ static const QString hardwareDecodingWarningText =
                    "it's also a source of error. Software decoding should always be your "
                    "first choice in any case.");
 
-class MediaPlayer : public QQuickItem
+class QTMEDIAPLAYER_COMMON_API MediaPlayer : public QQuickItem
 {
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(MediaPlayer)
@@ -48,7 +48,7 @@ class MediaPlayer : public QQuickItem
     Q_PROPERTY(QString backendHomepage READ backendHomepage CONSTANT)
     Q_PROPERTY(QString ffmpegVersion READ ffmpegVersion CONSTANT)
     Q_PROPERTY(QString ffmpegConfiguration READ ffmpegConfiguration CONSTANT)
-    Q_PROPERTY(QString qtRHIBackendName READ qtRHIBackendName CONSTANT)
+    Q_PROPERTY(QString graphicsApiName READ graphicsApiName CONSTANT)
 
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(QString fileName READ fileName NOTIFY fileNameChanged)
@@ -98,7 +98,7 @@ public:
     Q_NODISCARD virtual QString backendHomepage() const = 0;
     Q_NODISCARD virtual QString ffmpegVersion() const = 0;
     Q_NODISCARD virtual QString ffmpegConfiguration() const = 0;
-    Q_NODISCARD QString qtRHIBackendName() const;
+    Q_NODISCARD QString graphicsApiName() const;
 
     Q_NODISCARD virtual QUrl source() const = 0;
     virtual void setSource(const QUrl &value) = 0;

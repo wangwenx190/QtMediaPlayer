@@ -26,7 +26,7 @@
 #include "mpvbackend.h"
 #include "mpvqthelper.h"
 #include "mpvvideotexturenode.h"
-#include "../../common/backendinterface.h"
+#include <backendinterface.h>
 #include "include/mpv/render.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
@@ -143,6 +143,7 @@ void MPVPlayer::initialize()
         }
         if (isStopped()) {
             m_loaded = false;
+            m_mediaStatus = {};
             const QUrl url = m_source;
             const qint64 pos = m_lastPosition;
             Q_EMIT stopped();

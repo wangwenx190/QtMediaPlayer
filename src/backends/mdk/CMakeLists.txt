@@ -35,14 +35,6 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
 find_package(Vulkan)
 
 set(SOURCES
-    ../../common/playertypes.h
-    # Interfaces
-    ../../common/backendinterface.h
-    ../../common/playerinterface.h
-    ../../common/playerinterface.cpp
-    ../../common/texturenodeinterface.h
-    ../../common/texturenodeinterface.cpp
-    # MDK backend
     mdkbackend_global.h
     mdkqthelper.h
     mdkqthelper.cpp
@@ -113,8 +105,19 @@ endif()
 
 target_link_libraries(${PROJ_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Quick
+    QtMediaPlayerCommon
 )
 
 target_include_directories(${PROJ_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
 )
+
+if(MSVC)
+    target_compile_options(${PROJ_NAME} PRIVATE
+        /W4 /WX
+    )
+else()
+    target_compile_options(${PROJ_NAME} PRIVATE
+        -Wall -Wextra -Werror
+    )
+endif()

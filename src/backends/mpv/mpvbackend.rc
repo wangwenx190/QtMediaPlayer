@@ -47,6 +47,10 @@ BEGIN
             VALUE "LegalCopyright",   "MIT License"
             VALUE "ProductName",      "QtMediaPlayer"
             VALUE "ProductVersion",   "1.0.0.0"
+            VALUE "OriginalFilename", ""
+            VALUE "Comments",         "Based on the technology of QtMediaPlayer."
+            VALUE "InternalName",     "MDKBackend"
+            VALUE "LegalTrademarks",  ""
         END
     END
     BLOCK "VarFileInfo"

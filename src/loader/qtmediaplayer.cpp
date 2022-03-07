@@ -25,22 +25,60 @@
 #include "qtmediaplayer.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qmutex.h>
-#include <QtCore/qdir.h>
-#include <QtCore/qfileinfo.h>
-#include <QtCore/qlibrary.h>
-#include "../common/backendinterface.h"
+#include <backendinterface.h>
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+#  include <mdkbackend.h>
+#  include <mpvbackend.h>
+//#  include <ffmpegbackend.h>
+#else
+#  include <QtCore/qdir.h>
+#  include <QtCore/qfileinfo.h>
+#  include <QtCore/qlibrary.h>
+#endif
+
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+#  ifndef QTMEDIAPLAYER_LOAD_STATIC_PLUGIN
+#    define QTMEDIAPLAYER_LOAD_STATIC_PLUGIN(Name) \
+       if (QueryBackend_##Name(&backend)) { \
+           Q_CHECK_PTR(backend); \
+           if (backend) { \
+               const QString backendName = backend->name().toLower(); \
+               if (backend->available()) { \
+                   Q_ASSERT(!m_availableBackends.contains(backendName)); \
+                   if (m_availableBackends.contains(backendName)) { \
+                       qCWarning(lcQMPLoader) << "The player backend" << backendName << "is already recorded."; \
+                   } else { \
+                       m_availableBackends.insert(backendName, backend); \
+                   } \
+               } else { \
+                   qCDebug(lcQMPLoader) << "The player backend" << backendName << "is not available."; \
+                   backend->Release(); \
+               } \
+           } else { \
+               qCWarning(lcQMPLoader) << "A null pointer is returned. This should not happen."; \
+           } \
+       } else { \
+           qCWarning(lcQMPLoader) << "Failed to create backend instance. This should not happen."; \
+       } \
+       backend = nullptr;
+#  endif
+#endif
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(lcQMPLoader, "wangwenx190.qtmediaplayer.loader")
 
+#ifndef QTMEDIAPLAYER_PLUGIN_STATIC
 static constexpr const char _qmp_backend_dir_envVar[] = "QTMEDIAPLAYER_BACKEND_SEARCH_PATH";
+#endif
 
 struct QMPData
 {
     QMutex m_mutex = {};
 
+#ifndef QTMEDIAPLAYER_PLUGIN_STATIC
     QStringList m_searchPaths = {};
+#endif
     QMap<QString, QMPBackend *> m_availableBackends = {};
 
     explicit QMPData()
@@ -68,6 +106,13 @@ struct QMPData
             return;
         }
         inited = true;
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+        QMutexLocker locker(&m_mutex);
+        QMPBackend *backend = nullptr;
+        QTMEDIAPLAYER_LOAD_STATIC_PLUGIN(MDK)
+        QTMEDIAPLAYER_LOAD_STATIC_PLUGIN(MPV)
+        //QTMEDIAPLAYER_LOAD_STATIC_PLUGIN(FFmpeg)
+#else
         bool searchPathsNotEmpty = false;
         const QString rawPathsFromEnvVar = qEnvironmentVariable(_qmp_backend_dir_envVar);
         if (!rawPathsFromEnvVar.isEmpty()) {
@@ -82,10 +127,14 @@ struct QMPData
         if (searchPathsNotEmpty) {
             refreshCache();
         }
+#endif
     }
 
     inline void loadFromDir(const QString &path)
     {
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+        Q_UNUSED(path);
+#else
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
             return;
@@ -122,7 +171,7 @@ struct QMPData
                                        << ". This is very wrong.";
                 continue;
             }
-            const QString backendName = backend->name();
+            const QString backendName = backend->name().toLower();
             if (!backend->available()) {
                 backend->Release();
                 backend = nullptr;
@@ -136,13 +185,15 @@ struct QMPData
                 m_mutex.unlock();
                 continue;
             }
-            m_availableBackends.insert(backendName.toLower(), backend);
+            m_availableBackends.insert(backendName, backend);
             m_mutex.unlock();
         }
+#endif
     }
 
     inline void refreshCache()
     {
+#ifndef QTMEDIAPLAYER_PLUGIN_STATIC
         m_mutex.lock();
         Q_ASSERT(!m_searchPaths.isEmpty());
         if (m_searchPaths.isEmpty()) {
@@ -159,10 +210,14 @@ struct QMPData
                 loadFromDir(path);
             }
         }
+#endif
     }
 
     inline void addSearchDir(const QString &path)
     {
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+        Q_UNUSED(path);
+#else
         Q_ASSERT(!path.isEmpty());
         if (path.isEmpty()) {
             return;
@@ -185,38 +240,47 @@ struct QMPData
         m_searchPaths << cleanPath;
         m_mutex.unlock();
         loadFromDir(cleanPath);
+#endif
     }
 
 private:
     Q_DISABLE_COPY_MOVE(QMPData)
 };
 
-Q_GLOBAL_STATIC(QMPData, qmpData)
+Q_GLOBAL_STATIC(QMPData, g_loaderHelper)
 
 void Loader::addPluginSearchPath(const QString &value)
 {
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+    Q_UNUSED(value);
+#else
     Q_ASSERT(!value.isEmpty());
     if (value.isEmpty()) {
         return;
     }
-    qmpData()->addSearchDir(value);
+    g_loaderHelper()->addSearchDir(value);
+#endif
 }
 
 QStringList Loader::getPluginSearchPaths()
 {
-    QMutexLocker locker(&qmpData()->m_mutex);
-    return qmpData()->m_searchPaths;
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+    return {};
+#else
+    QMutexLocker locker(&g_loaderHelper()->m_mutex);
+    return g_loaderHelper()->m_searchPaths;
+#endif
 }
 
 QStringList Loader::getAvailableBackends()
 {
-    QMutexLocker locker(&qmpData()->m_mutex);
-    if (qmpData()->m_availableBackends.isEmpty()) {
+    QMutexLocker locker(&g_loaderHelper()->m_mutex);
+    if (g_loaderHelper()->m_availableBackends.isEmpty()) {
         return {};
     }
     QStringList list = {};
-    auto it = qmpData()->m_availableBackends.constBegin();
-    while (it != qmpData()->m_availableBackends.constEnd()) {
+    auto it = g_loaderHelper()->m_availableBackends.constBegin();
+    while (it != g_loaderHelper()->m_availableBackends.constEnd()) {
         list << it.key();
         ++it;
     }
@@ -230,12 +294,12 @@ bool Loader::initializeBackend(const QString &value)
         return false;
     }
     const QString loweredName = value.toLower();
-    QMutexLocker locker(&qmpData()->m_mutex);
-    if (!qmpData()->m_availableBackends.contains(loweredName)) {
+    QMutexLocker locker(&g_loaderHelper()->m_mutex);
+    if (!g_loaderHelper()->m_availableBackends.contains(loweredName)) {
         qCWarning(lcQMPLoader) << loweredName << "is not an available backend.";
         return false;
     }
-    const auto backend = qmpData()->m_availableBackends.value(loweredName);
+    const auto backend = g_loaderHelper()->m_availableBackends.value(loweredName);
     Q_ASSERT(backend);
     if (!backend) {
         qCWarning(lcQMPLoader) << "A null pointer is returned, this is very wrong.";
@@ -244,25 +308,52 @@ bool Loader::initializeBackend(const QString &value)
     return backend->initialize();
 }
 
-bool Loader::isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api)
+bool Loader::isGraphicsApiSupported(const QString &name, const int api)
 {
     Q_ASSERT(!name.isEmpty());
     if (name.isEmpty()) {
         return false;
     }
     const QString loweredName = name.toLower();
-    QMutexLocker locker(&qmpData()->m_mutex);
-    if (!qmpData()->m_availableBackends.contains(loweredName)) {
+    QMutexLocker locker(&g_loaderHelper()->m_mutex);
+    if (!g_loaderHelper()->m_availableBackends.contains(loweredName)) {
         qCWarning(lcQMPLoader) << loweredName << "is not an available backend.";
         return false;
     }
-    const auto backend = qmpData()->m_availableBackends.value(loweredName);
+    const auto backend = g_loaderHelper()->m_availableBackends.value(loweredName);
     Q_ASSERT(backend);
     if (!backend) {
         qCWarning(lcQMPLoader) << "A null pointer is returned, this is very wrong.";
         return false;
     }
-    return backend->isRHIBackendSupported(api);
+    return backend->isGraphicsApiSupported(api);
+}
+
+bool Loader::isLoaderStatic()
+{
+#ifdef QTMEDIAPLAYER_LOADER_STATIC
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool Loader::isCommonStatic()
+{
+#ifdef QTMEDIAPLAYER_COMMON_STATIC
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool Loader::isPluginStatic()
+{
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+    return true;
+#else
+    return false;
+#endif
 }
 
 QTMEDIAPLAYER_END_NAMESPACE

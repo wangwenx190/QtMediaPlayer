@@ -22,7 +22,7 @@
   SOFTWARE.
 ]]
 
-set(PROJ_NAME QtMediaPlayerLoader)
+set(PROJ_NAME QtMediaPlayerCommon)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -30,34 +30,47 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Quick REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
 
 set(SOURCES
-    qtmediaplayer_global.h
-    qtmediaplayer.h
-    qtmediaplayer.cpp
+    common_global.h
+    backendinterface.h
+    backendinterface.cpp
+    dummybackend.h
+    dummybackend.cpp
 )
 
-if(WIN32 AND (NOT BUILD_STATIC_LOADER))
+if(WIN32 AND (NOT BUILD_STATIC_COMMON))
     enable_language(RC)
-    list(APPEND SOURCES loader.rc)
+    list(APPEND SOURCES common.rc)
 endif()
 
-if(BUILD_STATIC_LOADER)
+if(BUILD_STATIC_COMMON)
     add_library(${PROJ_NAME} STATIC ${SOURCES})
 else()
     add_library(${PROJ_NAME} SHARED ${SOURCES})
 endif()
 
-if(BUILD_STATIC_LOADER)
+qt_add_qml_module(${PROJ_NAME}
+    URI org.wangwenx190.QtMediaPlayer
+    VERSION 1.0
+    IMPORTS
+        QtQml/auto
+        QtQuick/auto
+    SOURCES
+        playertypes.h
+        playerinterface.h
+        playerinterface.cpp
+        dummyplayer.h
+        dummyplayer.cpp
+        texturenodeinterface.h
+        texturenodeinterface.cpp
+)
+
+if(BUILD_STATIC_COMMON)
     target_compile_definitions(${PROJ_NAME} PUBLIC
-        QTMEDIAPLAYER_LOADER_STATIC
-    )
-endif()
-if(BUILD_STATIC_PLUGINS)
-    target_compile_definitions(${PROJ_NAME} PUBLIC
-        QTMEDIAPLAYER_PLUGIN_STATIC
+        QTMEDIAPLAYER_COMMON_STATIC
     )
 endif()
 
@@ -68,21 +81,12 @@ target_compile_definitions(${PROJ_NAME} PRIVATE
     QT_USE_QSTRINGBUILDER
     QT_DEPRECATED_WARNINGS
     QT_DISABLE_DEPRECATED_BEFORE=0x060400
-    QTMEDIAPLAYER_LOADER_BUILD_LIBRARY
+    QTMEDIAPLAYER_COMMON_BUILD_LIBRARY
 )
 
 target_link_libraries(${PROJ_NAME} PRIVATE
-    Qt${QT_VERSION_MAJOR}::Core
-    QtMediaPlayerCommon
+    Qt${QT_VERSION_MAJOR}::Quick
 )
-
-if(BUILD_STATIC_PLUGINS)
-    target_link_libraries(${PROJ_NAME} PRIVATE
-        QtMediaPlayer_MDKBackend
-        QtMediaPlayer_MPVBackend
-        #QtMediaPlayer_FFmpegBackend
-    )
-endif()
 
 target_include_directories(${PROJ_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"

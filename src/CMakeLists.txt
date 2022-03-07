@@ -23,4 +23,5 @@
 ]]
 
 add_subdirectory(loader)
+add_subdirectory(common)
 add_subdirectory(backends)

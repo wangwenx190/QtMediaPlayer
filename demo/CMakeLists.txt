@@ -138,12 +138,14 @@ target_link_libraries(${PROJ_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::QuickControls2Private # For qmltc
     Qt${QT_VERSION_MAJOR}::Svg
     QtMediaPlayerLoader
+    QtMediaPlayerCommon
 )
 
 if(BUILD_STATIC_PLUGINS)
     target_link_libraries(${PROJ_NAME} PRIVATE
         QtMediaPlayer_MDKBackend
         QtMediaPlayer_MPVBackend
+        #QtMediaPlayer_FFmpegBackend
     )
 endif()
 
@@ -166,5 +168,15 @@ if(WIN32)
         _UNICODE WIN32_LEAN_AND_MEAN WINRT_LEAN_AND_MEAN _DWMAPI_
         WINVER=${_WIN32_WINNT_WIN10} _WIN32_WINNT=${_WIN32_WINNT_WIN10}
         _WIN32_IE=${_WIN32_WINNT_WIN10} NTDDI_VERSION=${NTDDI_WIN10_CO}
+    )
+endif()
+
+if(MSVC)
+    target_compile_options(${PROJ_NAME} PRIVATE
+        /W3 /WX # We can't use "/W4" here due to some generated code are not warning clean.
+    )
+else()
+    target_compile_options(${PROJ_NAME} PRIVATE
+        -Wall -Wextra -Werror
     )
 endif()

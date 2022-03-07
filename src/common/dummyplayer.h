@@ -28,7 +28,7 @@
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class DummyPlayer : public MediaPlayer
+class QTMEDIAPLAYER_COMMON_API DummyPlayer : public MediaPlayer
 {
     Q_OBJECT
 #ifdef QML_NAMED_ELEMENT

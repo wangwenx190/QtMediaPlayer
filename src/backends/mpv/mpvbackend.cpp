@@ -28,7 +28,7 @@
 #include <QtCore/qtextstream.h>
 #include <QtCore/qscopeguard.h>
 #include <QtQuick/qquickwindow.h>
-#include "../../common/backendinterface.h"
+#include <backendinterface.h>
 #include "mpvplayer.h"
 #include "mpvqthelper.h"
 
@@ -103,19 +103,19 @@ static const QString kUnknown = QStringLiteral("Unknown");
              if (fileInfoList.isEmpty()) {
                  return {};
              }
-             QString result = {};
+             QString text = {};
              for (auto&& fileInfo : qAsConst(fileInfoList)) {
                  QFile file(fileInfo.canonicalFilePath());
                  if (!file.open(QFile::ReadOnly | QFile::Text)) {
                      continue;
                  }
-                 if (!result.isEmpty()) {
-                     result.append(u'\n');
+                 if (!text.isEmpty()) {
+                     text.append(u'\n');
                  }
                  QTextStream stream(&file);
-                 result.append(stream.readAll());
+                 text.append(stream.readAll());
              }
-             return result;
+             return text;
          }()},
         {kHomepage, QStringLiteral("https://mpv.io/")},
         {kLastModifyTime, QString::fromUtf8(__DATE__ __TIME__)},
@@ -163,9 +163,9 @@ public:
         return MPV::Qt::isLibmpvAvailable();
     }
 
-    [[nodiscard]] bool isRHIBackendSupported(const QSGRendererInterface::GraphicsApi api) const override
+    [[nodiscard]] bool isGraphicsApiSupported(const int api) const override
     {
-        switch (api) {
+        switch (static_cast<QSGRendererInterface::GraphicsApi>(api)) {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
         case QSGRendererInterface::OpenGL:
 #endif
@@ -176,7 +176,6 @@ public:
         default:
             return false;
         }
-        return false;
     }
 
     [[nodiscard]] QString filePath() const override
@@ -224,8 +223,12 @@ private:
 };
 QTMEDIAPLAYER_END_NAMESPACE
 
-extern "C" [[nodiscard]] QTMEDIAPLAYER_PLUGIN_API
-bool QueryBackend(QTMEDIAPLAYER_PREPEND_NAMESPACE(QMPBackend) **ppBackend)
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+[[nodiscard]] bool QueryBackend_MPV
+#else
+extern "C" [[nodiscard]] QTMEDIAPLAYER_PLUGIN_API bool QueryBackend
+#endif
+(QTMEDIAPLAYER_PREPEND_NAMESPACE(QMPBackend) **ppBackend)
 {
     Q_ASSERT(ppBackend);
     if (!ppBackend) {

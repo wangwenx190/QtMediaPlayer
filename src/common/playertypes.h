@@ -24,14 +24,14 @@
 
 #pragma once
 
-#include "../loader/qtmediaplayer_global.h"
+#include "common_global.h"
 #include <QtCore/qlist.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qvariant.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-Q_NAMESPACE
+Q_NAMESPACE_EXPORT(QTMEDIAPLAYER_COMMON_API)
 
 enum class PlaybackState : int
 {

@@ -22,46 +22,39 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include <windows.h>
 
-#include "mdkbackend_global.h"
-#include <texturenodeinterface.h>
-
-namespace mdk
-{
-class Player;
-}
-
-QT_BEGIN_NAMESPACE
-QT_FORWARD_DECLARE_CLASS(QQuickWindow)
-QT_END_NAMESPACE
-
-QTMEDIAPLAYER_BEGIN_NAMESPACE
-
-class MDKPlayer;
-
-class MDKVideoTextureNode : public VideoTextureNode
-{
-    Q_OBJECT
-    Q_DISABLE_COPY_MOVE(MDKVideoTextureNode)
-
-public:
-    explicit MDKVideoTextureNode(QQuickItem *item);
-    ~MDKVideoTextureNode() override;
-
-    void sync() override;
-
-protected Q_SLOTS:
-    void render() override;
-
-protected:
-    TextureCoordinatesTransformMode m_transformMode = TextureCoordinatesTransformFlag::NoTransform;
-    QQuickWindow *m_window = nullptr;
-    MDKPlayer *m_item = nullptr;
-    QSize m_size = {};
-
-private:
-    QWeakPointer<mdk::Player> m_player;
-};
-
-QTMEDIAPLAYER_END_NAMESPACE
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+FILEFLAGSMASK   0x3fL
+#ifdef _DEBUG
+FILEFLAGS       VS_FF_DEBUG
+#else
+FILEFLAGS       0x0L
+#endif
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_DLL
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName",      "wangwenx190"
+            VALUE "FileDescription",  "QtMediaPlayer - Loader"
+            VALUE "FileVersion",      "1.0.0.0"
+            VALUE "LegalCopyright",   "MIT License"
+            VALUE "ProductName",      "QtMediaPlayer"
+            VALUE "ProductVersion",   "1.0.0.0"
+            VALUE "OriginalFilename", ""
+            VALUE "Comments",         "Based on the technology of QtMediaPlayer."
+            VALUE "InternalName",     "Loader"
+            VALUE "LegalTrademarks",  ""
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

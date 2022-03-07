@@ -33,6 +33,7 @@ project(QtMediaPlayer
 
 option(BUILD_DEMO_APP "Build the QtMediaPlayer demo application." ON)
 option(BUILD_STATIC_LOADER "Build the QtMediaPlayer loader as a static library." ON)
+option(BUILD_STATIC_COMMON "Build the QtMediaPlayer common as a static library." ON)
 option(BUILD_STATIC_PLUGINS "Build the QtMediaPlayer player backend plugins as static libraries." ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

@@ -25,7 +25,7 @@
 #pragma once
 
 #include "mdkbackend_global.h"
-#include "../../common/playerinterface.h"
+#include <playerinterface.h>
 #include "include/mdk/global.h"
 #include <QtCore/qurl.h>
 #include <QtCore/qtimer.h>

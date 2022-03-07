@@ -237,9 +237,9 @@ int Application::run(int argc, char *argv[])
     i18n->setEngine(&engine);
 
     // For this demo application, we add an extra search path to be convenient.
-    QTMEDIAPLAYER_PREPEND_NAMESPACE(addPluginSearchPath)(
+    QTMEDIAPLAYER_PREPEND_NAMESPACE(Loader::addPluginSearchPath)(
         QCoreApplication::applicationDirPath() + QStringLiteral("/qtmediaplayer"));
-    const QStringList availableBackends = QTMEDIAPLAYER_PREPEND_NAMESPACE(getAvailableBackends)();
+    const QStringList availableBackends = QTMEDIAPLAYER_PREPEND_NAMESPACE(Loader::getAvailableBackends)();
     if (availableBackends.isEmpty()) {
         qWarning() << "Can't find any available player backends for QtMediaPlayer.";
         return -1;
@@ -254,7 +254,7 @@ int Application::run(int argc, char *argv[])
             if (backend.isEmpty()) {
                 continue;
             }
-            if (QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(backend)) {
+            if (QTMEDIAPLAYER_PREPEND_NAMESPACE(Loader::initializeBackend)(backend)) {
                 inited = true;
                 break;
             }
@@ -268,7 +268,7 @@ int Application::run(int argc, char *argv[])
             qWarning() << "The prefered player backend" << preferedBackend << "is not available.";
             return -1;
         }
-        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(initializeBackend)(preferedBackend)) {
+        if (!QTMEDIAPLAYER_PREPEND_NAMESPACE(Loader::initializeBackend)(preferedBackend)) {
             qWarning() << "Failed to initialize the player backend" << preferedBackend;
             return -1;
         }

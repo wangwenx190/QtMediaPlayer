@@ -24,10 +24,13 @@
 
 #pragma once
 
-#include "../../loader/qtmediaplayer_global.h"
+#include "mdkbackend_global.h"
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
-
+class QMPBackend;
 [[nodiscard]] const QVariantHash &metaData_mdk();
-
 QTMEDIAPLAYER_END_NAMESPACE
+
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+[[nodiscard]] bool QueryBackend_MDK(QTMEDIAPLAYER_PREPEND_NAMESPACE(QMPBackend) **ppBackend);
+#endif

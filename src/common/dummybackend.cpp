@@ -22,46 +22,47 @@
  * SOFTWARE.
  */
 
-#pragma once
-
-#include "mdkbackend_global.h"
-#include <texturenodeinterface.h>
-
-namespace mdk
-{
-class Player;
-}
-
-QT_BEGIN_NAMESPACE
-QT_FORWARD_DECLARE_CLASS(QQuickWindow)
-QT_END_NAMESPACE
+#include "dummybackend.h"
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class MDKPlayer;
+DummyBackend::DummyBackend() = default;
 
-class MDKVideoTextureNode : public VideoTextureNode
+DummyBackend::~DummyBackend() = default;
+
+QString DummyBackend::name() const
 {
-    Q_OBJECT
-    Q_DISABLE_COPY_MOVE(MDKVideoTextureNode)
 
-public:
-    explicit MDKVideoTextureNode(QQuickItem *item);
-    ~MDKVideoTextureNode() override;
+}
 
-    void sync() override;
+QString DummyBackend::version() const
+{
 
-protected Q_SLOTS:
-    void render() override;
+}
 
-protected:
-    TextureCoordinatesTransformMode m_transformMode = TextureCoordinatesTransformFlag::NoTransform;
-    QQuickWindow *m_window = nullptr;
-    MDKPlayer *m_item = nullptr;
-    QSize m_size = {};
+bool DummyBackend::available() const
+{
 
-private:
-    QWeakPointer<mdk::Player> m_player;
-};
+}
+
+bool DummyBackend::isGraphicsApiSupported(const int api) const
+{
+
+}
+
+QString DummyBackend::filePath() const
+{
+
+}
+
+QString DummyBackend::fileName() const
+{
+
+}
+
+bool DummyBackend::initialize() const
+{
+
+}
 
 QTMEDIAPLAYER_END_NAMESPACE

@@ -24,44 +24,25 @@
 
 #pragma once
 
-#include "mdkbackend_global.h"
-#include <texturenodeinterface.h>
-
-namespace mdk
-{
-class Player;
-}
-
-QT_BEGIN_NAMESPACE
-QT_FORWARD_DECLARE_CLASS(QQuickWindow)
-QT_END_NAMESPACE
+#include "backendinterface.h"
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class MDKPlayer;
-
-class MDKVideoTextureNode : public VideoTextureNode
+class QTMEDIAPLAYER_COMMON_API DummyBackend : public QMPBackend
 {
-    Q_OBJECT
-    Q_DISABLE_COPY_MOVE(MDKVideoTextureNode)
+    Q_DISABLE_COPY_MOVE(DummyBackend)
 
 public:
-    explicit MDKVideoTextureNode(QQuickItem *item);
-    ~MDKVideoTextureNode() override;
+    explicit DummyBackend();
+    ~DummyBackend() override;
 
-    void sync() override;
-
-protected Q_SLOTS:
-    void render() override;
-
-protected:
-    TextureCoordinatesTransformMode m_transformMode = TextureCoordinatesTransformFlag::NoTransform;
-    QQuickWindow *m_window = nullptr;
-    MDKPlayer *m_item = nullptr;
-    QSize m_size = {};
-
-private:
-    QWeakPointer<mdk::Player> m_player;
+    [[nodiscard]] QString name() const override;
+    [[nodiscard]] QString version() const override;
+    [[nodiscard]] bool available() const override;
+    [[nodiscard]] bool isGraphicsApiSupported(const int api) const override;
+    [[nodiscard]] QString filePath() const override;
+    [[nodiscard]] QString fileName() const override;
+    [[nodiscard]] bool initialize() const override;
 };
 
 QTMEDIAPLAYER_END_NAMESPACE

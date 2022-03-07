@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include "../loader/qtmediaplayer_global.h"
-#include <QtQuick/qsgrendererinterface.h>
+#include "common_global.h"
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
@@ -40,23 +39,20 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 [[maybe_unused]] static const QString kFFmpegVersion = QStringLiteral("ffmpeg-version");
 [[maybe_unused]] static const QString kFFmpegConfiguration = QStringLiteral("ffmpeg-configuration");
 
-class QMPBackend
+class QTMEDIAPLAYER_COMMON_API QMPBackend
 {
     Q_DISABLE_COPY_MOVE(QMPBackend)
 
 public:
-    explicit QMPBackend() = default;
-    virtual ~QMPBackend() = default;
+    explicit QMPBackend();
+    virtual ~QMPBackend();
 
-    inline void Release()
-    {
-        delete this;
-    }
+    void Release();
 
     [[nodiscard]] virtual QString name() const = 0;
     [[nodiscard]] virtual QString version() const = 0;
     [[nodiscard]] virtual bool available() const = 0;
-    [[nodiscard]] virtual bool isRHIBackendSupported(const QSGRendererInterface::GraphicsApi api) const = 0;
+    [[nodiscard]] virtual bool isGraphicsApiSupported(const int api) const = 0;
     [[nodiscard]] virtual QString filePath() const = 0;
     [[nodiscard]] virtual QString fileName() const = 0;
     [[nodiscard]] virtual bool initialize() const = 0;

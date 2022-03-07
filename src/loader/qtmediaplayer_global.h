@@ -39,18 +39,6 @@
 #  endif
 #endif
 
-#ifndef QTMEDIAPLAYER_PLUGIN_API
-#  ifdef QTMEDIAPLAYER_PLUGIN_STATIC
-#    define QTMEDIAPLAYER_PLUGIN_API
-#  else
-#    ifdef QTMEDIAPLAYER_PLUGIN_BUILD_LIBRARY
-#      define QTMEDIAPLAYER_PLUGIN_API Q_DECL_EXPORT
-#    else
-#      define QTMEDIAPLAYER_PLUGIN_API Q_DECL_IMPORT
-#    endif
-#  endif
-#endif
-
 #if defined(Q_OS_WIN) && !defined(Q_OS_WINDOWS)
 #  define Q_OS_WINDOWS
 #endif

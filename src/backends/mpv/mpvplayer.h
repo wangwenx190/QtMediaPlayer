@@ -25,7 +25,7 @@
 #pragma once
 
 #include "mpvbackend_global.h"
-#include "../../common/playerinterface.h"
+#include <playerinterface.h>
 
 struct mpv_handle;
 struct mpv_render_context;

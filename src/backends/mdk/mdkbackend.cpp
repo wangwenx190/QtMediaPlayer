@@ -22,10 +22,11 @@
  * SOFTWARE.
  */
 
-#include "../../common/backendinterface.h"
+#include <backendinterface.h>
 #include "include/mdk/global.h"
 #include "mdkplayer.h"
 #include "mdkqthelper.h"
+#include <QtQuick/qsgrendererinterface.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(lcQMPMDK, "wangwenx190.qtmediaplayer.mdk")
@@ -119,9 +120,9 @@ public:
         return MDK::Qt::isMDKAvailable();
     }
 
-    [[nodiscard]] bool isRHIBackendSupported(const QSGRendererInterface::GraphicsApi api) const override
+    [[nodiscard]] bool isGraphicsApiSupported(const int api) const override
     {
-        switch (api) {
+        switch (static_cast<QSGRendererInterface::GraphicsApi>(api)) {
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         case QSGRendererInterface::Direct3D11:
         case QSGRendererInterface::Vulkan:
@@ -173,8 +174,12 @@ private:
 };
 QTMEDIAPLAYER_END_NAMESPACE
 
-extern "C" [[nodiscard]] QTMEDIAPLAYER_PLUGIN_API
-bool QueryBackend(QTMEDIAPLAYER_PREPEND_NAMESPACE(QMPBackend) **ppBackend)
+#ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+[[nodiscard]] bool QueryBackend_MDK
+#else
+extern "C" [[nodiscard]] QTMEDIAPLAYER_PLUGIN_API bool QueryBackend
+#endif
+(QTMEDIAPLAYER_PREPEND_NAMESPACE(QMPBackend) **ppBackend)
 {
     Q_ASSERT(ppBackend);
     if (!ppBackend) {

@@ -25,7 +25,6 @@
 #pragma once
 
 #include "qtmediaplayer_global.h"
-#include <QtQuick/qsgrendererinterface.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
@@ -35,7 +34,10 @@ QTMEDIAPLAYER_LOADER_API void addPluginSearchPath(const QString &value);
 [[nodiscard]] QTMEDIAPLAYER_LOADER_API QStringList getPluginSearchPaths();
 [[nodiscard]] QTMEDIAPLAYER_LOADER_API QStringList getAvailableBackends();
 [[nodiscard]] QTMEDIAPLAYER_LOADER_API bool initializeBackend(const QString &value);
-[[nodiscard]] QTMEDIAPLAYER_LOADER_API bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api);
+[[nodiscard]] QTMEDIAPLAYER_LOADER_API bool isGraphicsApiSupported(const QString &name, const int api);
+[[nodiscard]] QTMEDIAPLAYER_LOADER_API bool isLoaderStatic();
+[[nodiscard]] QTMEDIAPLAYER_LOADER_API bool isCommonStatic();
+[[nodiscard]] QTMEDIAPLAYER_LOADER_API bool isPluginStatic();
 } // namespace Loader
 
 QTMEDIAPLAYER_END_NAMESPACE

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "../loader/qtmediaplayer_global.h"
+#include "common_global.h"
 #include <QtQuick/qsgtextureprovider.h>
 #include <QtQuick/qsgsimpletexturenode.h>
 
@@ -34,7 +34,7 @@ QT_END_NAMESPACE
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-class VideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNode
+class QTMEDIAPLAYER_COMMON_API VideoTextureNode : public QSGTextureProvider, public QSGSimpleTextureNode
 {
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(VideoTextureNode)

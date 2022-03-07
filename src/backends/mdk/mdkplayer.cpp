@@ -26,7 +26,7 @@
 #include "mdkbackend.h"
 #include "mdkvideotexturenode.h"
 #include "mdkqthelper.h"
-#include "../../common/backendinterface.h"
+#include <backendinterface.h>
 #include "include/mdk/Player.h"
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
@@ -1111,6 +1111,7 @@ void MDKPlayer::initMdkHandlers()
             m_player->setMedia(nullptr);
             m_player->setNextMedia(nullptr);
             m_loaded = false;
+            m_mediaStatus = {};
             Q_EMIT stopped();
             Q_EMIT stoppedWithPosition(url, pos);
             Q_EMIT sourceChanged();
