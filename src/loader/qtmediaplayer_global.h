@@ -27,14 +27,26 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qloggingcategory.h>
 
-#ifndef QTMEDIAPLAYER_API
-#  ifdef QTMEDIAPLAYER_STATIC
-#    define QTMEDIAPLAYER_API
+#ifndef QTMEDIAPLAYER_LOADER_API
+#  ifdef QTMEDIAPLAYER_LOADER_STATIC
+#    define QTMEDIAPLAYER_LOADER_API
 #  else
-#    ifdef QTMEDIAPLAYER_BUILD_LIBRARY
-#      define QTMEDIAPLAYER_API Q_DECL_EXPORT
+#    ifdef QTMEDIAPLAYER_LOADER_BUILD_LIBRARY
+#      define QTMEDIAPLAYER_LOADER_API Q_DECL_EXPORT
 #    else
-#      define QTMEDIAPLAYER_API Q_DECL_IMPORT
+#      define QTMEDIAPLAYER_LOADER_API Q_DECL_IMPORT
+#    endif
+#  endif
+#endif
+
+#ifndef QTMEDIAPLAYER_PLUGIN_API
+#  ifdef QTMEDIAPLAYER_PLUGIN_STATIC
+#    define QTMEDIAPLAYER_PLUGIN_API
+#  else
+#    ifdef QTMEDIAPLAYER_PLUGIN_BUILD_LIBRARY
+#      define QTMEDIAPLAYER_PLUGIN_API Q_DECL_EXPORT
+#    else
+#      define QTMEDIAPLAYER_PLUGIN_API Q_DECL_IMPORT
 #    endif
 #  endif
 #endif
@@ -108,7 +120,7 @@
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 Q_DECLARE_LOGGING_CATEGORY(lcQMPLoader)
 [[maybe_unused]] static constexpr const int QTMEDIAPLAYER_VERSION_MAJOR = 1;
-[[maybe_unused]] static constexpr const int QTMEDIAPLAYER_VERSION_MINOR = 0;
+[[maybe_unused]] static constexpr const int QTMEDIAPLAYER_VERSION_MINOR = 1;
 [[maybe_unused]] static constexpr const int QTMEDIAPLAYER_VERSION_PATCH = 0;
 [[maybe_unused]] static constexpr const int QTMEDIAPLAYER_VERSION_TWEAK = 0;
 [[maybe_unused]] static constexpr const int QTMEDIAPLAYER_VERSION
@@ -116,5 +128,5 @@ Q_DECLARE_LOGGING_CATEGORY(lcQMPLoader)
                                                             QTMEDIAPLAYER_VERSION_MINOR,
                                                             QTMEDIAPLAYER_VERSION_PATCH,
                                                             QTMEDIAPLAYER_VERSION_TWEAK);
-[[maybe_unused]] static constexpr const char QTMEDIAPLAYER_VERSION_STR[] = "1.0.0.0";
+[[maybe_unused]] static constexpr const char QTMEDIAPLAYER_VERSION_STR[] = "1.1.0.0";
 QTMEDIAPLAYER_END_NAMESPACE

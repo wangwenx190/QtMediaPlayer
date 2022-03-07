@@ -137,8 +137,15 @@ target_link_libraries(${PROJ_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::QuickTemplates2Private # For qmltc
     Qt${QT_VERSION_MAJOR}::QuickControls2Private # For qmltc
     Qt${QT_VERSION_MAJOR}::Svg
-    wangwenx190::QtMediaPlayer
+    QtMediaPlayerLoader
 )
+
+if(BUILD_STATIC_PLUGINS)
+    target_link_libraries(${PROJ_NAME} PRIVATE
+        QtMediaPlayer_MDKBackend
+        QtMediaPlayer_MPVBackend
+    )
+endif()
 
 target_compile_definitions(${PROJ_NAME} PRIVATE
     QT_NO_CAST_FROM_ASCII

@@ -22,7 +22,7 @@
   SOFTWARE.
 ]]
 
-set(BACKEND_NAME MDKBackend)
+set(PROJ_NAME QtMediaPlayer_MDKBackend)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -55,32 +55,40 @@ set(SOURCES
     mdkbackend.cpp
 )
 
-if(WIN32)
+if(WIN32 AND (NOT BUILD_STATIC_PLUGINS))
     enable_language(RC)
     list(APPEND SOURCES mdkbackend.rc)
 endif()
 
-add_library(${BACKEND_NAME} SHARED ${SOURCES})
-add_library(${PROJECT_NAME}::${BACKEND_NAME} ALIAS ${BACKEND_NAME})
+if(BUILD_STATIC_PLUGINS)
+    add_library(${PROJ_NAME} STATIC ${SOURCES})
+else()
+    add_library(${PROJ_NAME} SHARED ${SOURCES})
+endif()
 
-target_include_directories(${BACKEND_NAME} PRIVATE
+target_include_directories(${PROJ_NAME} PRIVATE
     include
 )
 
-set_target_properties(${BACKEND_NAME} PROPERTIES
-    OUTPUT_NAME QtMediaPlayer_MDK
+set_target_properties(${PROJ_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qtmediaplayer
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/qtmediaplayer
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/qtmediaplayer
 )
 
 if(TARGET Vulkan::Vulkan)
-    target_include_directories(${BACKEND_NAME} PRIVATE
+    target_include_directories(${PROJ_NAME} PRIVATE
         ${Vulkan_INCLUDE_DIRS}
     )
 endif()
 
-target_compile_definitions(${BACKEND_NAME} PRIVATE
+if(BUILD_STATIC_PLUGINS)
+    target_compile_definitions(${PROJ_NAME} PUBLIC
+        QTMEDIAPLAYER_PLUGIN_STATIC
+    )
+endif()
+
+target_compile_definitions(${PROJ_NAME} PRIVATE
     QT_NO_CAST_FROM_ASCII
     QT_NO_CAST_TO_ASCII
     QT_NO_KEYWORDS
@@ -88,12 +96,13 @@ target_compile_definitions(${BACKEND_NAME} PRIVATE
     QT_DEPRECATED_WARNINGS
     QT_DISABLE_DEPRECATED_BEFORE=0x060400
     BUILD_MDK_STATIC # Needed by MDK's own headers
+    QTMEDIAPLAYER_PLUGIN_BUILD_LIBRARY
 )
 
 if(WIN32)
     set(_WIN32_WINNT_WIN10 0x0A00)
     set(NTDDI_WIN10_CO 0x0A00000B)
-    target_compile_definitions(${BACKEND_NAME} PRIVATE
+    target_compile_definitions(${PROJ_NAME} PRIVATE
         _CRT_NON_CONFORMING_SWPRINTFS _CRT_SECURE_NO_WARNINGS
         _ENABLE_EXTENDED_ALIGNED_STORAGE NOMINMAX UNICODE
         _UNICODE WIN32_LEAN_AND_MEAN WINRT_LEAN_AND_MEAN
@@ -102,10 +111,10 @@ if(WIN32)
     )
 endif()
 
-target_link_libraries(${BACKEND_NAME} PRIVATE
+target_link_libraries(${PROJ_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Quick
 )
 
-target_include_directories(${BACKEND_NAME} PUBLIC
+target_include_directories(${PROJ_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
 )

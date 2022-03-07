@@ -29,9 +29,9 @@ import "../"
 
 MainWindowBase {
     TaskbarButton {
-        progress.visible: (_player.playbackState !== QtMediaPlayer.Stopped) && _player.seekable
-        progress.maximum: _player.duration
-        progress.value: _player.position
-        progress.paused: _player.playbackState === QtMediaPlayer.Paused
+        progress.visible: (playerItem.playbackState !== QtMediaPlayer.Stopped) && playerItem.seekable
+        progress.maximum: playerItem.duration
+        progress.value: playerItem.position
+        progress.paused: playerItem.playbackState === QtMediaPlayer.Paused
     }
 }

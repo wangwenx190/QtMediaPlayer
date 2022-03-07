@@ -173,8 +173,8 @@ private:
 };
 QTMEDIAPLAYER_END_NAMESPACE
 
-extern "C" [[nodiscard]] Q_DECL_EXPORT bool
-    QueryBackend(QTMEDIAPLAYER_PREPEND_NAMESPACE(QMPBackend) **ppBackend)
+extern "C" [[nodiscard]] QTMEDIAPLAYER_PLUGIN_API
+bool QueryBackend(QTMEDIAPLAYER_PREPEND_NAMESPACE(QMPBackend) **ppBackend)
 {
     Q_ASSERT(ppBackend);
     if (!ppBackend) {

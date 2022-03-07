@@ -193,18 +193,22 @@ private:
 
 Q_GLOBAL_STATIC(QMPData, qmpData)
 
-void addPluginSearchPath(const QString &value)
+void Loader::addPluginSearchPath(const QString &value)
 {
+    Q_ASSERT(!value.isEmpty());
+    if (value.isEmpty()) {
+        return;
+    }
     qmpData()->addSearchDir(value);
 }
 
-QStringList getPluginSearchPaths()
+QStringList Loader::getPluginSearchPaths()
 {
     QMutexLocker locker(&qmpData()->m_mutex);
     return qmpData()->m_searchPaths;
 }
 
-QStringList getAvailableBackends()
+QStringList Loader::getAvailableBackends()
 {
     QMutexLocker locker(&qmpData()->m_mutex);
     if (qmpData()->m_availableBackends.isEmpty()) {
@@ -219,7 +223,7 @@ QStringList getAvailableBackends()
     return list;
 }
 
-bool initializeBackend(const QString &value)
+bool Loader::initializeBackend(const QString &value)
 {
     Q_ASSERT(!value.isEmpty());
     if (value.isEmpty()) {
@@ -240,7 +244,7 @@ bool initializeBackend(const QString &value)
     return backend->initialize();
 }
 
-bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api)
+bool Loader::isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api)
 {
     Q_ASSERT(!name.isEmpty());
     if (name.isEmpty()) {

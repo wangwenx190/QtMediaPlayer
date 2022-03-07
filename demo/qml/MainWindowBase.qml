@@ -27,7 +27,7 @@ import org.wangwenx190.QtMediaPlayer
 import wangwenx190.QtMediaPlayer.Demo
 
 FramelessWindow {
-    property alias _player: player
+    property alias playerItem: player
 
     id: window
     width: Constants.defaultWindowWidth

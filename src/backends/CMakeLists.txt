@@ -24,5 +24,4 @@
 
 add_subdirectory(mdk)
 add_subdirectory(mpv)
-#add_subdirectory(vlc) # TODO - on plan
 #add_subdirectory(ffmpeg) # TODO - on plan

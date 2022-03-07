@@ -39,9 +39,6 @@ class MediaPlayer : public QQuickItem
 {
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(MediaPlayer)
-#ifdef QML_NAMED_ELEMENT
-    QML_NAMED_ELEMENT(MediaPlayer)
-#endif
 
     Q_PROPERTY(QString backendName READ backendName CONSTANT)
     Q_PROPERTY(QString backendVersion READ backendVersion CONSTANT)

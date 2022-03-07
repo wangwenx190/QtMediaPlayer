@@ -29,10 +29,13 @@
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-QTMEDIAPLAYER_API void addPluginSearchPath(const QString &value);
-[[nodiscard]] QTMEDIAPLAYER_API QStringList getPluginSearchPaths();
-[[nodiscard]] QTMEDIAPLAYER_API QStringList getAvailableBackends();
-[[nodiscard]] QTMEDIAPLAYER_API bool initializeBackend(const QString &value);
-[[nodiscard]] QTMEDIAPLAYER_API bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api);
+namespace Loader
+{
+QTMEDIAPLAYER_LOADER_API void addPluginSearchPath(const QString &value);
+[[nodiscard]] QTMEDIAPLAYER_LOADER_API QStringList getPluginSearchPaths();
+[[nodiscard]] QTMEDIAPLAYER_LOADER_API QStringList getAvailableBackends();
+[[nodiscard]] QTMEDIAPLAYER_LOADER_API bool initializeBackend(const QString &value);
+[[nodiscard]] QTMEDIAPLAYER_LOADER_API bool isRHIBackendSupported(const QString &name, const QSGRendererInterface::GraphicsApi api);
+} // namespace Loader
 
 QTMEDIAPLAYER_END_NAMESPACE
