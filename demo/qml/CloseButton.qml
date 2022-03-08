@@ -27,6 +27,7 @@ import QtQuick.Controls
 import wangwenx190.QtMediaPlayer.Demo
 
 Button {
+    objectName: "TitleBar_SystemButton_Close"
     id: button
     implicitHeight: 30
     implicitWidth: implicitHeight * 1.5

@@ -26,6 +26,8 @@
 #include <QtGui/qscreen.h>
 #include <QtGui/qguiapplication.h>
 #ifdef Q_OS_WINDOWS
+#  include <QtQuickTemplates2/private/qquickbutton_p.h>
+#  include <QtQuickTemplates2/private/qquickbutton_p_p.h>
 #  if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
 #    include <QtCore/qoperatingsystemversion.h>
 #  else
@@ -382,6 +384,143 @@ static inline void SyncWmPaintWithDwm()
     Sleep(static_cast<DWORD>(qRound(m_ms)));
     ptimeEndPeriod(ms_granularity);
 }
+
+enum class MouseEventType : int
+{
+    NotInterested = -1,
+    Hover = 0,
+    Down = 1,
+    Up = 2
+};
+
+enum class MousePosType : int
+{
+    Unknown = -1,
+    Global = 0,
+    Local = 1,
+    Screen = Global,
+    Window = Local,
+    Scene = Local,
+    Client = Local
+};
+
+struct MousePos
+{
+    QPointF pos = {};
+    MousePosType type = MousePosType::Unknown;
+};
+
+struct SystemButtonEvent
+{
+    const QQuickWindow *window = nullptr;
+    MouseEventType type = MouseEventType::NotInterested;
+    MousePos mousePos = {};
+};
+
+[[nodiscard]] static inline std::optional<LRESULT>
+    handleSystemButtonEvent(const SystemButtonEvent * const event)
+{
+    Q_ASSERT(event);
+    Q_ASSERT(event->window);
+    Q_ASSERT(event->type != MouseEventType::NotInterested);
+    Q_ASSERT(event->mousePos.type != MousePosType::Unknown);
+    if (!event || !event->window
+        || (event->type == MouseEventType::NotInterested)
+        || (event->mousePos.type == MousePosType::Unknown)) {
+        return std::nullopt;
+    }
+    static const auto minBtn = event->window->findChild<QQuickButton *>(QStringLiteral("TitleBar_SystemButton_Minimize"));
+    static const auto maxBtn = event->window->findChild<QQuickButton *>(QStringLiteral("TitleBar_SystemButton_Maximize"));
+    static const auto closeBtn = event->window->findChild<QQuickButton *>(QStringLiteral("TitleBar_SystemButton_Close"));
+    if (!minBtn && !maxBtn && !closeBtn) {
+        return std::nullopt;
+    }
+    const auto isInsideButton = [](const QQuickButton * const button, const QPointF &mousePos) -> bool {
+        Q_ASSERT(button);
+        if (!button) {
+            return false;
+        }
+        const QPointF topLeft = button->mapToScene(QPointF(0.0, 0.0));
+        const QSizeF size = button->size();
+        return QRectF(topLeft, size).contains(mousePos);
+    };
+    const QPointF windowPos = [event]() -> QPointF {
+        const qreal dpr = event->window->effectiveDevicePixelRatio();
+        if (event->mousePos.type == MousePosType::Global) {
+            return event->window->mapFromGlobal(event->mousePos.pos);
+        } else if (event->mousePos.type == MousePosType::Local) {
+            return QPointF(event->mousePos.pos / dpr);
+        } else {
+            Q_ASSERT(false);
+            return {};
+        }
+    }();
+    const bool insideMin = minBtn && isInsideButton(minBtn, windowPos);
+    const bool insideMax = maxBtn && isInsideButton(maxBtn, windowPos);
+    const bool insideClose = closeBtn && isInsideButton(closeBtn, windowPos);
+    const auto resetAllButtons = [](){
+        if (minBtn) {
+            minBtn->resetDown();
+            minBtn->setHovered(false);
+        }
+        if (maxBtn) {
+            maxBtn->resetDown();
+            maxBtn->setHovered(false);
+        }
+        if (closeBtn) {
+            closeBtn->resetDown();
+            closeBtn->setHovered(false);
+        }
+    };
+    switch (event->type) {
+    case MouseEventType::NotInterested:
+        Q_ASSERT(false);
+        break;
+    case MouseEventType::Hover: {
+        qDebug() << "<<<<<<<<<<<<<";
+        resetAllButtons();
+        if (insideMin) {
+            minBtn->setHovered(true);
+            return HTMINBUTTON;
+        } else if (insideMax) {
+            maxBtn->setHovered(true);
+            return HTMAXBUTTON;
+        } else if (insideClose) {
+            closeBtn->setHovered(true);
+            return HTCLOSE;
+        }
+    } break;
+    case MouseEventType::Down: {
+        qDebug() << "---------------------";
+        resetAllButtons();
+        if (insideMin) {
+            minBtn->setDown(true);
+        } else if (insideMax) {
+            maxBtn->setDown(true);
+        } else if (insideClose) {
+            closeBtn->setDown(true);
+        }
+    } break;
+    case MouseEventType::Up: {
+        qDebug() << "!!!!!!!!!!!";
+        resetAllButtons();
+        if (insideMin) {
+            qDebug() << "AAAAAAA";
+            minBtn->setHovered(true);
+            QQuickButtonPrivate::get(minBtn)->click();
+        } else if (insideMax) {
+            qDebug() << "BBBBBB";
+            maxBtn->setHovered(true);
+            QQuickButtonPrivate::get(maxBtn)->click();
+        } else if (insideClose) {
+            qDebug() << "CCCCCCC";
+            closeBtn->setHovered(true);
+            QQuickButtonPrivate::get(closeBtn)->click();
+        }
+    } break;
+    }
+    return std::nullopt;
+}
 #endif
 
 FramelessWindow::FramelessWindow(QWindow *parent) : QQuickWindow(parent)
@@ -723,7 +862,18 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
         const bool isBottom = (localPos.y >= (height - frameSize));
         const bool isLeft = (localPos.x < frameSize);
         const bool isRight = (localPos.x >= (width - frameSize));
-        *result = [&msg, isTop, isBottom, isLeft, isRight](){
+        *result = [this, &msg, isTop, isBottom, isLeft, isRight]() -> LRESULT {
+            const auto xPos = GET_X_LPARAM(msg->lParam);
+            const auto yPos = GET_Y_LPARAM(msg->lParam);
+            SystemButtonEvent event = {};
+            event.window = this;
+            event.type = MouseEventType::Hover;
+            event.mousePos.type = MousePosType::Screen;
+            event.mousePos.pos = QPointF(qreal(xPos), qreal(yPos));
+            const auto sysBtnHitTestResult = handleSystemButtonEvent(&event);
+            if (sysBtnHitTestResult.has_value()) {
+                return sysBtnHitTestResult.value();
+            }
             if (IsMaximized(msg->hwnd) || IsFullScreen(msg->hwnd)) {
                 return HTCLIENT;
             }
@@ -815,6 +965,90 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
         *result = ret;
         return true;
     }
+    case WM_LBUTTONDOWN: {
+        const auto xPos = GET_X_LPARAM(msg->lParam);
+        const auto yPos = GET_Y_LPARAM(msg->lParam);
+        SystemButtonEvent event = {};
+        event.window = this;
+        event.type = MouseEventType::Down;
+        event.mousePos.type = MousePosType::Client;
+        event.mousePos.pos = QPointF(qreal(xPos), qreal(yPos));
+        const auto hitTestResult = handleSystemButtonEvent(&event);
+        if (hitTestResult.has_value()) {
+            *result = hitTestResult.value();
+            return true;
+        }
+    } break;
+    case WM_LBUTTONUP: {
+        const auto xPos = GET_X_LPARAM(msg->lParam);
+        const auto yPos = GET_Y_LPARAM(msg->lParam);
+        SystemButtonEvent event = {};
+        event.window = this;
+        event.type = MouseEventType::Up;
+        event.mousePos.type = MousePosType::Client;
+        event.mousePos.pos = QPointF(qreal(xPos), qreal(yPos));
+        const auto hitTestResult = handleSystemButtonEvent(&event);
+        if (hitTestResult.has_value()) {
+            *result = hitTestResult.value();
+            return true;
+        }
+    } break;
+    case WM_NCLBUTTONDOWN: {
+        const auto xPos = GET_X_LPARAM(msg->lParam);
+        const auto yPos = GET_Y_LPARAM(msg->lParam);
+        SystemButtonEvent event = {};
+        event.window = this;
+        event.type = MouseEventType::Down;
+        event.mousePos.type = MousePosType::Screen;
+        event.mousePos.pos = QPointF(qreal(xPos), qreal(yPos));
+        const auto hitTestResult = handleSystemButtonEvent(&event);
+        if (hitTestResult.has_value()) {
+            *result = hitTestResult.value();
+            return true;
+        }
+    } break;
+    case WM_NCLBUTTONUP: {
+        const auto xPos = GET_X_LPARAM(msg->lParam);
+        const auto yPos = GET_Y_LPARAM(msg->lParam);
+        SystemButtonEvent event = {};
+        event.window = this;
+        event.type = MouseEventType::Up;
+        event.mousePos.type = MousePosType::Screen;
+        event.mousePos.pos = QPointF(qreal(xPos), qreal(yPos));
+        const auto hitTestResult = handleSystemButtonEvent(&event);
+        if (hitTestResult.has_value()) {
+            *result = hitTestResult.value();
+            return true;
+        }
+    } break;
+    case WM_MOUSEMOVE: {
+        const auto xPos = GET_X_LPARAM(msg->lParam);
+        const auto yPos = GET_Y_LPARAM(msg->lParam);
+        SystemButtonEvent event = {};
+        event.window = this;
+        event.type = MouseEventType::Hover;
+        event.mousePos.type = MousePosType::Client;
+        event.mousePos.pos = QPointF(qreal(xPos), qreal(yPos));
+        const auto hitTestResult = handleSystemButtonEvent(&event);
+        if (hitTestResult.has_value()) {
+            *result = hitTestResult.value();
+            return true;
+        }
+    } break;
+    case WM_NCMOUSEMOVE: {
+        const auto xPos = GET_X_LPARAM(msg->lParam);
+        const auto yPos = GET_Y_LPARAM(msg->lParam);
+        SystemButtonEvent event = {};
+        event.window = this;
+        event.type = MouseEventType::Hover;
+        event.mousePos.type = MousePosType::Screen;
+        event.mousePos.pos = QPointF(qreal(xPos), qreal(yPos));
+        const auto hitTestResult = handleSystemButtonEvent(&event);
+        if (hitTestResult.has_value()) {
+            *result = hitTestResult.value();
+            return true;
+        }
+    } break;
     default:
         break;
     }
