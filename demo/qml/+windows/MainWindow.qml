@@ -34,4 +34,29 @@ MainWindowBase {
         progress.value: playerItem.position
         progress.paused: playerItem.playbackState === QtMediaPlayer.Paused
     }
+
+    ThumbnailToolBar {
+        ThumbnailToolButton {
+            tooltip: qsTr("Rewind")
+            iconSource: "qrc:///images/neutral/media-seek-backward-32.png"
+            enabled: playerItem.playbackState !== QtMediaPlayer.Stopped
+            onClicked: playerItem.seekBackward()
+        }
+
+        ThumbnailToolButton {
+            tooltip: playerItem.playbackState === QtMediaPlayer.Playing ? qsTr("Pause") : qsTr("Play")
+            iconSource: playerItem.playbackState === QtMediaPlayer.Playing
+                        ? "qrc:///images/neutral/media-pause-32.png"
+                        : "qrc:///images/neutral/media-play-32.png"
+            enabled: playerItem.playbackState !== QtMediaPlayer.Stopped
+            onClicked: playerItem.togglePlayPause()
+        }
+
+        ThumbnailToolButton {
+            tooltip: qsTr("Fast forward")
+            iconSource: "qrc:///images/neutral/media-seek-forward-32.png"
+            enabled: playerItem.playbackState !== QtMediaPlayer.Stopped
+            onClicked: playerItem.seekForward()
+        }
+    }
 }

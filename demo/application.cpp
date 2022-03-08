@@ -48,6 +48,8 @@
 #ifdef Q_OS_WINDOWS
 #  include "qtwinextras/qwintaskbarprogress.h"
 #  include "qtwinextras/qquicktaskbarbutton_p.h"
+#  include "qtwinextras/qquickthumbnailtoolbutton_p.h"
+#  include "qtwinextras/qquickthumbnailtoolbar_p.h"
 #endif
 
 static constexpr const char DEMO_APP_URI[] = "wangwenx190.QtMediaPlayer.Demo";
@@ -281,6 +283,8 @@ int Application::run(int argc, char *argv[])
     qmlRegisterUncreatableType<QQuickTaskbarOverlay>(QTWINEXTRAS_URI, 1, 0, "TaskbarOverlay",
                       QStringLiteral("Cannot create TaskbarOverlay - use TaskbarButton.overlay instead."));
     qmlRegisterType<QQuickTaskbarButton>(QTWINEXTRAS_URI, 1, 0, "TaskbarButton");
+    qmlRegisterType<QQuickThumbnailToolBar>(QTWINEXTRAS_URI, 1, 0, "ThumbnailToolBar");
+    qmlRegisterType<QQuickThumbnailToolButton>(QTWINEXTRAS_URI, 1, 0, "ThumbnailToolButton");
 #endif
 
     qmlRegisterModule(DEMO_APP_URI, 1, 0);

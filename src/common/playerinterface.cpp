@@ -103,6 +103,10 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
     // Re-calculate the recommended window size and position everytime when the videoSize changes.
     connect(this, &MediaPlayer::videoSizeChanged, this, &MediaPlayer::recommendedWindowSizeChanged);
     connect(this, &MediaPlayer::recommendedWindowSizeChanged, this, &MediaPlayer::recommendedWindowPositionChanged);
+
+    connect(this, &MediaPlayer::mediaTracksChanged, this, &MediaPlayer::hasVideoChanged);
+    connect(this, &MediaPlayer::mediaTracksChanged, this, &MediaPlayer::hasAudioChanged);
+    connect(this, &MediaPlayer::mediaTracksChanged, this, &MediaPlayer::hasSubtitleChanged);
 }
 
 MediaPlayer::~MediaPlayer() = default;
@@ -282,6 +286,21 @@ QPointF MediaPlayer::recommendedWindowPosition() const
     // This offset is needed in case the user put the taskbar on the top or left side.
     const QPoint offset = screen->availableGeometry().topLeft();
     return QPointF(newX + offset.x(), newY + offset.y());
+}
+
+bool MediaPlayer::hasVideo() const
+{
+    return (isStopped() ? false : !mediaTracks().video.isEmpty());
+}
+
+bool MediaPlayer::hasAudio() const
+{
+    return (isStopped() ? false : !mediaTracks().audio.isEmpty());
+}
+
+bool MediaPlayer::hasSubtitle() const
+{
+    return (isStopped() ? false : !mediaTracks().subtitle.isEmpty());
 }
 
 void MediaPlayer::play(const QUrl &url)

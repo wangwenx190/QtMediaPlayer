@@ -40,15 +40,11 @@
 
 #include "qwintaskbarbutton.h"
 #include "qwintaskbarprogress.h"
+#include "qwinevent_p.h"
 #include <QtCore/qpointer.h>
-#include <QtCore/qcoreevent.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qabstractnativeeventfilter.h>
-#include <QtGui/qguiapplication.h>
 #include <QtGui/qwindow.h>
 #include <QtGui/qimage.h>
 #include <QtCore/qt_windows.h>
-#include <atlbase.h>
 #include <shobjidl.h>
 
 QT_BEGIN_NAMESPACE
@@ -118,94 +114,6 @@ static inline void qt_qstringToNullTerminated(const QString &src, wchar_t *dst)
     return TBPF_NORMAL;
 }
 
-[[nodiscard]] static inline QWindow *findWindow(const HWND handle)
-{
-    Q_ASSERT(handle);
-    if (!handle) {
-        return nullptr;
-    }
-    const auto wid = reinterpret_cast<WId>(handle);
-    const QWindowList topLevels = QGuiApplication::topLevelWindows();
-    for (auto &&topLevel : qAsConst(topLevels)) {
-        if (topLevel->handle() && (topLevel->winId() == wid)) {
-            return topLevel;
-        }
-    }
-    return nullptr;
-}
-
-class QWinEvent : public QEvent
-{
-    Q_DISABLE_COPY_MOVE(QWinEvent)
-
-public:
-    static inline const int TaskbarButtonCreated = QEvent::registerEventType();
-
-    explicit QWinEvent(const int type) : QEvent(static_cast<QEvent::Type>(type)) {}
-    ~QWinEvent() override = default;
-};
-
-class QWinEventFilter : public QAbstractNativeEventFilter
-{
-    Q_DISABLE_COPY_MOVE(QWinEventFilter)
-
-public:
-    explicit QWinEventFilter() = default;
-    ~QWinEventFilter() override;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    [[nodiscard]] bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
-#else
-    [[nodiscard]] bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override;
-#endif
-
-private:
-    const UINT tbButtonCreatedMsgId = RegisterWindowMessageW(L"TaskbarButtonCreated");
-};
-
-QWinEventFilter::~QWinEventFilter()
-{
-    qApp->removeNativeEventFilter(this);
-}
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-bool QWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result)
-#else
-bool QWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
-#endif
-{
-    if ((eventType != QByteArrayLiteral("windows_generic_MSG")) || !message || !result) {
-        return false;
-    }
-    const auto msg = static_cast<LPMSG>(message);
-    if (!msg->hwnd) {
-        return false;
-    }
-    if (msg->message == tbButtonCreatedMsgId) {
-        if (QWindow * const window = findWindow(msg->hwnd)) {
-            QWinEvent event(QWinEvent::TaskbarButtonCreated);
-            QCoreApplication::sendEvent(window, &event);
-            *result = 0;
-            return true;
-        }
-    }
-    return false;
-}
-
-struct Win32EventFilterHelper
-{
-    QMutex mutex = {};
-    QScopedPointer<QWinEventFilter> instance;
-
-    explicit Win32EventFilterHelper() = default;
-    ~Win32EventFilterHelper() = default;
-
-private:
-    Q_DISABLE_COPY_MOVE(Win32EventFilterHelper)
-};
-
-Q_GLOBAL_STATIC(Win32EventFilterHelper, g_globalFilter)
-
 class QWinTaskbarButtonPrivate
 {
     Q_DECLARE_PUBLIC(QWinTaskbarButton)
@@ -229,7 +137,7 @@ private:
     QString overlayAccessibleDescription = {};
 
     bool comInited = false;
-    CComPtr<ITaskbarList4> pTbList = nullptr;
+    ITaskbarList4 *pTbList = nullptr;
     QWindow *window = nullptr;
 };
 
@@ -253,6 +161,10 @@ QWinTaskbarButtonPrivate::QWinTaskbarButtonPrivate(QWinTaskbarButton *q)
 QWinTaskbarButtonPrivate::~QWinTaskbarButtonPrivate()
 {
     if (comInited) {
+        if (pTbList) {
+            pTbList->Release();
+            pTbList = nullptr;
+        }
         CoUninitialize();
     }
 }
@@ -319,12 +231,7 @@ void QWinTaskbarButtonPrivate::_q_updateProgress()
 QWinTaskbarButton::QWinTaskbarButton(QObject *parent) :
     QObject(parent), d_ptr(new QWinTaskbarButtonPrivate(this))
 {
-    g_globalFilter()->mutex.lock();
-    if (g_globalFilter()->instance.isNull()) {
-        g_globalFilter()->instance.reset(new QWinEventFilter);
-        qApp->installNativeEventFilter(g_globalFilter()->instance.data());
-    }
-    g_globalFilter()->mutex.unlock();
+    QWinEventFilter::setup();
     setWindow(qobject_cast<QWindow *>(parent));
 }
 

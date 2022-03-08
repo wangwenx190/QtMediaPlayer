@@ -14,6 +14,11 @@
         <file>images/neutral/fullscreen-normal.svg</file>
         <file>images/neutral/info-hover.svg</file>
         <file>images/neutral/info-normal.svg</file>
+        <file>images/neutral/media-pause-32.png</file>
+        <file>images/neutral/media-play-32.png</file>
+        <file>images/neutral/media-seek-backward-32.png</file>
+        <file>images/neutral/media-seek-forward-32.png</file>
+        <file>images/neutral/media-stop-32.png</file>
         <file>images/neutral/mute-hover.svg</file>
         <file>images/neutral/mute-normal.svg</file>
         <file>images/neutral/pause-hover.svg</file>

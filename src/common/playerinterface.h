@@ -40,51 +40,53 @@ class QTMEDIAPLAYER_COMMON_API MediaPlayer : public QQuickItem
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(MediaPlayer)
 
-    Q_PROPERTY(QString backendName READ backendName CONSTANT)
-    Q_PROPERTY(QString backendVersion READ backendVersion CONSTANT)
-    Q_PROPERTY(QString backendAuthors READ backendAuthors CONSTANT)
-    Q_PROPERTY(QString backendCopyright READ backendCopyright CONSTANT)
-    Q_PROPERTY(QString backendLicenses READ backendLicenses CONSTANT)
-    Q_PROPERTY(QString backendHomepage READ backendHomepage CONSTANT)
-    Q_PROPERTY(QString ffmpegVersion READ ffmpegVersion CONSTANT)
-    Q_PROPERTY(QString ffmpegConfiguration READ ffmpegConfiguration CONSTANT)
-    Q_PROPERTY(QString graphicsApiName READ graphicsApiName CONSTANT)
-
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(QString fileName READ fileName NOTIFY fileNameChanged)
-    Q_PROPERTY(QString filePath READ filePath NOTIFY filePathChanged)
-    Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
-    Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
-    Q_PROPERTY(QSizeF videoSize READ videoSize NOTIFY videoSizeChanged)
-    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
-    Q_PROPERTY(bool mute READ mute WRITE setMute NOTIFY muteChanged)
-    Q_PROPERTY(bool seekable READ seekable NOTIFY seekableChanged)
-    Q_PROPERTY(PlaybackState playbackState READ playbackState WRITE setPlaybackState NOTIFY playbackStateChanged)
-    Q_PROPERTY(MediaStatus mediaStatus READ mediaStatus NOTIFY mediaStatusChanged)
-    Q_PROPERTY(LogLevel logLevel READ logLevel WRITE setLogLevel NOTIFY logLevelChanged)
-    Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
-    Q_PROPERTY(qreal aspectRatio READ aspectRatio WRITE setAspectRatio NOTIFY aspectRatioChanged)
-    Q_PROPERTY(QUrl snapshotDirectory READ snapshotDirectory WRITE setSnapshotDirectory NOTIFY snapshotDirectoryChanged)
-    Q_PROPERTY(QString snapshotFormat READ snapshotFormat WRITE setSnapshotFormat NOTIFY snapshotFormatChanged)
-    Q_PROPERTY(QString snapshotTemplate READ snapshotTemplate WRITE setSnapshotTemplate NOTIFY snapshotTemplateChanged)
-    Q_PROPERTY(QStringList videoFileSuffixes READ videoFileSuffixes CONSTANT)
-    Q_PROPERTY(QStringList audioFileSuffixes READ audioFileSuffixes CONSTANT)
-    Q_PROPERTY(QStringList subtitleFileSuffixes READ subtitleFileSuffixes CONSTANT)
-    Q_PROPERTY(QStringList videoFileMimeTypes READ videoFileMimeTypes CONSTANT)
-    Q_PROPERTY(QStringList audioFileMimeTypes READ audioFileMimeTypes CONSTANT)
-    Q_PROPERTY(bool hardwareDecoding READ hardwareDecoding WRITE setHardwareDecoding NOTIFY hardwareDecodingChanged)
-    Q_PROPERTY(bool autoStart READ autoStart WRITE setAutoStart NOTIFY autoStartChanged)
-    Q_PROPERTY(bool livePreview READ livePreview WRITE setLivePreview NOTIFY livePreviewChanged)
-    Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
-    Q_PROPERTY(Chapters chapters READ chapters NOTIFY chaptersChanged)
-    Q_PROPERTY(MetaData metaData READ metaData NOTIFY metaDataChanged)
-    Q_PROPERTY(MediaTracks mediaTracks READ mediaTracks NOTIFY mediaTracksChanged)
-    Q_PROPERTY(int activeVideoTrack READ activeVideoTrack WRITE setActiveVideoTrack NOTIFY activeVideoTrackChanged)
-    Q_PROPERTY(int activeAudioTrack READ activeAudioTrack WRITE setActiveAudioTrack NOTIFY activeAudioTrackChanged)
-    Q_PROPERTY(int activeSubtitleTrack READ activeSubtitleTrack WRITE setActiveSubtitleTrack NOTIFY activeSubtitleTrackChanged)
-    Q_PROPERTY(QSizeF recommendedWindowSize READ recommendedWindowSize NOTIFY recommendedWindowSizeChanged)
-    Q_PROPERTY(QPointF recommendedWindowPosition READ recommendedWindowPosition NOTIFY recommendedWindowPositionChanged)
-    Q_PROPERTY(bool rendererReady READ rendererReady NOTIFY rendererReadyChanged)
+    Q_PROPERTY(QString backendName READ backendName CONSTANT FINAL)
+    Q_PROPERTY(QString backendVersion READ backendVersion CONSTANT FINAL)
+    Q_PROPERTY(QString backendAuthors READ backendAuthors CONSTANT FINAL)
+    Q_PROPERTY(QString backendCopyright READ backendCopyright CONSTANT FINAL)
+    Q_PROPERTY(QString backendLicenses READ backendLicenses CONSTANT FINAL)
+    Q_PROPERTY(QString backendHomepage READ backendHomepage CONSTANT FINAL)
+    Q_PROPERTY(QString ffmpegVersion READ ffmpegVersion CONSTANT FINAL)
+    Q_PROPERTY(QString ffmpegConfiguration READ ffmpegConfiguration CONSTANT FINAL)
+    Q_PROPERTY(QString graphicsApiName READ graphicsApiName CONSTANT FINAL)
+    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged FINAL)
+    Q_PROPERTY(QString fileName READ fileName NOTIFY fileNameChanged FINAL)
+    Q_PROPERTY(QString filePath READ filePath NOTIFY filePathChanged FINAL)
+    Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged FINAL)
+    Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged FINAL)
+    Q_PROPERTY(QSizeF videoSize READ videoSize NOTIFY videoSizeChanged FINAL)
+    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged FINAL)
+    Q_PROPERTY(bool mute READ mute WRITE setMute NOTIFY muteChanged FINAL)
+    Q_PROPERTY(bool seekable READ seekable NOTIFY seekableChanged FINAL)
+    Q_PROPERTY(PlaybackState playbackState READ playbackState WRITE setPlaybackState NOTIFY playbackStateChanged FINAL)
+    Q_PROPERTY(MediaStatus mediaStatus READ mediaStatus NOTIFY mediaStatusChanged FINAL)
+    Q_PROPERTY(LogLevel logLevel READ logLevel WRITE setLogLevel NOTIFY logLevelChanged FINAL)
+    Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged FINAL)
+    Q_PROPERTY(qreal aspectRatio READ aspectRatio WRITE setAspectRatio NOTIFY aspectRatioChanged FINAL)
+    Q_PROPERTY(QUrl snapshotDirectory READ snapshotDirectory WRITE setSnapshotDirectory NOTIFY snapshotDirectoryChanged FINAL)
+    Q_PROPERTY(QString snapshotFormat READ snapshotFormat WRITE setSnapshotFormat NOTIFY snapshotFormatChanged FINAL)
+    Q_PROPERTY(QString snapshotTemplate READ snapshotTemplate WRITE setSnapshotTemplate NOTIFY snapshotTemplateChanged FINAL)
+    Q_PROPERTY(QStringList videoFileSuffixes READ videoFileSuffixes CONSTANT FINAL)
+    Q_PROPERTY(QStringList audioFileSuffixes READ audioFileSuffixes CONSTANT FINAL)
+    Q_PROPERTY(QStringList subtitleFileSuffixes READ subtitleFileSuffixes CONSTANT FINAL)
+    Q_PROPERTY(QStringList videoFileMimeTypes READ videoFileMimeTypes CONSTANT FINAL)
+    Q_PROPERTY(QStringList audioFileMimeTypes READ audioFileMimeTypes CONSTANT FINAL)
+    Q_PROPERTY(bool hardwareDecoding READ hardwareDecoding WRITE setHardwareDecoding NOTIFY hardwareDecodingChanged FINAL)
+    Q_PROPERTY(bool autoStart READ autoStart WRITE setAutoStart NOTIFY autoStartChanged FINAL)
+    Q_PROPERTY(bool livePreview READ livePreview WRITE setLivePreview NOTIFY livePreviewChanged FINAL)
+    Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged FINAL)
+    Q_PROPERTY(Chapters chapters READ chapters NOTIFY chaptersChanged FINAL)
+    Q_PROPERTY(MetaData metaData READ metaData NOTIFY metaDataChanged FINAL)
+    Q_PROPERTY(MediaTracks mediaTracks READ mediaTracks NOTIFY mediaTracksChanged FINAL)
+    Q_PROPERTY(int activeVideoTrack READ activeVideoTrack WRITE setActiveVideoTrack NOTIFY activeVideoTrackChanged FINAL)
+    Q_PROPERTY(int activeAudioTrack READ activeAudioTrack WRITE setActiveAudioTrack NOTIFY activeAudioTrackChanged FINAL)
+    Q_PROPERTY(int activeSubtitleTrack READ activeSubtitleTrack WRITE setActiveSubtitleTrack NOTIFY activeSubtitleTrackChanged FINAL)
+    Q_PROPERTY(QSizeF recommendedWindowSize READ recommendedWindowSize NOTIFY recommendedWindowSizeChanged FINAL)
+    Q_PROPERTY(QPointF recommendedWindowPosition READ recommendedWindowPosition NOTIFY recommendedWindowPositionChanged FINAL)
+    Q_PROPERTY(bool rendererReady READ rendererReady NOTIFY rendererReadyChanged FINAL)
+    Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY hasVideoChanged FINAL)
+    Q_PROPERTY(bool hasAudio READ hasAudio NOTIFY hasAudioChanged FINAL)
+    Q_PROPERTY(bool hasSubtitle READ hasSubtitle NOTIFY hasSubtitleChanged FINAL)
 
 public:
     explicit MediaPlayer(QQuickItem *parent = nullptr);
@@ -278,6 +280,10 @@ public:
 
     Q_NODISCARD virtual bool rendererReady() const = 0;
 
+    Q_NODISCARD bool hasVideo() const;
+    Q_NODISCARD bool hasAudio() const;
+    Q_NODISCARD bool hasSubtitle() const;
+
 public Q_SLOTS:
     virtual void play() = 0;
     void play(const QUrl &url);
@@ -341,6 +347,9 @@ Q_SIGNALS:
     void recommendedWindowSizeChanged();
     void recommendedWindowPositionChanged();
     void rendererReadyChanged();
+    void hasVideoChanged();
+    void hasAudioChanged();
+    void hasSubtitleChanged();
 };
 
 QTMEDIAPLAYER_END_NAMESPACE

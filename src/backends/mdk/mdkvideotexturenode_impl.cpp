@@ -156,7 +156,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         fbo_gl.reset(new QOpenGLFramebufferObject(size));
         MDK_NS_PREPEND(GLRenderAPI) ra = {};
         ra.fbo = fbo_gl->handle();
-        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, this);
         QMetaObject::invokeMethod(m_item, "setRendererReady", Q_ARG(bool, true));
         const auto tex = fbo_gl->texture();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -195,7 +195,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         }
         MDK_NS_PREPEND(D3D11RenderAPI) ra = {};
         ra.rtv = m_texture_d3d11.Get();
-        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, this);
         QMetaObject::invokeMethod(m_item, "setRendererReady", Q_ARG(bool, true));
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = reinterpret_cast<decltype(nativeObj)>(m_texture_d3d11.Get());
@@ -232,7 +232,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
         ra.texture = (__bridge void*)m_texture_mtl;
         ra.device = (__bridge void*)dev;
         ra.cmdQueue = rif->getResource(m_window, QSGRendererInterface::CommandQueueResource);
-        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, this);
         QMetaObject::invokeMethod(m_item, "setRendererReady", Q_ARG(bool, true));
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeObj = decltype(nativeObj)(ra.texture);
@@ -287,7 +287,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
             const auto cmdBuf = *static_cast<VkCommandBuffer *>(rif->getResource(node->m_window, QSGRendererInterface::CommandListResource));
             return cmdBuf;
         };
-        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, m_window);
+        static_cast<MDK_NS_PREPEND(Player) *>(player)->setRenderAPI(&ra, this);
         QMetaObject::invokeMethod(m_item, "setRendererReady", Q_ARG(bool, true));
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         if (m_texture_vk) {

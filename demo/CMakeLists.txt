@@ -58,14 +58,24 @@ if(WIN32)
     enable_language(RC)
     list(APPEND SOURCES
         demo.rc demo.manifest
+        qtwinextras/qwinevent_p.h
+        qtwinextras/qwinevent.cpp
         qtwinextras/qwintaskbarbutton.h
         qtwinextras/qwintaskbarbutton.cpp
         qtwinextras/qwintaskbarprogress.h
         qtwinextras/qwintaskbarprogress.cpp
+        qtwinextras/qwinthumbnailtoolbar.h
+        qtwinextras/qwinthumbnailtoolbar.cpp
+        qtwinextras/qwinthumbnailtoolbutton.h
+        qtwinextras/qwinthumbnailtoolbutton.cpp
         qtwinextras/qquickiconloader_p.h
         qtwinextras/qquickiconloader.cpp
         qtwinextras/qquicktaskbarbutton_p.h
         qtwinextras/qquicktaskbarbutton.cpp
+        qtwinextras/qquickthumbnailtoolbar_p.h
+        qtwinextras/qquickthumbnailtoolbar.cpp
+        qtwinextras/qquickthumbnailtoolbutton_p.h
+        qtwinextras/qquickthumbnailtoolbutton.cpp
     )
 endif()
 
