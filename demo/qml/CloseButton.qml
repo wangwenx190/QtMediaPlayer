@@ -32,9 +32,11 @@ Button {
     implicitHeight: 30
     implicitWidth: implicitHeight * 1.5
 
-    ToolTip.visible: hovered && !down
-    ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-    ToolTip.text: qsTr("Close")
+    ToolTip {
+        visible: hovered && !down && !OS.isWindowsHost
+        delay: Qt.styleHints.mousePressAndHoldInterval
+        text: qsTr("Close")
+    }
 
     contentItem: Item {
         implicitWidth: 16

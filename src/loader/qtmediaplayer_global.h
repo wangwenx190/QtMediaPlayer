@@ -95,16 +95,6 @@
 #  define QTMEDIAPLAYER_QML_URI "org.wangwenx190.QtMediaPlayer"
 #endif
 
-#ifndef QTMEDIAPLAYER_QML_REGISTER
-#  define QTMEDIAPLAYER_QML_REGISTER(className) \
-      qmlRegisterType<className>(QTMEDIAPLAYER_QML_URI, 1, 0, #className)
-#endif
-
-#ifndef QTMEDIAPLAYER_QML_NAMED_REGISTER
-#  define QTMEDIAPLAYER_QML_NAMED_REGISTER(className, typeName) \
-      qmlRegisterType<className>(QTMEDIAPLAYER_QML_URI, 1, 0, #typeName)
-#endif
-
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 Q_DECLARE_LOGGING_CATEGORY(lcQMPLoader)
 [[maybe_unused]] static constexpr const int QTMEDIAPLAYER_VERSION_MAJOR = 1;

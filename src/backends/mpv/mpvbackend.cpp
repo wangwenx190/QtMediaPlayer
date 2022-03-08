@@ -213,8 +213,15 @@ public:
         // them since Qt6. It's the old Qt5 story.
         QQuickWindow::setSceneGraphBackend(QSGRendererInterface::OpenGLRhi);
 #endif
+        qRegisterMetaType<ChapterInfo>();
+        qRegisterMetaType<Chapters>();
+        qRegisterMetaType<MetaData>();
+        qRegisterMetaType<MediaTracks>();
         qRegisterMetaType<MPV::Qt::ErrorReturn>();
-        QTMEDIAPLAYER_REGISTER_CUSTOM_TYPES(MPVPlayer)
+        qmlRegisterModule(QTMEDIAPLAYER_QML_URI, 1, 0);
+        qmlRegisterUncreatableMetaObject(staticMetaObject, QTMEDIAPLAYER_QML_URI, 1, 0, "QtMediaPlayer",
+              QStringLiteral("QtMediaPlayer is not creatable, it's only used for accessing enums & flags."));
+        qmlRegisterType<MPVPlayer>(QTMEDIAPLAYER_QML_URI, 1, 0, "MediaPlayer");
         return true;
     }
 

@@ -165,7 +165,14 @@ public:
             return true;
         }
         m_initialized = true;
-        QTMEDIAPLAYER_REGISTER_CUSTOM_TYPES(MDKPlayer)
+        qRegisterMetaType<ChapterInfo>();
+        qRegisterMetaType<Chapters>();
+        qRegisterMetaType<MetaData>();
+        qRegisterMetaType<MediaTracks>();
+        qmlRegisterModule(QTMEDIAPLAYER_QML_URI, 1, 0);
+        qmlRegisterUncreatableMetaObject(staticMetaObject, QTMEDIAPLAYER_QML_URI, 1, 0, "QtMediaPlayer",
+              QStringLiteral("QtMediaPlayer is not creatable, it's only used for accessing enums & flags."));
+        qmlRegisterType<MDKPlayer>(QTMEDIAPLAYER_QML_URI, 1, 0, "MediaPlayer");
         return true;
     }
 

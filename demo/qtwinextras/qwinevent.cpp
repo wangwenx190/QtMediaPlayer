@@ -46,7 +46,7 @@
 
 QT_BEGIN_NAMESPACE
 
-int QWinEvent::TaskbarButtonCreated = QEvent::registerEventType();
+const int QWinEvent::TaskbarButtonCreated = QEvent::registerEventType();
 
 QWinEvent::QWinEvent(const int type) : QEvent(static_cast<QEvent::Type>(type)) {}
 

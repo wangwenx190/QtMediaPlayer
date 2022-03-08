@@ -34,9 +34,11 @@ Button {
     implicitHeight: 30
     implicitWidth: implicitHeight * 1.5
 
-    ToolTip.visible: hovered && !down
-    ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-    ToolTip.text: maximized ? qsTr("Restore") : qsTr("Maximize")
+    ToolTip {
+        visible: hovered && !down && !OS.isWindowsHost
+        delay: Qt.styleHints.mousePressAndHoldInterval
+        text: button.maximized ? qsTr("Restore") : qsTr("Maximize")
+    }
 
     contentItem: Item {
         implicitWidth: 16

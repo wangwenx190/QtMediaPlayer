@@ -50,7 +50,7 @@ class QWinEvent : public QEvent
     Q_DISABLE_COPY_MOVE(QWinEvent)
 
 public:
-    static int TaskbarButtonCreated;
+    static const int TaskbarButtonCreated;
 
     explicit QWinEvent(const int type);
     ~QWinEvent() override;
@@ -73,7 +73,7 @@ public:
 #endif
 
 private:
-    quint32 tbButtonCreatedMsgId;
+    const quint32 tbButtonCreatedMsgId;
 };
 
 QT_END_NAMESPACE
