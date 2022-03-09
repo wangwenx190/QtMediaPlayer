@@ -44,6 +44,7 @@
 #include "os.h"
 #include "settings.h"
 #include "theme.h"
+#include "updatemanager.h"
 #include "application.h"
 #ifdef Q_OS_WINDOWS
 #  include "qtwinextras/qwintaskbarprogress.h"
@@ -232,6 +233,7 @@ int Application::run(int argc, char *argv[])
     QScopedPointer<OS> os(new OS);
     QScopedPointer<Settings> settings(new Settings);
     QScopedPointer<Theme> theme(new Theme);
+    QScopedPointer<UpdateManager> updateManager(new UpdateManager);
 
     QQmlApplicationEngine engine;
 
@@ -294,6 +296,7 @@ int Application::run(int argc, char *argv[])
     qmlRegisterSingletonInstance(DEMO_APP_URI, 1, 0, "OS", os.data());
     qmlRegisterSingletonInstance(DEMO_APP_URI, 1, 0, "Settings", settings.data());
     qmlRegisterSingletonInstance(DEMO_APP_URI, 1, 0, "Theme", theme.data());
+    qmlRegisterSingletonInstance(DEMO_APP_URI, 1, 0, "UpdateManager", updateManager.data());
     qmlRegisterType<FramelessWindow>(DEMO_APP_URI, 1, 0, "FramelessWindow");
     qmlRegisterAnonymousType<QWindow, 254>(DEMO_APP_URI, 1);
 

@@ -27,6 +27,8 @@
 #include <QtCore/qsettings.h>
 #include <QtGui/qwindow.h>
 
+static const QString kTranslation = QStringLiteral("common/translation");
+static const QString kAutoCheckUpdate = QStringLiteral("common/autoCheckUpdate");
 static const QString kRestoreLastWindowGeometry = QStringLiteral("window/restoreLastWindowGeometry");
 static const QString kX = QStringLiteral("window/x");
 static const QString kY = QStringLiteral("window/y");
@@ -334,4 +336,32 @@ void Settings::setSnapshotDirectory(const QUrl &value)
     }
     m_settings->setValue(kSnapshotDirectory, value);
     Q_EMIT snapshotDirectoryChanged();
+}
+
+QString Settings::translation() const
+{
+    return m_settings->value(kTranslation).toString();
+}
+
+void Settings::setTranslation(const QString &value)
+{
+    if (translation() == value) {
+        return;
+    }
+    m_settings->setValue(kTranslation, value);
+    Q_EMIT translationChanged();
+}
+
+bool Settings::autoCheckUpdate() const
+{
+    return m_settings->value(kAutoCheckUpdate, true).toBool();
+}
+
+void Settings::setAutoCheckUpdate(const bool value)
+{
+    if (autoCheckUpdate() == value) {
+        return;
+    }
+    m_settings->setValue(kAutoCheckUpdate, value);
+    Q_EMIT autoCheckUpdateChanged();
 }

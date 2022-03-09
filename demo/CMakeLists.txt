@@ -50,6 +50,7 @@ set(SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/version.h
     console.h console.cpp
     logger.h logger.cpp
+    fileassociation.h fileassociation.cpp
     application.h application.cpp
     main.cpp
 )
@@ -58,6 +59,7 @@ if(WIN32)
     enable_language(RC)
     list(APPEND SOURCES
         demo.rc demo.manifest
+        # QtWinExtras
         qtwinextras/qwinevent_p.h
         qtwinextras/qwinevent.cpp
         qtwinextras/qwintaskbarbutton.h
@@ -117,6 +119,7 @@ qt_add_qml_module(${PROJ_NAME}
         theme.h theme.cpp
         framelesswindow.h framelesswindow.cpp
         os.h os.cpp
+        updatemanager.h updatemanager.cpp
 )
 
 # QML Type Compiler (qmltc): Compile QML types to C++ code.
@@ -183,7 +186,7 @@ endif()
 
 if(MSVC)
     target_compile_options(${PROJ_NAME} PRIVATE
-        /W3 /WX # We can't use "/W4" here due to some generated code are not warning clean.
+        /W3 /WX # Some QtQml headers are causing warnings, so sad.
     )
 else()
     target_compile_options(${PROJ_NAME} PRIVATE

@@ -60,6 +60,8 @@ class Settings : public QObject
     Q_PROPERTY(bool osdShowLocalTime READ osdShowLocalTime WRITE setOsdShowLocalTime NOTIFY osdShowLocalTimeChanged FINAL)
     Q_PROPERTY(QString snapshotFormat READ snapshotFormat WRITE setSnapshotFormat NOTIFY snapshotFormatChanged FINAL)
     Q_PROPERTY(QUrl snapshotDirectory READ snapshotDirectory WRITE setSnapshotDirectory NOTIFY snapshotDirectoryChanged FINAL)
+    Q_PROPERTY(QString translation READ translation WRITE setTranslation NOTIFY translationChanged FINAL)
+    Q_PROPERTY(bool autoCheckUpdate READ autoCheckUpdate WRITE setAutoCheckUpdate NOTIFY autoCheckUpdateChanged FINAL)
 
 public:
     explicit Settings(QObject *parent = nullptr);
@@ -125,6 +127,12 @@ public:
     [[nodiscard]] QUrl snapshotDirectory() const;
     void setSnapshotDirectory(const QUrl &value);
 
+    [[nodiscard]] QString translation() const;
+    void setTranslation(const QString &value);
+
+    [[nodiscard]] bool autoCheckUpdate() const;
+    void setAutoCheckUpdate(const bool value);
+
 Q_SIGNALS:
     void muteChanged();
     void volumeChanged();
@@ -146,6 +154,8 @@ Q_SIGNALS:
     void osdShowLocalTimeChanged();
     void snapshotFormatChanged();
     void snapshotDirectoryChanged();
+    void translationChanged();
+    void autoCheckUpdateChanged();
 
 private:
     QScopedPointer<QSettings> m_settings;
