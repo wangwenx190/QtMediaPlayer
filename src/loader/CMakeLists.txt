@@ -45,9 +45,9 @@ if(WIN32 AND (NOT BUILD_STATIC_LOADER))
 endif()
 
 if(BUILD_STATIC_LOADER)
-    add_library(${PROJ_NAME} STATIC ${SOURCES})
+    qt_add_library(${PROJ_NAME} STATIC ${SOURCES})
 else()
-    add_library(${PROJ_NAME} SHARED ${SOURCES})
+    qt_add_library(${PROJ_NAME} SHARED ${SOURCES})
 endif()
 
 if(BUILD_STATIC_LOADER)

@@ -53,9 +53,9 @@ if(WIN32 AND (NOT BUILD_STATIC_PLUGINS))
 endif()
 
 if(BUILD_STATIC_PLUGINS)
-    add_library(${PROJ_NAME} STATIC ${SOURCES})
+    qt_add_library(${PROJ_NAME} STATIC ${SOURCES})
 else()
-    add_library(${PROJ_NAME} SHARED ${SOURCES})
+    qt_add_library(${PROJ_NAME} SHARED ${SOURCES})
 endif()
 
 target_include_directories(${PROJ_NAME} PRIVATE
