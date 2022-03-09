@@ -255,8 +255,8 @@ static inline void TriggerFrameChange(const HWND hwnd)
     if (!hwnd) {
         return;
     }
-    SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
-                 SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+    static constexpr const UINT flags = (SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+    SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, flags);
 }
 
 static inline void FixupQtInternals(const HWND hwnd)
@@ -288,20 +288,21 @@ static inline void UpdateWindowFrameMargins(const HWND hwnd)
     static const auto pDwmExtendFrameIntoClientArea =
         reinterpret_cast<decltype(&DwmExtendFrameIntoClientArea)>(
             QSystemLibrary::resolve(QStringLiteral("dwmapi"), "DwmExtendFrameIntoClientArea"));
-    if (pDwmExtendFrameIntoClientArea) {
-        // Our special handling of WM_NCCALCSIZE removed the whole window frame,
-        // the frame shadow is lost at the same time because DWM won't draw any
-        // frame shadow for frameless windows, we work-around this issue by extending
-        // the window frame into the client area to pretend we still has some window
-        // frame, the extended window frame won't be seen by the user anyway.
-        // Since we only need to pretend that our window still has window frame and
-        // the extended window frame is not visible in reality, extending one pixel
-        // will be enough, though any positive number will also work.
-        const MARGINS dwmMargins = {1, 1, 1, 1};
-        pDwmExtendFrameIntoClientArea(hwnd, &dwmMargins);
-        // Force a WM_NCCALCSIZE event to make our new window frame take effect.
-        TriggerFrameChange(hwnd);
+    if (!pDwmExtendFrameIntoClientArea) {
+        return;
     }
+    // Our special handling of WM_NCCALCSIZE removed the whole window frame,
+    // the frame shadow is lost at the same time because DWM won't draw any
+    // frame shadow for frameless windows, we work-around this issue by extending
+    // the window frame into the client area to pretend we still has some window
+    // frame, the extended window frame won't be seen by the user anyway.
+    // Since we only need to pretend that our window still has window frame and
+    // the extended window frame is not visible in reality, extending one pixel
+    // will be enough, though any positive number will also work.
+    const MARGINS dwmMargins = {1, 1, 1, 1};
+    pDwmExtendFrameIntoClientArea(hwnd, &dwmMargins);
+    // Force a WM_NCCALCSIZE event to make our new window frame take effect.
+    TriggerFrameChange(hwnd);
 }
 
 static inline void UpdateQtInternalFrame(QQuickWindow *window)
@@ -327,6 +328,7 @@ static inline void UpdateQtInternalFrame(QQuickWindow *window)
         platformWindow->setCustomMargins(qtMargins);
     }
 #endif
+    TriggerFrameChange(reinterpret_cast<HWND>(window->winId()));
 }
 
 static inline void SyncWmPaintWithDwm()
@@ -406,14 +408,17 @@ enum class MouseEventType : int
     if (!minBtn && !maxBtn && !closeBtn) {
         return std::nullopt;
     }
-    const auto isInsideButton = [window](const QQuickButton * const button, const QPointF &mousePos) -> bool {
+    const auto isInsideButton = [](const QQuickButton * const button, const QPointF &mousePos) -> bool {
         Q_ASSERT(button);
         if (!button) {
             return false;
         }
-        const qreal dpr = window->effectiveDevicePixelRatio();
-        const QPointF topLeft = button->mapToGlobal(QPointF(0.0, 0.0)) * dpr;
-        const QSizeF size = button->size() * dpr;
+        const QPointF topLeft = button->mapToGlobal(QPointF(0.0, 0.0));
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+        const QSizeF size = button->size();
+#else
+        const QSizeF size = QSizeF(button->width(), button->height());
+#endif
         return QRectF(topLeft, size).contains(mousePos);
     };
     const bool insideMin = minBtn && isInsideButton(minBtn, globalPos);
@@ -483,63 +488,43 @@ enum class MouseEventType : int
     if (!window || !msg || !result) {
         return false;
     }
-    bool shouldHandle = false;
-    MouseEventType type = MouseEventType::NotInterested;
+    MouseEventType eventType = MouseEventType::NotInterested;
     QPointF globalPos = {};
-    switch (msg->message) {
-    case WM_MOUSEMOVE: {
-        shouldHandle = true;
-        type = MouseEventType::Hover;
-        const POINT clientPos = {GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam)};
-        POINT screenPos = clientPos;
-        ClientToScreen(msg->hwnd, &screenPos);
-        globalPos = QPointF(qreal(screenPos.x), qreal(screenPos.y));
-    } break;
-    case WM_LBUTTONDOWN: {
-        shouldHandle = true;
-        type = MouseEventType::Down;
-        const POINT clientPos = {GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam)};
-        POINT screenPos = clientPos;
-        ClientToScreen(msg->hwnd, &screenPos);
-        globalPos = QPointF(qreal(screenPos.x), qreal(screenPos.y));
-    } break;
-    case WM_LBUTTONUP: {
-        shouldHandle = true;
-        type = MouseEventType::Up;
-        const POINT clientPos = {GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam)};
-        POINT screenPos = clientPos;
-        ClientToScreen(msg->hwnd, &screenPos);
-        globalPos = QPointF(qreal(screenPos.x), qreal(screenPos.y));
-    } break;
-    case WM_NCMOUSEMOVE: {
-        shouldHandle = true;
-        type = MouseEventType::Hover;
-        const POINT screenPos = {GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam)};
-        globalPos = QPointF(qreal(screenPos.x), qreal(screenPos.y));
-    } break;
-    case WM_NCLBUTTONDOWN: {
-        shouldHandle = true;
-        type = MouseEventType::Down;
-        const POINT screenPos = {GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam)};
-        globalPos = QPointF(qreal(screenPos.x), qreal(screenPos.y));
-    } break;
-    case WM_NCLBUTTONUP: {
-        shouldHandle = true;
-        type = MouseEventType::Up;
-        const POINT screenPos = {GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam)};
-        globalPos = QPointF(qreal(screenPos.x), qreal(screenPos.y));
-    } break;
-    case WM_NCHITTEST: {
-        shouldHandle = true;
-        type = MouseEventType::Hover;
-        const POINT screenPos = {GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam)};
-        globalPos = QPointF(qreal(screenPos.x), qreal(screenPos.y));
-    } break;
-    default:
-        break;
+    if ((msg->message == WM_MOUSEMOVE) || (msg->message == WM_LBUTTONDOWN)
+                                           || (msg->message == WM_LBUTTONUP)) {
+        if (msg->message == WM_MOUSEMOVE) {
+            eventType = MouseEventType::Hover;
+        } else if (msg->message == WM_LBUTTONDOWN) {
+            eventType = MouseEventType::Down;
+            qDebug() << "client down";
+        } else {
+            eventType = MouseEventType::Up;
+            qDebug() << "client up";
+        }
+        const auto xPos = GET_X_LPARAM(msg->lParam);
+        const auto yPos = GET_Y_LPARAM(msg->lParam);
+        // What we get here is device pixels, so we need to divide by the device pixel ratio first
+        // before passing it to Qt.
+        const QPointF localPos = QPointF(qreal(xPos), qreal(yPos)) / window->effectiveDevicePixelRatio();
+        globalPos = window->mapToGlobal(localPos);
+    } else if ((msg->message == WM_NCMOUSEMOVE) || (msg->message == WM_NCLBUTTONDOWN)
+               || (msg->message == WM_NCLBUTTONUP) || (msg->message == WM_NCHITTEST)) {
+        if ((msg->message == WM_NCMOUSEMOVE) || (msg->message == WM_NCHITTEST)) {
+            eventType = MouseEventType::Hover;
+        } else if (msg->message == WM_NCLBUTTONDOWN) {
+            eventType = MouseEventType::Down;
+            qDebug() << "non-client down";
+        } else {
+            eventType = MouseEventType::Up;
+            qDebug() << "non-client up";
+        }
+        const auto xPos = GET_X_LPARAM(msg->lParam);
+        const auto yPos = GET_Y_LPARAM(msg->lParam);
+        // ### TODO: check whether divide by dpr is needed or not.
+        globalPos = QPointF(qreal(xPos), qreal(yPos)) / window->effectiveDevicePixelRatio();
     }
-    if (shouldHandle) {
-        const auto hitTest = systemButtonEventHandler(window, type, globalPos);
+    if (eventType != MouseEventType::NotInterested) {
+        const auto hitTest = systemButtonEventHandler(window, eventType, globalPos);
         if ((msg->message == WM_NCHITTEST) && hitTest.has_value()) {
             *result = hitTest.value();
             return true;
@@ -869,7 +854,7 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
                 }
             }
         }
-        SyncWmPaintWithDwm();
+        SyncWmPaintWithDwm(); // This should be executed in the very last.
         // We want to reduce flicker during resize by returning "WVR_REDRAW"
         // but Windows will exhibits bugs where lient pixels and child windows
         // are mispositioned by the width/height of the upper-left nonclient area.
@@ -930,12 +915,12 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
         windowPos->flags |= SWP_NOCOPYBITS;
     } break;
     case WM_DWMCOMPOSITIONCHANGED: {
+        // Re-apply the custom window frame if recovered from the basic theme.
         UpdateWindowFrameMargins(msg->hwnd);
     } break;
     case WM_DPICHANGED: {
-        // Sync the internal frame margins with the latest DPI settings.
+        // Sync the internal window frame margins with the latest DPI settings.
         UpdateQtInternalFrame(this);
-        TriggerFrameChange(msg->hwnd);
     } break;
     case WM_NCUAHDRAWCAPTION:
     case WM_NCUAHDRAWFRAME: {
@@ -957,11 +942,10 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
     case WM_NCACTIVATE: {
         if (IsDwmCompositionEnabled()) {
             // DefWindowProc won't repaint the window border if lParam
-            // (normally a HRGN) is -1. See the following link's "lParam"
-            // section:
+            // (normally a HRGN) is -1. See the following link's "lParam" section:
             // https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
-            // Don't use "*result = 0" otherwise the window won't respond
-            // to the window active state change.
+            // Don't use "*result = 0" here, otherwise the window won't respond
+            // to the window activation state change.
             *result = DefWindowProcW(msg->hwnd, WM_NCACTIVATE, msg->wParam, -1);
         } else {
             *result = (msg->wParam ? FALSE : TRUE);
