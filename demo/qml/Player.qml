@@ -296,13 +296,13 @@ Item {
             }
             onPreviewPositionChanged: {
                 if (Settings.enableTimelinePreview) {
-                    let percent = (mouseX - positionSlider.leftPadding) / positionSlider.availableWidth;
+                    const percent = (mouseX - positionSlider.leftPadding) / positionSlider.availableWidth;
                     timelinePreviewPlayer.seek(timelinePreviewPlayer.duration * percent);
                     let newX = mouseX + positionSlider.x - (timelinePreviewPlayer.width / 2.0);
                     if (newX < 0) {
                         newX = 0;
                     }
-                    let maxX = parent.width - timelinePreviewPlayer.width;
+                    const maxX = parent.width - timelinePreviewPlayer.width;
                     if (newX > maxX) {
                         newX = maxX;
                     }

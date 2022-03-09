@@ -136,7 +136,7 @@ FramelessWindow {
         }
         onRecommendedWindowSizeChanged: {
             if (window.visibility === Window.Windowed) {
-                let windowSize = recommendedWindowSize;
+                const windowSize = recommendedWindowSize;
                 if ((windowSize.width > 9) && (windowSize.height > 9)) {
                     window.width = windowSize.width;
                     window.height = windowSize.height;
@@ -145,7 +145,7 @@ FramelessWindow {
         }
         onRecommendedWindowPositionChanged: {
             if (window.visibility === Window.Windowed) {
-                let windowPos = recommendedWindowPosition;
+                const windowPos = recommendedWindowPosition;
                 if ((windowPos.x >= 0) && (windowPos.y >= 0)) {
                     window.x = windowPos.x;
                     window.y = windowPos.y;
@@ -268,9 +268,9 @@ FramelessWindow {
         acceptedButtons: Qt.MiddleButton
         onWheel: {
             if (window.visibility === Window.Windowed) {
-                let angleY = wheel.angleDelta.y;
-                if (angleY !== 0) {
-                    if (angleY > 0) {
+                const angleHor = wheel.angleDelta.y;
+                if (angleHor !== 0) {
+                    if (angleHor > 0) {
                         window.zoomIn(0.004);
                     } else {
                         window.zoomOut(0.004);
@@ -349,5 +349,15 @@ FramelessWindow {
     Shortcut {
         sequence: "Down"
         onActivated: player.volumeDown()
+    }
+
+    Shortcut {
+        sequence: StandardKey.ZoomIn
+        onActivated: window.zoomIn(0.004)
+    }
+
+    Shortcut {
+        sequence: StandardKey.ZoomOut
+        onActivated: window.zoomOut(0.004)
     }
 }

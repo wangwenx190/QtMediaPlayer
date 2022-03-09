@@ -32,5 +32,6 @@ class QMPBackend;
 QTMEDIAPLAYER_END_NAMESPACE
 
 #ifdef QTMEDIAPLAYER_PLUGIN_STATIC
-[[nodiscard]] bool QueryBackend_MDK(QTMEDIAPLAYER_PREPEND_NAMESPACE(QMPBackend) **ppBackend);
+extern "C" [[nodiscard]] bool QueryBackend_MDK
+    (QTMEDIAPLAYER_PREPEND_NAMESPACE(QMPBackend) **ppBackend);
 #endif

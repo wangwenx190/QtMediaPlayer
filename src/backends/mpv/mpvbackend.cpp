@@ -231,7 +231,7 @@ private:
 QTMEDIAPLAYER_END_NAMESPACE
 
 #ifdef QTMEDIAPLAYER_PLUGIN_STATIC
-[[nodiscard]] bool QueryBackend_MPV
+extern "C" [[nodiscard]] bool QueryBackend_MPV
 #else
 extern "C" [[nodiscard]] QTMEDIAPLAYER_PLUGIN_API bool QueryBackend
 #endif

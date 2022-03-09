@@ -145,6 +145,8 @@ public:
     Q_NODISCARD Q_INVOKABLE bool isPlaying() const override;
     Q_NODISCARD Q_INVOKABLE bool isPaused() const override;
     Q_NODISCARD Q_INVOKABLE bool isStopped() const override;
+    Q_NODISCARD Q_INVOKABLE bool rotateImage(const qreal value) override;
+    Q_NODISCARD Q_INVOKABLE bool scaleImage(const qreal value) override;
 
 protected Q_SLOTS:
     void handleMpvEvents();

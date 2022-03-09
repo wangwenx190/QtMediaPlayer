@@ -310,6 +310,9 @@ public:
     Q_NODISCARD Q_INVOKABLE bool isPlayingVideo() const;
     Q_NODISCARD Q_INVOKABLE bool isPlayingAudio() const;
 
+    Q_NODISCARD Q_INVOKABLE virtual bool rotateImage(const qreal value) = 0;
+    Q_NODISCARD Q_INVOKABLE virtual bool scaleImage(const qreal value) = 0;
+
 Q_SIGNALS:
     void loaded();
     void playing();
