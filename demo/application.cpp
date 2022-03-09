@@ -339,7 +339,7 @@ int Application::run(int argc, char *argv[])
         if (!window) {
             qFatal("The main window is not created. This is very wrong.");
         }
-        const auto player = window->findChild<QQuickItem *>(QStringLiteral("mediaPlayer"));
+        const auto player = window->findChild<QQuickItem *>(QStringLiteral("MediaPlayerObject"));
         Q_ASSERT(player);
         if (!player) {
             qFatal("The media player is not created. This is very wrong.");

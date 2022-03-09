@@ -1143,30 +1143,28 @@ bool MDKPlayer::isStopped() const
     return (m_player->state() == MDK_NS_PREPEND(PlaybackState)::Stopped);
 }
 
-bool wangwenx190::QtMediaPlayer::MDKPlayer::rotateImage(const qreal value)
+void MDKPlayer::rotateImage(const qreal value)
 {
     if (isStopped()) {
-        return false;
+        return;
     }
     if ((value <= 0.0) || (value >= 360.0)) {
         qCWarning(lcQMPMDK) << "The rotation degree should be in the (0, 360) range.";
-        return false;
+        return;
     }
     m_player->rotate(static_cast<int>(qRound(value)));
-    return true;
 }
 
-bool wangwenx190::QtMediaPlayer::MDKPlayer::scaleImage(const qreal value)
+void MDKPlayer::scaleImage(const qreal value)
 {
     if (isStopped()) {
-        return false;
+        return;
     }
     if (value <= 0.0) {
         qCWarning(lcQMPMDK) << "The scale factor should be greater than zero.";
-        return false;
+        return;
     }
     m_player->scale(value, value);
-    return true;
 }
 
 void MDKPlayer::resetInternalData()

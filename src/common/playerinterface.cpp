@@ -322,4 +322,52 @@ void MediaPlayer::open(const QUrl &url)
     play(url);
 }
 
+void MediaPlayer::nextChapter()
+{
+    if (isStopped()) {
+        return;
+    }
+    const Chapters ch = chapters();
+    if (ch.isEmpty()) {
+        return;
+    }
+    const int total = ch.count();
+    const qint64 pos = position();
+    // "total - 2": Nothing to do if we are in the last chapter.
+    for (int i = (total - 2); i >= 0; --i) {
+        // Don't reply on endTime, it's not reliable for some backends.
+        if (pos < ch.at(i).startTime) {
+            continue;
+        }
+        const int nextChapterNo = i + 1;
+        if (nextChapterNo <= (total - 1)) {
+            seek(ch.at(nextChapterNo).startTime);
+        }
+    }
+}
+
+void MediaPlayer::previousChapter()
+{
+    if (isStopped()) {
+        return;
+    }
+    const Chapters ch = chapters();
+    if (ch.isEmpty()) {
+        return;
+    }
+    const int total = ch.count();
+    const qint64 pos = position();
+    // "i != 0": Nothing to do if we are in the first chapter.
+    for (int i = (total - 1); i != 0; --i) {
+        // Don't reply on endTime, it's not reliable for some backends.
+        if (pos < ch.at(i).startTime) {
+            continue;
+        }
+        const int previousChapterNo = i - 1;
+        if (previousChapterNo >= 0) {
+            seek(ch.at(previousChapterNo).startTime);
+        }
+    }
+}
+
 QTMEDIAPLAYER_END_NAMESPACE

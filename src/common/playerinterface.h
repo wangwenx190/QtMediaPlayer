@@ -292,6 +292,10 @@ public Q_SLOTS:
     virtual void stop() = 0;
     virtual void seek(const qint64 value) = 0;
     virtual void snapshot() = 0;
+    virtual void rotateImage(const qreal value) = 0;
+    virtual void scaleImage(const qreal value) = 0;
+    void nextChapter();
+    void previousChapter();
 
 public:
     Q_NODISCARD Q_INVOKABLE virtual bool isLoaded() const = 0;
@@ -309,9 +313,6 @@ public:
 
     Q_NODISCARD Q_INVOKABLE bool isPlayingVideo() const;
     Q_NODISCARD Q_INVOKABLE bool isPlayingAudio() const;
-
-    Q_NODISCARD Q_INVOKABLE virtual bool rotateImage(const qreal value) = 0;
-    Q_NODISCARD Q_INVOKABLE virtual bool scaleImage(const qreal value) = 0;
 
 Q_SIGNALS:
     void loaded();

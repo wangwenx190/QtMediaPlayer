@@ -141,14 +141,14 @@ public Q_SLOTS:
     void stop() override;
     void seek(const qint64 value) override;
     void snapshot() override;
+    void rotateImage(const qreal value) override;
+    void scaleImage(const qreal value) override;
 
 public:
     Q_NODISCARD Q_INVOKABLE bool isLoaded() const override;
     Q_NODISCARD Q_INVOKABLE bool isPlaying() const override;
     Q_NODISCARD Q_INVOKABLE bool isPaused() const override;
     Q_NODISCARD Q_INVOKABLE bool isStopped() const override;
-    Q_NODISCARD Q_INVOKABLE bool rotateImage(const qreal value) override;
-    Q_NODISCARD Q_INVOKABLE bool scaleImage(const qreal value) override;
 
 protected:
     Q_NODISCARD QSGNode *updatePaintNode(QSGNode *node, UpdatePaintNodeData *data) override;

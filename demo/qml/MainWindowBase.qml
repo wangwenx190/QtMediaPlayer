@@ -110,7 +110,7 @@ FramelessWindow {
     }
 
     Player {
-        objectName: "mediaPlayer"
+        objectName: "MediaPlayerObject"
         id: player
         anchors.fill: parent
         visible: playbackState !== QtMediaPlayer.Stopped
@@ -216,6 +216,7 @@ FramelessWindow {
     }
 
     TitleBar {
+        objectName: "TitleBarObject"
         id: titleBar
         anchors {
             left: parent.left

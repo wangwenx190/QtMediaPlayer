@@ -361,16 +361,14 @@ bool DummyPlayer::isStopped() const
     return true;
 }
 
-bool DummyPlayer::rotateImage(const qreal value)
+void DummyPlayer::rotateImage(const qreal value)
 {
     Q_UNUSED(value);
-    return false;
 }
 
-bool DummyPlayer::scaleImage(const qreal value)
+void DummyPlayer::scaleImage(const qreal value)
 {
     Q_UNUSED(value);
-    return false;
 }
 
 QTMEDIAPLAYER_END_NAMESPACE
