@@ -45,6 +45,8 @@ class Theme : public QObject
     Q_PROPERTY(QColor systemColor READ systemColor NOTIFY systemColorChanged FINAL)
     Q_PROPERTY(QColor sliderBackgroundColor READ sliderBackgroundColor NOTIFY sliderBackgroundColorChanged FINAL)
     Q_PROPERTY(QColor sliderHandleBorderColor READ sliderHandleBorderColor NOTIFY sliderHandleBorderColorChanged FINAL)
+    Q_PROPERTY(QColor systemAccentColor READ systemAccentColor NOTIFY systemAccentColorChanged FINAL)
+    Q_PROPERTY(QColor windowFrameBorderColor READ windowFrameBorderColor NOTIFY windowFrameBorderColorChanged FINAL)
 
 public:
     explicit Theme(QObject *parent = nullptr);
@@ -58,6 +60,8 @@ public:
     [[nodiscard]] QColor systemColor() const;
     [[nodiscard]] QColor sliderBackgroundColor() const;
     [[nodiscard]] QColor sliderHandleBorderColor() const;
+    [[nodiscard]] QColor systemAccentColor() const;
+    [[nodiscard]] QColor windowFrameBorderColor() const;
 
 public Q_SLOTS:
     void refresh();
@@ -70,6 +74,8 @@ Q_SIGNALS:
     void systemColorChanged();
     void sliderBackgroundColorChanged();
     void sliderHandleBorderColorChanged();
+    void systemAccentColorChanged();
+    void windowFrameBorderColorChanged();
 
 private:
     bool m_darkModeEnabled = false;
@@ -79,4 +85,6 @@ private:
     QColor m_systemColor = {};
     QColor m_sliderBackgroundColor = {};
     QColor m_sliderHandleBorderColor = {};
+    QColor m_systemAccentColor = {};
+    QColor m_windowFrameBorderColor = {};
 };

@@ -48,6 +48,8 @@ class OS : public QObject
     Q_PROPERTY(Arch buildCpuArchitecture READ buildCpuArchitecture CONSTANT FINAL)
     Q_PROPERTY(Arch currentCpuArchitecture READ currentCpuArchitecture CONSTANT FINAL)
     Q_PROPERTY(QString version READ version CONSTANT FINAL)
+    Q_PROPERTY(bool isWindows10OrGreater READ isWindows10OrGreater CONSTANT FINAL)
+    Q_PROPERTY(bool isWindows11OrGreater READ isWindows11OrGreater CONSTANT FINAL)
 
 public:
     enum class Arch : int
@@ -74,4 +76,6 @@ public:
     [[nodiscard]] Arch buildCpuArchitecture() const;
     [[nodiscard]] Arch currentCpuArchitecture() const;
     [[nodiscard]] QString version() const;
+    [[nodiscard]] bool isWindows10OrGreater() const;
+    [[nodiscard]] bool isWindows11OrGreater() const;
 };

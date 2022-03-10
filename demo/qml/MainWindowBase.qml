@@ -73,7 +73,7 @@ FramelessWindow {
 
                 PropertyChanges {
                     target: titleBar
-                    y: -Constants.titleBarHeight
+                    y: -(Constants.titleBarHeight + windowTopBorder.height)
                 }
             },
             State {
@@ -81,7 +81,7 @@ FramelessWindow {
 
                 PropertyChanges {
                     target: titleBar
-                    y: 0
+                    y: windowTopBorder.height
                 }
             }
         ]
@@ -113,6 +113,7 @@ FramelessWindow {
         objectName: "MediaPlayerObject"
         id: player
         anchors.fill: parent
+        anchors.topMargin: windowTopBorder.height
         visible: playbackState !== QtMediaPlayer.Stopped
         logLevel: QtMediaPlayer.Debug
         mute: Settings.mute
@@ -196,11 +197,14 @@ FramelessWindow {
         anchors {
             top: titleBar.bottom
             bottom: parent.bottom
-            bottomMargin: window.visibility === Window.Windowed ? Constants.resizeBorderThickness : 0
+            bottomMargin: ((window.visibility === Window.Windowed) && !OS.isWindows10OrGreater)
+                          ? Constants.resizeBorderThickness : 0
             left: parent.left
-            leftMargin: window.visibility === Window.Windowed ? Constants.resizeBorderThickness : 0
+            leftMargin: ((window.visibility === Window.Windowed) && !OS.isWindows10OrGreater)
+                        ? Constants.resizeBorderThickness : 0
             right: parent.right
-            rightMargin: window.visibility === Window.Windowed ? Constants.resizeBorderThickness : 0
+            rightMargin: ((window.visibility === Window.Windowed) && !OS.isWindows10OrGreater)
+                         ? Constants.resizeBorderThickness : 0
         }
         acceptedButtons: Qt.LeftButton
         hoverEnabled: true
@@ -222,7 +226,7 @@ FramelessWindow {
             left: parent.left
             right: parent.right
         }
-        y: 0
+        y: windowTopBorder.height
         text: window.title
         maximized: window.visibility === Window.Maximized
         fullscreened: window.visibility === Window.FullScreen
@@ -239,15 +243,12 @@ FramelessWindow {
         onCloseButtonClicked: window.close()
 
         MouseArea {
-            anchors {
-                top: parent.top
-                topMargin: window.visibility === Window.Windowed ? Constants.resizeBorderThickness : 0
-                bottom: parent.bottom
-                left: parent.left
-                leftMargin: window.visibility === Window.Windowed ? Constants.resizeBorderThickness : 0
-                right: parent.right
-                rightMargin: parent.height * 1.5 * 3.0
-            }
+            anchors.fill: parent
+            anchors.topMargin: (window.visibility === Window.Windowed) ? Constants.resizeBorderThickness : 0
+            anchors.leftMargin: ((window.visibility === Window.Windowed) && !OS.isWindows10OrGreater)
+                                ? Constants.resizeBorderThickness : 0
+            anchors.rightMargin: parent.height * 1.5 * 3.0
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             hoverEnabled: true
             onPositionChanged: {
                 if (containsPress) {
@@ -256,12 +257,32 @@ FramelessWindow {
                     }
                 }
             }
+            onClicked: {
+                if (mouse.button === Qt.RightButton) {
+                    window.showSystemMenu(Qt.point(mouse.x, mouse.y));
+                }
+            }
             onDoubleClicked: {
-                if (window.visibility !== Window.FullScreen) {
-                    window.toggleMaximized();
+                if (mouse.button === Qt.LeftButton) {
+                    if (window.visibility !== Window.FullScreen) {
+                        window.toggleMaximized();
+                    }
                 }
             }
         }
+    }
+
+    Rectangle {
+        id: windowTopBorder
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+        }
+        height: ((window.visibility === Window.Windowed) && OS.isWindows10OrGreater)
+                ? Constants.windowFrameBorderThickness : 0
+        color: window.active ? Theme.windowFrameBorderColor :
+                      (Theme.darkModeEnabled ? Qt.color("#575959") : Qt.color("#999999"))
     }
 
     MouseArea {

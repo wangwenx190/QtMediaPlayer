@@ -81,71 +81,38 @@ static inline void dumpEnvironmentInfo()
 [[nodiscard]] static inline QSGRendererInterface::GraphicsApi stringToGraphicsApi(const QString &str)
 {
     Q_ASSERT(!str.isEmpty());
-    static const QSGRendererInterface::GraphicsApi defaultApi = []() -> QSGRendererInterface::GraphicsApi {
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-        return QSGRendererInterface::Null;
-#elif (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-        return QSGRendererInterface::NullRhi;
-#else
-        return QSGRendererInterface::Unknown;
-#endif
-    }();
     if (str.isEmpty()) {
-        return defaultApi;
+        return QSGRendererInterface::Null;
     }
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     if (str.contains(QStringLiteral("d3d"), Qt::CaseInsensitive)
         || str.contains(QStringLiteral("dx"), Qt::CaseInsensitive)
         || str.contains(QStringLiteral("win"), Qt::CaseInsensitive)) {
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         return QSGRendererInterface::Direct3D11;
-#else
-        return QSGRendererInterface::Direct3D11Rhi;
-#endif
     }
     if (str.contains(QStringLiteral("vulkan"), Qt::CaseInsensitive)
         || str.contains(QStringLiteral("vk"), Qt::CaseInsensitive)
         || str.contains(QStringLiteral("lin"), Qt::CaseInsensitive)) {
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         return QSGRendererInterface::Vulkan;
-#else
-        return QSGRendererInterface::VulkanRhi;
-#endif
     }
     if (str.contains(QStringLiteral("metal"), Qt::CaseInsensitive)
         || str.contains(QStringLiteral("mt"), Qt::CaseInsensitive)
         || str.contains(QStringLiteral("mac"), Qt::CaseInsensitive)) {
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
         return QSGRendererInterface::Metal;
-#else
-        return QSGRendererInterface::MetalRhi;
-#endif
     }
-#endif
     if (str.contains(QStringLiteral("gl"), Qt::CaseInsensitive)) {
-#if ((QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)) || (QT_VERSION < QT_VERSION_CHECK(5, 14, 0)))
         return QSGRendererInterface::OpenGL;
-#else
-        return QSGRendererInterface::OpenGLRhi;
-#endif
     }
     if (str.contains(QStringLiteral("soft"), Qt::CaseInsensitive)
         || str.contains(QStringLiteral("sw"), Qt::CaseInsensitive)) {
         return QSGRendererInterface::Software;
     }
-    return defaultApi;
+    return QSGRendererInterface::Null;
 }
 
 int Application::run(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)) && (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
-#endif
+    //QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
 
     QCoreApplication::setApplicationName(QStringLiteral("QtMediaPlayer Demo"));
     QGuiApplication::setApplicationDisplayName(QStringLiteral("QtMediaPlayer Demo"));
@@ -209,21 +176,13 @@ int Application::run(int argc, char *argv[])
     if (!qEnvironmentVariableIsSet(qtRhiBackendEnvVar) && !rhiOptionValue.isEmpty()) {
         const QSGRendererInterface::GraphicsApi api = stringToGraphicsApi(rhiOptionValue);
         if (api != QSGRendererInterface::Unknown) {
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
             QQuickWindow::setGraphicsApi(api);
-#else
-            QQuickWindow::setSceneGraphBackend(api);
-#endif
         }
     }
 
     // This is necessary for Qt6 because the default style has changed to platform native style.
     // Using the "qtquickcontrols2.conf" file can achieve the same effect.
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     QQuickStyle::setStyle(QStringLiteral("Basic")); // The "Default" style has been renamed to "Basic".
-#else
-    QQuickStyle::setStyle(QStringLiteral("Default"));
-#endif
 
     // Allocate all singleton types before the QML engine to ensure that they outlive it.
     // This is VERY important!
@@ -334,7 +293,7 @@ int Application::run(int argc, char *argv[])
 
     const QObjectList rootObjects = engine.rootObjects();
     if (!positionalArguments.isEmpty() && !rootObjects.isEmpty()) {
-        const auto window = qobject_cast<QQuickWindow *>(rootObjects.at(0));
+        const auto window = qobject_cast<FramelessWindow *>(rootObjects.at(0));
         Q_ASSERT(window);
         if (!window) {
             qFatal("The main window is not created. This is very wrong.");
@@ -363,6 +322,7 @@ int Application::run(int argc, char *argv[])
 
     qDebug() << "Exit from main event loop. Return code:" << execResult;
 
+    Logger::unsetup();
     if (Console::isPresent()) {
         Console::close();
     }

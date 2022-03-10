@@ -45,14 +45,9 @@ Item {
     implicitHeight: 30
 
     RowLayout {
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            left: parent.left
-            leftMargin: 10
-            right: parent.right
-            rightMargin: 10
-        }
+        anchors.fill: parent
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
         spacing: 5
 
         Label {

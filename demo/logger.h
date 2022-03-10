@@ -27,4 +27,5 @@
 namespace Logger
 {
 void setup();
+void unsetup();
 }

@@ -78,11 +78,7 @@ QWinEventFilter::~QWinEventFilter()
     qApp->removeNativeEventFilter(this);
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 bool QWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result)
-#else
-bool QWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
-#endif
 {
     if ((eventType != QByteArrayLiteral("windows_generic_MSG")) || !message || !result) {
         return false;

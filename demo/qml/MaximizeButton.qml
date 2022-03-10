@@ -29,7 +29,7 @@ import wangwenx190.QtMediaPlayer.Demo
 Button {
     property bool maximized: false
 
-    objectName: "TitleBar_SystemButton_Maximize"
+    objectName: "MaximizeButtonObject"
     id: button
     implicitHeight: 30
     implicitWidth: implicitHeight * 1.5

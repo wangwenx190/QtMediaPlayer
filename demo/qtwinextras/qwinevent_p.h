@@ -66,11 +66,7 @@ public:
 
     static void setup();
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     [[nodiscard]] bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
-#else
-    [[nodiscard]] bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override;
-#endif
 
 private:
     const quint32 tbButtonCreatedMsgId;

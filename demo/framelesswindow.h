@@ -53,13 +53,10 @@ public Q_SLOTS:
     [[nodiscard]] bool startSystemMove2();
     void zoomIn(const qreal step);
     void zoomOut(const qreal step);
+    void showSystemMenu(const QPointF &pos);
 
 protected:
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     [[nodiscard]] bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
-#else
-    [[nodiscard]] bool nativeEvent(const QByteArray &eventType, void *message, long *result) override;
-#endif
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
 

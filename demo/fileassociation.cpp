@@ -25,11 +25,7 @@
 #include "fileassociation.h"
 #include <dummyplayer.h>
 #ifdef Q_OS_WINDOWS
-#  if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-#    include <QtCore/qoperatingsystemversion.h>
-#  else
-#    include <QtCore/qsysinfo.h>
-#  endif
+#  include <QtCore/qoperatingsystemversion.h>
 #  include <QtCore/qdir.h>
 #  include <QtCore/qfileinfo.h>
 #  include <QtCore/qsettings.h>
@@ -88,11 +84,7 @@ private:
 
 [[nodiscard]] static inline bool IsWin10OrGreater()
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
     static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10);
-#else
-    static const bool result = (QSysInfo::WindowsVersion >= QSysInfo::WV_WINDOWS10);
-#endif
     return result;
 }
 
@@ -123,7 +115,7 @@ private:
         BOOL isMember = FALSE;
         CheckTokenMembership(nullptr, AdministratorsGroup, &isMember);
         FreeSid(AdministratorsGroup);
-        return (isMember != FALSE);
+        return isMember;
     }();
     return result;
 }
@@ -178,7 +170,7 @@ private:
         // The parameters must be separated by a single whitespace.
         sei.lpParameters = qUtf16Printable(params.join(u' '));
     }
-    return (ShellExecuteExW(&sei) != FALSE);
+    return ShellExecuteExW(&sei);
 }
 
 [[nodiscard]] static inline bool RegisterFileTypesImpl
@@ -406,7 +398,7 @@ bool FileAssociation::isApplicationRegisteredAsDefaultHandler()
     if (FAILED(hr)) {
         return false;
     }
-    return (bDefault != FALSE);
+    return bDefault;
 }
 #else
 bool FileAssociation::registerApplicationAsDefaultHandler()

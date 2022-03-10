@@ -24,6 +24,7 @@
 
 #include "os.h"
 #include <QtCore/qsysinfo.h>
+#include <QtCore/qoperatingsystemversion.h>
 
 [[nodiscard]] static inline OS::Arch stringToArch(const QString &str)
 {
@@ -129,4 +130,28 @@ QString OS::version() const
 {
     static const QString result = QSysInfo::productVersion();
     return result;
+}
+
+bool OS::isWindows10OrGreater() const
+{
+#ifdef Q_OS_WINDOWS
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10);
+    return result;
+#else
+    return false;
+#endif
+}
+
+bool OS::isWindows11OrGreater() const
+{
+#ifdef Q_OS_WINDOWS
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows11);
+#else
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10, 0, 22000));
+#endif
+    return result;
+#else
+    return false;
+#endif
 }

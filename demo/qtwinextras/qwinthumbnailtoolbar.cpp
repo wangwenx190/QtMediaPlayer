@@ -106,11 +106,7 @@ public:
     void _q_scheduleUpdate();
     [[nodiscard]] bool eventFilter(QObject *, QEvent *) override;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     [[nodiscard]] bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
-#else
-    [[nodiscard]] bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override;
-#endif
 
     static void initButtons(THUMBBUTTON *buttons);
     [[nodiscard]] static int makeNativeButtonFlags(const QWinThumbnailToolButton *button);
@@ -619,11 +615,7 @@ bool QWinThumbnailToolBarPrivate::eventFilter(QObject *object, QEvent *event)
     return QObject::eventFilter(object, event);
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 bool QWinThumbnailToolBarPrivate::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result)
-#else
-bool QWinThumbnailToolBarPrivate::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
-#endif
 {
     if ((eventType != QByteArrayLiteral("windows_generic_MSG")) || !message || !result) {
         return false;

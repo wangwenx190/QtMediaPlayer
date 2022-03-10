@@ -54,6 +54,7 @@ class Constants : public QObject
     Q_PROPERTY(qreal sliderHandleHoverDuration READ sliderHandleHoverDuration CONSTANT FINAL)
     Q_PROPERTY(qreal progressIndicatorHeight READ progressIndicatorHeight CONSTANT FINAL)
     Q_PROPERTY(qreal titleBarBackgroundHideDuration READ titleBarBackgroundHideDuration CONSTANT FINAL)
+    Q_PROPERTY(qreal windowFrameBorderThickness READ windowFrameBorderThickness CONSTANT FINAL)
 
 public:
     explicit Constants(QObject *parent = nullptr);
@@ -76,4 +77,5 @@ public:
     [[nodiscard]] qreal sliderHandleHoverDuration() const;
     [[nodiscard]] qreal progressIndicatorHeight() const;
     [[nodiscard]] qreal titleBarBackgroundHideDuration() const;
+    [[nodiscard]] qreal windowFrameBorderThickness() const;
 };

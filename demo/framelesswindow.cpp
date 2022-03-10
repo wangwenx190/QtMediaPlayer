@@ -27,21 +27,15 @@
 #include <QtGui/qguiapplication.h>
 #ifdef Q_OS_WINDOWS
 #  include <QtQuickTemplates2/private/qquickbutton_p.h>
-#  if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-#    include <QtCore/qoperatingsystemversion.h>
-#  else
-#    include <QtCore/qsysinfo.h>
-#  endif
+#  include <QtCore/qoperatingsystemversion.h>
 #  include <QtCore/private/qsystemlibrary_p.h>
+#  include <QtCore/private/qwinregistry_p.h>
 #  include <QtGui/qpa/qplatformwindow.h>
-#  if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#    include <QtGui/qpa/qplatformnativeinterface.h>
-#  else
-#    include <QtGui/qpa/qplatformwindow_p.h>
-#  endif
+#  include <QtGui/qpa/qplatformwindow_p.h>
 #  include <QtCore/qt_windows.h>
 #  include <dwmapi.h>
 #  include <shellapi.h>
+#  include <timeapi.h>
 #endif
 
 #ifdef Q_OS_WINDOWS
@@ -86,16 +80,6 @@ Q_DECLARE_METATYPE(QMargins)
 #ifndef IsMaximized
 #  define IsMaximized(hwnd) IsZoomed(hwnd)
 #endif
-
-struct flh_timecaps_tag
-{
-    UINT wPeriodMin; // minimum period supported
-    UINT wPeriodMax; // maximum period supported
-};
-using flh_TIMECAPS = flh_timecaps_tag;
-using flh_PTIMECAPS = flh_timecaps_tag *;
-using flh_NPTIMECAPS = flh_timecaps_tag * NEAR;
-using flh_LPTIMECAPS = flh_timecaps_tag * FAR;
 #endif
 
 #ifdef Q_OS_WINDOWS
@@ -106,10 +90,14 @@ static constexpr const bool g_usePureQtImplementation = true;
 #endif
 
 static constexpr const int g_resizeBorderThickness = 8;
-static constexpr const int g_titleBarHeight = 31;
+static constexpr const int g_titleBarHeight = 30;
 
 #ifdef Q_OS_WINDOWS
-static constexpr const int g_autoHideTaskbarThickness = 2; // The thickness of an auto-hide taskbar in pixels
+static constexpr const int g_autoHideTaskbarThickness = 2; // The thickness of an auto-hide taskbar in pixels.
+static const QString kPersonalizeRegistryKey = QStringLiteral(R"(Software\Microsoft\Windows\CurrentVersion\Themes\Personalize)");
+static constexpr const DWORD _DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+static constexpr const DWORD _DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
+static const QString kThemeChangeEventName = QStringLiteral("ImmersiveColorSet");
 #endif
 
 [[nodiscard]] static inline QScreen *getCurrentScreen(const QQuickWindow * const window)
@@ -181,20 +169,38 @@ static constexpr const int g_autoHideTaskbarThickness = 2; // The thickness of a
 #ifdef Q_OS_WINDOWS
 [[nodiscard]] static inline bool IsWin8OrGreater()
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
     static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows8);
-#else
-    static const bool result = (QSysInfo::WindowsVersion >= QSysInfo::WV_WINDOWS8);
-#endif
     return result;
 }
 
 [[nodiscard]] static inline bool IsWin8Point1OrGreater()
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
     static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows8_1);
+    return result;
+}
+
+[[nodiscard]] static inline bool IsWin10OrGreater()
+{
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10);
+    return result;
+}
+
+[[nodiscard]] static inline bool IsWin101809OrGreater()
+{
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10_1809);
 #else
-    static const bool result = (QSysInfo::WindowsVersion >= QSysInfo::WV_WINDOWS8_1);
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10, 0, 17763));
+#endif
+    return result;
+}
+
+[[nodiscard]] static inline bool IsWin11OrGreater()
+{
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows11);
+#else
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10, 0, 22000));
 #endif
     return result;
 }
@@ -209,12 +215,12 @@ static constexpr const int g_autoHideTaskbarThickness = 2; // The thickness of a
     static const auto pDwmIsCompositionEnabled =
         reinterpret_cast<decltype(&DwmIsCompositionEnabled)>(
             QSystemLibrary::resolve(QStringLiteral("dwmapi"), "DwmIsCompositionEnabled"));
-    if (pDwmIsCompositionEnabled) {
-        BOOL enabled = FALSE;
-        const HRESULT hr = pDwmIsCompositionEnabled(&enabled);
-        return (SUCCEEDED(hr) && (enabled != FALSE));
+    if (!pDwmIsCompositionEnabled) {
+        return false;
     }
-    return false;
+    BOOL enabled = FALSE;
+    pDwmIsCompositionEnabled(&enabled);
+    return enabled;
 }
 
 [[nodiscard]] static inline int GetResizeBorderThickness()
@@ -299,8 +305,14 @@ static inline void UpdateWindowFrameMargins(const HWND hwnd)
     // Since we only need to pretend that our window still has window frame and
     // the extended window frame is not visible in reality, extending one pixel
     // will be enough, though any positive number will also work.
-    const MARGINS dwmMargins = {1, 1, 1, 1};
-    pDwmExtendFrameIntoClientArea(hwnd, &dwmMargins);
+    const MARGINS margins = []() -> MARGINS {
+        if (IsWin10OrGreater()) {
+            return {0, GetTitleBarHeight(), 0, 0};
+        } else {
+            return {1, 1, 1, 1};
+        }
+    }();
+    pDwmExtendFrameIntoClientArea(hwnd, &margins);
     // Force a WM_NCCALCSIZE event to make our new window frame take effect.
     TriggerFrameChange(hwnd);
 }
@@ -315,19 +327,20 @@ static inline void UpdateQtInternalFrame(QQuickWindow *window)
     // otherwise Qt will always consider the standard frame size whenever we
     // change the window geometry programatically, and that will cause wrong
     // offset everytime the window geometry changes, it will not be good.
-    const int frameWidth = GetResizeBorderThickness();
-    const QMargins qtMargins = {-frameWidth, -GetTitleBarHeight(), -frameWidth, -frameWidth};
-    const QVariant qtMarginsVar = QVariant::fromValue(qtMargins);
-    window->setProperty("_q_windowsCustomMargins", qtMarginsVar);
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-    if (QPlatformWindow *platformWindow = window->handle()) {
-        QGuiApplication::platformNativeInterface()->setWindowProperty(platformWindow, QStringLiteral("WindowsCustomMargins"), qtMarginsVar);
-    }
-#else
+    const QMargins margins = []() -> QMargins {
+        const int titleBarHeight = GetTitleBarHeight();
+        if (IsWin10OrGreater()) {
+            return {0, -titleBarHeight, 0, 0};
+        } else {
+            const int frameSize = GetResizeBorderThickness();
+            return {-frameSize, -titleBarHeight, -frameSize, -frameSize};
+        }
+    }();
+    const QVariant marginsVar = QVariant::fromValue(margins);
+    window->setProperty("_q_windowsCustomMargins", marginsVar);
     if (const auto platformWindow = dynamic_cast<QNativeInterface::Private::QWindowsWindow *>(window->handle())) {
-        platformWindow->setCustomMargins(qtMargins);
+        platformWindow->setCustomMargins(margins);
     }
-#endif
     TriggerFrameChange(reinterpret_cast<HWND>(window->winId()));
 }
 
@@ -339,20 +352,21 @@ static inline void SyncWmPaintWithDwm()
     }
     QSystemLibrary winmmLib(QStringLiteral("winmm"));
     static const auto ptimeGetDevCaps =
-        reinterpret_cast</*MMRESULT*/UINT(WINAPI *)(flh_LPTIMECAPS, UINT)>(winmmLib.resolve("timeGetDevCaps"));
+        reinterpret_cast<decltype(&timeGetDevCaps)>(winmmLib.resolve("timeGetDevCaps"));
     static const auto ptimeBeginPeriod =
-        reinterpret_cast</*MMRESULT*/UINT(WINAPI *)(UINT)>(winmmLib.resolve("timeBeginPeriod"));
+        reinterpret_cast<decltype(&timeBeginPeriod)>(winmmLib.resolve("timeBeginPeriod"));
     static const auto ptimeEndPeriod =
-        reinterpret_cast</*MMRESULT*/UINT(WINAPI *)(UINT)>(winmmLib.resolve("timeEndPeriod"));
+        reinterpret_cast<decltype(&timeEndPeriod)>(winmmLib.resolve("timeEndPeriod"));
     static const auto pDwmGetCompositionTimingInfo =
-        reinterpret_cast<HRESULT(WINAPI *)(HWND, DWM_TIMING_INFO *)>(QSystemLibrary::resolve(QStringLiteral("dwmapi"), "DwmGetCompositionTimingInfo"));
+        reinterpret_cast<decltype(&DwmGetCompositionTimingInfo)>(
+            QSystemLibrary::resolve(QStringLiteral("dwmapi"), "DwmGetCompositionTimingInfo"));
     if (!ptimeGetDevCaps || !ptimeBeginPeriod || !ptimeEndPeriod || !pDwmGetCompositionTimingInfo) {
         return;
     }
     // Dirty hack to workaround the resize flicker caused by DWM.
     LARGE_INTEGER freq = {};
     QueryPerformanceFrequency(&freq);
-    flh_TIMECAPS tc = {};
+    TIMECAPS tc = {};
     ptimeGetDevCaps(&tc, sizeof(tc));
     const UINT ms_granularity = tc.wPeriodMin;
     ptimeBeginPeriod(ms_granularity);
@@ -394,7 +408,7 @@ enum class MouseEventType : int
     Up = 2
 };
 
-[[nodiscard]] static inline std::optional<LRESULT> systemButtonEventHandler
+[[nodiscard]] static inline std::optional<LRESULT> SystemButtonEventHandler
     (const QQuickWindow * const window, const MouseEventType type, const QPointF &globalPos)
 {
     Q_ASSERT(window);
@@ -402,9 +416,9 @@ enum class MouseEventType : int
     if (!window || (type == MouseEventType::NotInterested)) {
         return std::nullopt;
     }
-    static const auto minBtn = window->findChild<QQuickButton *>(QStringLiteral("TitleBar_SystemButton_Minimize"));
-    static const auto maxBtn = window->findChild<QQuickButton *>(QStringLiteral("TitleBar_SystemButton_Maximize"));
-    static const auto closeBtn = window->findChild<QQuickButton *>(QStringLiteral("TitleBar_SystemButton_Close"));
+    static const auto minBtn = window->findChild<QQuickButton *>(QStringLiteral("MinimizeButtonObject"));
+    static const auto maxBtn = window->findChild<QQuickButton *>(QStringLiteral("MaximizeButtonObject"));
+    static const auto closeBtn = window->findChild<QQuickButton *>(QStringLiteral("CloseButtonObject"));
     if (!minBtn && !maxBtn && !closeBtn) {
         return std::nullopt;
     }
@@ -414,11 +428,7 @@ enum class MouseEventType : int
             return false;
         }
         const QPointF topLeft = button->mapToGlobal(QPointF(0.0, 0.0));
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
         const QSizeF size = button->size();
-#else
-        const QSizeF size = QSizeF(button->width(), button->height());
-#endif
         return QRectF(topLeft, size).contains(mousePos);
     };
     const bool insideMin = minBtn && isInsideButton(minBtn, globalPos);
@@ -488,6 +498,8 @@ enum class MouseEventType : int
     if (!window || !msg || !result) {
         return false;
     }
+    // ### FIXME
+    return false;
     MouseEventType eventType = MouseEventType::NotInterested;
     QPointF globalPos = {};
     if ((msg->message == WM_MOUSEMOVE) || (msg->message == WM_LBUTTONDOWN)
@@ -520,17 +532,96 @@ enum class MouseEventType : int
         }
         const auto xPos = GET_X_LPARAM(msg->lParam);
         const auto yPos = GET_Y_LPARAM(msg->lParam);
-        // ### TODO: check whether divide by dpr is needed or not.
         globalPos = QPointF(qreal(xPos), qreal(yPos)) / window->effectiveDevicePixelRatio();
     }
     if (eventType != MouseEventType::NotInterested) {
-        const auto hitTest = systemButtonEventHandler(window, eventType, globalPos);
+        const auto hitTest = SystemButtonEventHandler(window, eventType, globalPos);
         if ((msg->message == WM_NCHITTEST) && hitTest.has_value()) {
             *result = hitTest.value();
             return true;
         }
     }
     return false;
+}
+
+static inline void OpenSystemMenu
+    (const HWND hwnd, const std::optional<int> mouseX, const std::optional<int> mouseY)
+{
+    Q_ASSERT(hwnd);
+    if (!hwnd) {
+        return;
+    }
+    // GetSystemMenu() will return null if the window doesn't have a system menu.
+    const HMENU systemMenu = GetSystemMenu(hwnd, FALSE);
+    if (!systemMenu) {
+        return;
+    }
+    const bool max = IsMaximized(hwnd);
+    // Update the options based on window state.
+    MENUITEMINFOW mii;
+    SecureZeroMemory(&mii, sizeof(mii));
+    mii.cbSize = sizeof(mii);
+    mii.fMask = MIIM_STATE;
+    mii.fType = MFT_STRING;
+    const auto setState = [systemMenu, &mii](const UINT item, const bool enabled){
+        mii.fState = (enabled ? MF_ENABLED : MF_DISABLED);
+        SetMenuItemInfoW(systemMenu, item, FALSE, &mii);
+    };
+    setState(SC_RESTORE, max);
+    setState(SC_MOVE, !max);
+    setState(SC_SIZE, !max);
+    setState(SC_MINIMIZE, true);
+    setState(SC_MAXIMIZE, !max);
+    setState(SC_CLOSE, true);
+    SetMenuDefaultItem(systemMenu, UINT_MAX, FALSE);
+    int xPos = 0;
+    int yPos = 0;
+    if (mouseX.has_value() && mouseY.has_value()) {
+        xPos = mouseX.value();
+        yPos = mouseY.value();
+    } else {
+        RECT windowPos = {};
+        GetWindowRect(hwnd, &windowPos);
+        xPos = windowPos.left;
+        yPos = windowPos.top + GetTitleBarHeight();
+    }
+    const auto ret = TrackPopupMenu(systemMenu, TPM_RETURNCMD, xPos, yPos, 0, hwnd, nullptr);
+    if (ret != 0) {
+        PostMessageW(hwnd, WM_SYSCOMMAND, ret, 0);
+    }
+}
+
+[[nodiscard]] static inline bool ShouldAppsUseDarkMode()
+{
+    // The dark mode was first introduced in Windows 10 1809.
+    // The default theme will always be the light theme on systems before 1809.
+    if (!IsWin101809OrGreater()) {
+        return false;
+    }
+    const QWinRegistryKey registry(HKEY_CURRENT_USER, kPersonalizeRegistryKey);
+    const auto result = registry.dwordValue(QStringLiteral("AppsUseLightTheme"));
+    return (result.second && (result.first == 0));
+}
+
+static inline void UpdateWindowFrameBorderColor(const HWND hwnd)
+{
+    Q_ASSERT(hwnd);
+    if (!hwnd) {
+        return;
+    }
+    // There's no global dark theme before Win10 1809.
+    if (!IsWin101809OrGreater()) {
+        return;
+    }
+    static const auto pDwmSetWindowAttribute =
+        reinterpret_cast<decltype(&DwmSetWindowAttribute)>(
+            QSystemLibrary::resolve(QStringLiteral("dwmapi"), "DwmSetWindowAttribute"));
+    if (!pDwmSetWindowAttribute) {
+        return;
+    }
+    const BOOL value = (ShouldAppsUseDarkMode() ? TRUE : FALSE);
+    pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, &value, sizeof(value));
+    pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE, &value, sizeof(value));
 }
 #endif
 
@@ -637,22 +728,12 @@ void FramelessWindow::moveToCenter()
 
 bool FramelessWindow::startSystemResize2(const Qt::Edges edges)
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
     return startSystemResize(edges);
-#else
-    qWarning() << "QWindow::startSystemResize() is only available since Qt 5.15.0";
-    return false;
-#endif
 }
 
 bool FramelessWindow::startSystemMove2()
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
     return startSystemMove();
-#else
-    qWarning() << "QWindow::startSystemMove() is only available since Qt 5.15.0";
-    return false;
-#endif
 }
 
 void FramelessWindow::zoomIn(const qreal step)
@@ -703,14 +784,39 @@ void FramelessWindow::zoomOut(const qreal step)
     setHeight(newHeight);
 }
 
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, qintptr *result)
-#else
-bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, long *result)
-#endif
+void FramelessWindow::showSystemMenu(const QPointF &pos)
 {
-    const bool filtered = QQuickWindow::nativeEvent(eventType, message, result);
-    if (filtered) {
+#ifdef Q_OS_WINDOWS
+    const auto hwnd = reinterpret_cast<HWND>(winId());
+    Q_ASSERT(hwnd);
+    if (!hwnd) {
+        return;
+    }
+    // The given mouse position is relative to the titlebar item,
+    // we need to translate it to global screen coordinate.
+    const auto globalPos = [this, &pos]() -> std::optional<QPoint> {
+        static const auto titleBar = findChild<QQuickItem *>(QStringLiteral("TitleBarObject"));
+        Q_ASSERT(titleBar);
+        if (!titleBar) {
+            return std::nullopt;
+        }
+        const QPointF mappedPos = titleBar->mapToGlobal(pos) * effectiveDevicePixelRatio();
+        return mappedPos.toPoint();
+    }();
+    if (globalPos.has_value()) {
+        const QPoint value = globalPos.value();
+        OpenSystemMenu(hwnd, value.x(), value.y());
+    } else {
+        OpenSystemMenu(hwnd, std::nullopt, std::nullopt);
+    }
+#else
+    // ### TODO
+#endif
+}
+
+bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, qintptr *result)
+{
+    if (QQuickWindow::nativeEvent(eventType, message, result)) {
         return true;
     }
 #ifdef Q_OS_WINDOWS
@@ -758,6 +864,18 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
         const auto clientRect = (msg->wParam
                                      ? &(reinterpret_cast<LPNCCALCSIZE_PARAMS>(msg->lParam))->rgrc[0]
                                      : reinterpret_cast<LPRECT>(msg->lParam));
+        if (IsWin10OrGreater()) {
+            // Store the original top before the default window proc applies the default frame.
+            const LONG originalTop = clientRect->top;
+            // Apply the default frame.
+            const LRESULT ret = DefWindowProcW(msg->hwnd, WM_NCCALCSIZE, msg->wParam, msg->lParam);
+            if (ret != 0) {
+                *result = ret;
+                return true;
+            }
+            // Re-apply the original top from before the size of the default frame was applied.
+            clientRect->top = originalTop;
+        }
         const bool max = IsMaximized(msg->hwnd);
         const bool full = IsFullScreen(msg->hwnd);
         // We don't need this correction when we're fullscreen. We will
@@ -770,11 +888,13 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
             // then the window is clipped to the monitor so that the resize handle
             // do not appear because you don't need them (because you can't resize
             // a window when it's maximized unless you restore it).
-            const int frameWidth = GetResizeBorderThickness();
-            clientRect->top += frameWidth;
-            clientRect->bottom -= frameWidth;
-            clientRect->left += frameWidth;
-            clientRect->right -= frameWidth;
+            const int frameSize = GetResizeBorderThickness();
+            clientRect->top += frameSize;
+            if (!IsWin10OrGreater()) {
+                clientRect->bottom -= frameSize;
+                clientRect->left += frameSize;
+                clientRect->right -= frameSize;
+            }
         }
         // Attempt to detect if there's an autohide taskbar, and if
         // there is, reduce our size a bit on the side with the taskbar,
@@ -864,56 +984,112 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
         return true;
     }
     case WM_NCHITTEST: {
-        RECT rect = {};
-        GetWindowRect(msg->hwnd, &rect);
-        const int width = qAbs(rect.right - rect.left);
-        const int height = qAbs(rect.bottom - rect.top);
         const POINT globalPos = {GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam)};
         POINT localPos = globalPos;
         ScreenToClient(msg->hwnd, &localPos);
         const int frameSize = GetResizeBorderThickness();
         const bool isTop = (localPos.y < frameSize);
-        const bool isBottom = (localPos.y >= (height - frameSize));
-        const bool isLeft = (localPos.x < frameSize);
-        const bool isRight = (localPos.x >= (width - frameSize));
-        *result = [&msg, isTop, isBottom, isLeft, isRight]() -> LRESULT {
-            if (IsMaximized(msg->hwnd) || IsFullScreen(msg->hwnd)) {
-                return HTCLIENT;
+        const bool isTitleBar = false; // ### TODO
+        const bool max = IsMaximized(msg->hwnd);
+        const bool full = IsFullScreen(msg->hwnd);
+        if (IsWin10OrGreater()) {
+            // This will handle the left, right and bottom parts of the frame
+            // because we didn't change them.
+            const LRESULT originalRet = DefWindowProcW(msg->hwnd, WM_NCHITTEST, 0, msg->lParam);
+            if (originalRet != HTCLIENT) {
+                *result = originalRet;
+                return true;
+            }
+            // At this point, we know that the cursor is inside the client area
+            // so it has to be either the little border at the top of our custom
+            // title bar or the drag bar. Apparently, it must be the drag bar or
+            // the little border at the top which the user can use to move or
+            // resize the window.
+            if (full) {
+                *result = HTCLIENT;
+                return true;
+            }
+            if (max) {
+                *result = (isTitleBar ? HTCAPTION : HTCLIENT);
+                return true;
             }
             if (isTop) {
+                *result = HTTOP;
+                return true;
+            }
+            if (isTitleBar) {
+                *result = HTCAPTION;
+                return true;
+            }
+            *result = HTCLIENT;
+            return true;
+        } else {
+            if (full) {
+                *result = HTCLIENT;
+                return true;
+            }
+            if (max) {
+                *result = (isTitleBar ? HTCAPTION : HTCLIENT);
+                return true;
+            }
+            RECT rect = {};
+            GetWindowRect(msg->hwnd, &rect);
+            const int width = qAbs(rect.right - rect.left);
+            const int height = qAbs(rect.bottom - rect.top);
+            const bool isBottom = (localPos.y >= (height - frameSize));
+            // Make the border a little wider to let the user easy to resize on corners.
+            const qreal scaleFactor = ((isTop || isBottom) ? 2.0 : 1.0);
+            const auto scaledFrameSize = static_cast<int>(qRound(qreal(frameSize) * scaleFactor));
+            const bool isLeft = (localPos.x < scaledFrameSize);
+            const bool isRight = (localPos.x >= (width - scaledFrameSize));
+            if (isTop) {
                 if (isLeft) {
-                    return HTTOPLEFT;
+                    *result = HTTOPLEFT;
+                    return true;
                 }
                 if (isRight) {
-                    return HTTOPRIGHT;
+                    *result = HTTOPRIGHT;
+                    return true;
                 }
-                return HTTOP;
+                *result = HTTOP;
+                return true;
             }
             if (isBottom) {
                 if (isLeft) {
-                    return HTBOTTOMLEFT;
+                    *result = HTBOTTOMLEFT;
+                    return true;
                 }
                 if (isRight) {
-                    return HTBOTTOMRIGHT;
+                    *result = HTBOTTOMRIGHT;
+                    return true;
                 }
-                return HTBOTTOM;
+                *result = HTBOTTOM;
+                return true;
             }
             if (isLeft) {
-                return HTLEFT;
+                *result = HTLEFT;
+                return true;
             }
             if (isRight) {
-                return HTRIGHT;
+                *result = HTRIGHT;
+                return true;
             }
-            return HTCLIENT;
-        }();
-        return true;
+            if (isTitleBar) {
+                *result = HTCAPTION;
+                return true;
+            }
+            *result = HTCLIENT;
+            return true;
+        }
     }
+#if (QT_VERSION < QT_VERSION_CHECK(6, 2, 2))
     case WM_WINDOWPOSCHANGING: {
         // Tell Windows to discard the entire contents of the client area, as re-using
         // parts of the client area would lead to jitter during resize.
         const auto windowPos = reinterpret_cast<LPWINDOWPOS>(msg->lParam);
         windowPos->flags |= SWP_NOCOPYBITS;
     } break;
+#endif
     case WM_DWMCOMPOSITIONCHANGED: {
         // Re-apply the custom window frame if recovered from the basic theme.
         UpdateWindowFrameMargins(msg->hwnd);
@@ -922,55 +1098,66 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, lo
         // Sync the internal window frame margins with the latest DPI settings.
         UpdateQtInternalFrame(this);
     } break;
-    case WM_NCUAHDRAWCAPTION:
-    case WM_NCUAHDRAWFRAME: {
-        // These undocumented messages are sent to draw themed window
-        // borders. Block them to prevent drawing borders over the client
-        // area.
-        *result = 0;
-        return true;
+    default:
+        break;
     }
-    case WM_NCPAINT: {
-        if (!IsDwmCompositionEnabled()) {
-            // Only block WM_NCPAINT when DWM composition is disabled. If
-            // it's blocked when DWM composition is enabled, the frame
-            // shadow won't be drawn.
+    if (IsWin101809OrGreater()) {
+        if (msg->message == WM_SETTINGCHANGE) {
+            if ((msg->wParam == 0) && (QString::compare(QString::fromWCharArray(reinterpret_cast<LPCWSTR>(msg->lParam)), kThemeChangeEventName, Qt::CaseInsensitive) == 0)) {
+                UpdateWindowFrameBorderColor(msg->hwnd);
+            }
+        }
+    }
+    if (!IsWin10OrGreater()) {
+        switch (msg->message) {
+        case WM_NCUAHDRAWCAPTION:
+        case WM_NCUAHDRAWFRAME: {
+            // These undocumented messages are sent to draw themed window borders.
+            // Block them to prevent drawing borders over the client area.
             *result = 0;
             return true;
         }
-    } break;
-    case WM_NCACTIVATE: {
-        if (IsDwmCompositionEnabled()) {
-            // DefWindowProc won't repaint the window border if lParam
-            // (normally a HRGN) is -1. See the following link's "lParam" section:
-            // https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
-            // Don't use "*result = 0" here, otherwise the window won't respond
-            // to the window activation state change.
-            *result = DefWindowProcW(msg->hwnd, WM_NCACTIVATE, msg->wParam, -1);
-        } else {
-            *result = (msg->wParam ? FALSE : TRUE);
+        case WM_NCPAINT: {
+            if (!IsDwmCompositionEnabled()) {
+                // Only block WM_NCPAINT when DWM composition is disabled. If it's blocked
+                // when DWM composition is enabled, the frame shadow won't be drawn.
+                *result = 0;
+                return true;
+            }
+        } break;
+        case WM_NCACTIVATE: {
+            if (IsDwmCompositionEnabled()) {
+                // DefWindowProc won't repaint the window border if lParam (normally a HRGN)
+                // is -1. See the following link's "lParam" section:
+                // https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
+                // Don't use "*result = 0" here, otherwise the window won't respond
+                // to the window activation state change.
+                *result = DefWindowProcW(msg->hwnd, WM_NCACTIVATE, msg->wParam, -1);
+            } else {
+                *result = (msg->wParam ? FALSE : TRUE);
+            }
+            return true;
         }
-        return true;
-    }
 #if 0
-    case WM_SETICON:
-    case WM_SETTEXT: {
-        // Disable painting while these messages are handled to prevent them
-        // from drawing a window caption over the client area.
-        const LONG_PTR oldStyle = GetWindowLongPtrW(msg->hwnd, GWL_STYLE);
-        // Prevent Windows from drawing the default title bar by temporarily
-        // toggling the WS_VISIBLE style.
-        SetWindowLongPtrW(msg->hwnd, GWL_STYLE, static_cast<LONG_PTR>(oldStyle & ~WS_VISIBLE));
-        TriggerFrameChange(msg->hwnd);
-        const LRESULT ret = DefWindowProcW(msg->hwnd, msg->message, msg->wParam, msg->lParam);
-        SetWindowLongPtrW(msg->hwnd, GWL_STYLE, oldStyle);
-        TriggerFrameChange(msg->hwnd);
-        *result = ret;
-        return true;
-    }
+        case WM_SETICON:
+        case WM_SETTEXT: {
+            // Disable painting while these messages are handled to prevent them
+            // from drawing a window caption over the client area.
+            const LONG_PTR oldStyle = GetWindowLongPtrW(msg->hwnd, GWL_STYLE);
+            // Prevent Windows from drawing the default title bar by temporarily
+            // toggling the WS_VISIBLE style.
+            SetWindowLongPtrW(msg->hwnd, GWL_STYLE, static_cast<LONG_PTR>(oldStyle & ~WS_VISIBLE));
+            TriggerFrameChange(msg->hwnd);
+            const LRESULT ret = DefWindowProcW(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+            SetWindowLongPtrW(msg->hwnd, GWL_STYLE, oldStyle);
+            TriggerFrameChange(msg->hwnd);
+            *result = ret;
+            return true;
+        }
 #endif
-    default:
-        break;
+        default:
+            break;
+        }
     }
 #endif
     return false;
@@ -1011,6 +1198,7 @@ void FramelessWindow::initialize()
         if (hwnd) {
             FixupQtInternals(hwnd);
             UpdateWindowFrameMargins(hwnd);
+            UpdateWindowFrameBorderColor(hwnd);
         }
         // It's necessary to modify the internal frame recorded in QPA, if you
         // don't do this, you'll find the window size is not correct everytime

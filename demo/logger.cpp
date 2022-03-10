@@ -29,13 +29,9 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qmutex.h>
 #ifdef Q_OS_WINDOWS
-#  if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-#    include <QtCore/qoperatingsystemversion.h>
-#  else // (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-#    include <QtCore/qsysinfo.h>
-#  endif // (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+#  include <QtCore/qoperatingsystemversion.h>
 #  include <QtCore/qt_windows.h>
-#endif // Q_OS_WINDOWS
+#endif
 
 enum class ConsoleTextColor : int
 {
@@ -64,24 +60,18 @@ static constexpr const WORD kClassicForegroundColor[] =
 #ifdef Q_OS_WINDOWS
 [[nodiscard]] static inline bool isWin10OrGreater()
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
     static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10);
-#else
-    static const bool result = (QSysInfo::WindowsVersion >= QSysInfo::WV_WINDOWS10);
-#endif
     return result;
 }
 #endif
 
 [[nodiscard]] static inline bool isVirtualTerminalSequencesSupported()
 {
-    static const bool result = []() -> bool {
 #ifdef Q_OS_WINDOWS
-        return isWin10OrGreater();
+    static const bool result = isWin10OrGreater();
 #else
-        return true; // ### TODO
+    static const bool result = true; // ### TODO
 #endif
-    }();
     return result;
 }
 
@@ -166,9 +156,6 @@ Q_GLOBAL_STATIC(LoggerHelper, g_loggerHelper)
 
 static inline void customMessageHandler(const QtMsgType type, const QMessageLogContext &context, const QString &buf)
 {
-    if (g_loggerHelper.isDestroyed()) {
-        return;
-    }
     QMutexLocker locker(&g_loggerHelper()->m_mutex);
     if (buf.isEmpty()) {
         return;
@@ -213,4 +200,14 @@ void Logger::setup()
         "[%{time yyyy-MM-dd hh:mm:ss.zzz}] [%{if-info}INFO%{endif}%{if-debug}DEBUG%{endif}"
         "%{if-warning}WARNING%{endif}%{if-critical}CRITICAL%{endif}%{if-fatal}FATAL%{endif}] "
         "%{if-category}%{category}: %{endif}%{message}"));
+}
+
+void Logger::unsetup()
+{
+    QMutexLocker locker(&g_loggerHelper()->m_mutex);
+    if (!g_loggerHelper()->m_alreadySetup) {
+        return;
+    }
+    g_loggerHelper()->m_alreadySetup = false;
+    qInstallMessageHandler(g_loggerHelper()->m_originalMessageHandler);
 }

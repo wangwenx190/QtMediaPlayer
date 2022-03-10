@@ -28,66 +28,112 @@
 #  include <QtGui/private/qguiapplication_p.h>
 #endif
 #ifdef Q_OS_WINDOWS
-#  if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-#    include <QtCore/qoperatingsystemversion.h>
-#  else
-#    include <QtCore/qsysinfo.h>
-#  endif
+#  include <QtCore/qoperatingsystemversion.h>
 #  include <QtCore/qmutex.h>
+#  include <QtCore/private/qsystemlibrary_p.h>
+#  include <QtCore/private/qwinregistry_p.h>
 #  include <QtCore/qt_windows.h>
+#  include <dwmapi.h>
 #endif
-
-[[nodiscard]] static inline bool _qt_is_darkmode_enabled()
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 2, 1))
-    if (const QPlatformTheme * const theme = QGuiApplicationPrivate::platformTheme()) {
-        return (theme->appearance() == QPlatformTheme::Appearance::Dark);
-    }
-    return false;
-#else
-    return false;
-#endif
-}
 
 #ifdef Q_OS_WINDOWS
-static const QString kThemeChangeEventName = QStringLiteral("ImmersiveColorSet");
-
-[[nodiscard]] static inline bool IsWin101809OrGreater()
-{
-    // Windows 10 Version 1809 (October 2018 Update)
-    // Codename RedStone5, version number 10.0.17763
-    static const bool result = []() -> bool {
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
-        return (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10_1809);
-#elif (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-        return (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10, 0, 17763));
-#else
-        return false;
+#ifndef WM_DWMCOLORIZATIONCOLORCHANGED
+#  define WM_DWMCOLORIZATIONCOLORCHANGED (0x0320)
 #endif
-    }();
+
+enum class DwmColorizationArea : int
+{
+    None = 0,
+    StartMenu_TaskBar_ActionCenter = 1,
+    TitleBar_WindowBorder = 2,
+    All = 3
+};
+
+static const QString kThemeChangeEventName = QStringLiteral("ImmersiveColorSet");
+static const QString kDwmRegistryKey = QStringLiteral(R"(Software\Microsoft\Windows\DWM)");
+static const QString kPersonalizeRegistryKey = QStringLiteral(R"(Software\Microsoft\Windows\CurrentVersion\Themes\Personalize)");
+
+[[nodiscard]] static inline bool IsWin10OrGreater()
+{
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10);
     return result;
 }
 
-[[nodiscard]] static inline LRESULT CALLBACK MsgWndProc
-    (const HWND hWnd, const UINT message, const WPARAM wParam, const LPARAM lParam)
+[[nodiscard]] static inline bool IsWin101809OrGreater()
 {
-    if (message == WM_NCCREATE) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10_1809);
+#else
+    static const bool result = (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10, 0, 17763));
+#endif
+    return result;
+}
+
+[[nodiscard]] static inline QColor GetDwmColorizationColor()
+{
+    static const auto pDwmGetColorizationColor =
+        reinterpret_cast<decltype(&DwmGetColorizationColor)>(
+            QSystemLibrary::resolve(QStringLiteral("dwmapi"), "DwmGetColorizationColor"));
+    if (!pDwmGetColorizationColor) {
+        return QColorConstants::DarkGray;
+    }
+    DWORD color = 0;
+    BOOL opaque = FALSE;
+    pDwmGetColorizationColor(&color, &opaque);
+    return QColor::fromRgba(color);
+}
+
+[[nodiscard]] static inline DwmColorizationArea GetDwmColorizationArea()
+{
+    if (!IsWin10OrGreater()) {
+        return DwmColorizationArea::None;
+    }
+    static const QString keyName = QStringLiteral("ColorPrevalence");
+    const QWinRegistryKey themeRegistry(HKEY_CURRENT_USER, kPersonalizeRegistryKey);
+    const auto themeValue = themeRegistry.dwordValue(keyName);
+    const QWinRegistryKey dwmRegistry(HKEY_CURRENT_USER, kDwmRegistryKey);
+    const auto dwmValue = dwmRegistry.dwordValue(keyName);
+    const bool theme = themeValue.second && (themeValue.first != 0);
+    const bool dwm = dwmValue.second && (dwmValue.first != 0);
+    if (theme && dwm) {
+        return DwmColorizationArea::All;
+    } else if (theme) {
+        return DwmColorizationArea::StartMenu_TaskBar_ActionCenter;
+    } else if (dwm) {
+        return DwmColorizationArea::TitleBar_WindowBorder;
+    }
+    return DwmColorizationArea::None;
+}
+
+[[nodiscard]] static inline LRESULT CALLBACK MsgWndProc
+    (const HWND hWnd, const UINT uMsg, const WPARAM wParam, const LPARAM lParam)
+{
+    if (uMsg == WM_NCCREATE) {
         const auto cs = reinterpret_cast<LPCREATESTRUCT>(lParam);
         const auto theme = static_cast<Theme *>(cs->lpCreateParams);
         SetWindowLongPtrW(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(theme));
-    } else if (message == WM_NCDESTROY) {
+    } else if (uMsg == WM_NCDESTROY) {
         SetWindowLongPtrW(hWnd, GWLP_USERDATA, 0);
     }
-    if (IsWin101809OrGreater()) {
-        if (message == WM_SETTINGCHANGE) {
-            if ((wParam == 0) && (QString::compare(QString::fromWCharArray(reinterpret_cast<LPCWSTR>(lParam)), kThemeChangeEventName, Qt::CaseInsensitive) == 0)) {
-                if (const auto theme = reinterpret_cast<Theme *>(GetWindowLongPtrW(hWnd, GWLP_USERDATA))) {
-                    theme->refresh();
+    if (IsWin10OrGreater()) {
+        bool shouldRefresh = false;
+        if ((uMsg == WM_THEMECHANGED) || (uMsg == WM_DWMCOLORIZATIONCOLORCHANGED)) {
+            shouldRefresh = true;
+        }
+        if (IsWin101809OrGreater()) {
+            if (uMsg == WM_SETTINGCHANGE) {
+                if ((wParam == 0) && (QString::compare(QString::fromWCharArray(reinterpret_cast<LPCWSTR>(lParam)), kThemeChangeEventName, Qt::CaseInsensitive) == 0)) {
+                    shouldRefresh = true;
                 }
             }
         }
+        if (shouldRefresh) {
+            if (const auto theme = reinterpret_cast<Theme *>(GetWindowLongPtrW(hWnd, GWLP_USERDATA))) {
+                theme->refresh();
+            }
+        }
     }
-    return DefWindowProcW(hWnd, message, wParam, lParam);
+    return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }
 
 struct Win32SystemThemeWatcherHelper
@@ -155,6 +201,18 @@ static inline void removeSystemThemeWatcher(Theme *theme)
 }
 #endif
 
+[[nodiscard]] static inline bool _qt_is_darkmode_enabled()
+{
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 2, 1))
+    if (const QPlatformTheme * const theme = QGuiApplicationPrivate::platformTheme()) {
+        return (theme->appearance() == QPlatformTheme::Appearance::Dark);
+    }
+    return false;
+#else
+    return false;
+#endif
+}
+
 Theme::Theme(QObject *parent) : QObject(parent)
 {
     setupSystemThemeWatcher(this);
@@ -201,6 +259,16 @@ QColor Theme::sliderHandleBorderColor() const
     return m_sliderHandleBorderColor;
 }
 
+QColor Theme::systemAccentColor() const
+{
+    return m_systemAccentColor;
+}
+
+QColor Theme::windowFrameBorderColor() const
+{
+    return m_windowFrameBorderColor;
+}
+
 void Theme::refresh()
 {
     m_darkModeEnabled = _qt_is_darkmode_enabled();
@@ -216,6 +284,17 @@ void Theme::refresh()
     m_themeColor = QColor(QStringLiteral("#1296db"));
     m_sliderBackgroundColor = QColor(QStringLiteral("#bdbebf"));
     m_sliderHandleBorderColor = QColorConstants::Svg::darkslateblue;
+    m_systemAccentColor = GetDwmColorizationColor();
+    m_windowFrameBorderColor = [this]() -> QColor {
+        const DwmColorizationArea area = GetDwmColorizationArea();
+        if ((area == DwmColorizationArea::TitleBar_WindowBorder) || (area == DwmColorizationArea::All)) {
+            return m_systemAccentColor;
+        }
+        if (m_darkModeEnabled) {
+            return QColor(QStringLiteral("#4d4d4d"));
+        }
+        return QColorConstants::White;
+    }();
     Q_EMIT darkModeEnabledChanged();
     Q_EMIT titleBarBackgroundColorChanged();
     Q_EMIT windowBackgroundColorChanged();
@@ -223,4 +302,6 @@ void Theme::refresh()
     Q_EMIT systemColorChanged();
     Q_EMIT sliderBackgroundColorChanged();
     Q_EMIT sliderHandleBorderColorChanged();
+    Q_EMIT systemAccentColorChanged();
+    Q_EMIT windowFrameBorderColorChanged();
 }

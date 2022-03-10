@@ -244,16 +244,10 @@ Item {
 
     MouseArea {
         id: mouseArea
-        anchors {
-            top: parent.top
-            topMargin: Constants.titleBarHeight
-            bottom: parent.bottom
-            bottomMargin: root.windowed ? Constants.resizeBorderThickness : 0
-            left: parent.left
-            leftMargin: root.windowed ? Constants.resizeBorderThickness : 0
-            right: parent.right
-            rightMargin: root.windowed ? Constants.resizeBorderThickness : 0
-        }
+        anchors.fill: parent
+        anchors.bottomMargin: (root.windowed && !OS.isWindows10OrGreater) ? Constants.resizeBorderThickness : 0
+        anchors.leftMargin: (root.windowed && !OS.isWindows10OrGreater) ? Constants.resizeBorderThickness : 0
+        anchors.rightMargin: (root.windowed && !OS.isWindows10OrGreater) ? Constants.resizeBorderThickness : 0
         acceptedButtons: Qt.LeftButton
         enabled: player.playbackState !== QtMediaPlayer.Stopped
         hoverEnabled: true

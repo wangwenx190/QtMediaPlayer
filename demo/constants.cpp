@@ -47,7 +47,7 @@ qreal Constants::resizeBorderThickness() const
 
 qreal Constants::titleBarHeight() const
 {
-    return 31.0;
+    return 30.0;
 }
 
 qreal Constants::thinTitleBarHeight() const
@@ -113,4 +113,9 @@ qreal Constants::progressIndicatorHeight() const
 qreal Constants::titleBarBackgroundHideDuration() const
 {
     return 300.0;
+}
+
+qreal Constants::windowFrameBorderThickness() const
+{
+    return 1.0;
 }
