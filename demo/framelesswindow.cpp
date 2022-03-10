@@ -33,6 +33,7 @@
 #  include <QtGui/qpa/qplatformwindow.h>
 #  include <QtGui/qpa/qplatformwindow_p.h>
 #  include <QtCore/qt_windows.h>
+#  include <uxtheme.h>
 #  include <dwmapi.h>
 #  include <shellapi.h>
 #  include <timeapi.h>
@@ -613,15 +614,19 @@ static inline void UpdateWindowFrameBorderColor(const HWND hwnd)
     if (!IsWin101809OrGreater()) {
         return;
     }
+    static const auto pSetWindowTheme =
+        reinterpret_cast<decltype(&SetWindowTheme)>(
+            QSystemLibrary::resolve(QStringLiteral("uxtheme"), "SetWindowTheme"));
     static const auto pDwmSetWindowAttribute =
         reinterpret_cast<decltype(&DwmSetWindowAttribute)>(
             QSystemLibrary::resolve(QStringLiteral("dwmapi"), "DwmSetWindowAttribute"));
-    if (!pDwmSetWindowAttribute) {
+    if (!pSetWindowTheme || !pDwmSetWindowAttribute) {
         return;
     }
-    const BOOL value = (ShouldAppsUseDarkMode() ? TRUE : FALSE);
-    pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, &value, sizeof(value));
-    pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE, &value, sizeof(value));
+    const BOOL dark = (ShouldAppsUseDarkMode() ? TRUE : FALSE);
+    pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, &dark, sizeof(dark));
+    pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE, &dark, sizeof(dark));
+    pSetWindowTheme(hwnd, (dark ? L"DarkMode_Explorer" : L""), nullptr);
 }
 #endif
 
