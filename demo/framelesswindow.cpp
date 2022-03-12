@@ -626,7 +626,7 @@ static inline void UpdateWindowFrameBorderColor(const HWND hwnd)
     const BOOL dark = (ShouldAppsUseDarkMode() ? TRUE : FALSE);
     pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, &dark, sizeof(dark));
     pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE, &dark, sizeof(dark));
-    pSetWindowTheme(hwnd, (dark ? L"DarkMode_Explorer" : L""), nullptr);
+    pSetWindowTheme(hwnd, (dark ? L"DarkMode_Explorer" : L" "), nullptr);
 }
 #endif
 
@@ -1213,6 +1213,18 @@ void FramelessWindow::initialize()
         // window flags (mainly Qt::FramelessWindowHint), so actually Qt is not
         // aware of the fact that the window doesn't have a window frame now.
         UpdateQtInternalFrame(this);
+        // Work-around Win32 multi-monitor artifacts.
+        connect(this, &FramelessWindow::screenChanged, this, [this](QScreen *screen) {
+            Q_UNUSED(screen);
+            // Force a WM_NCCALCSIZE event to inform Windows about our custom window frame,
+            // this is only necessary when the window is being moved cross monitors.
+            TriggerFrameChange(reinterpret_cast<HWND>(winId()));
+            // For some reason the window is not repainted correctly when moving cross monitors,
+            // we workaround this issue by force a re-paint and re-layout of the window by triggering
+            // a resize event manually. Although the actual size does not change, the issue we
+            // observed disappeared indeed, amazingly.
+            resize(size());
+        });
     }
 #endif
     if (g_usePureQtImplementation) {
