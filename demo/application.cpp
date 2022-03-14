@@ -111,7 +111,7 @@ static inline void dumpEnvironmentInfo()
 
 int Application::run(int argc, char *argv[])
 {
-    //QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
 
     QCoreApplication::setApplicationName(QStringLiteral("QtMediaPlayer Demo"));
     QGuiApplication::setApplicationDisplayName(QStringLiteral("QtMediaPlayer Demo"));

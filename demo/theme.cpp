@@ -49,7 +49,7 @@ enum class DwmColorizationArea : int
     All = 3
 };
 
-static const QString kThemeChangeEventName = QStringLiteral("ImmersiveColorSet");
+static const QString kThemeSettingChangeEventName = QStringLiteral("ImmersiveColorSet");
 static const QString kDwmRegistryKey = QStringLiteral(R"(Software\Microsoft\Windows\DWM)");
 static const QString kPersonalizeRegistryKey = QStringLiteral(R"(Software\Microsoft\Windows\CurrentVersion\Themes\Personalize)");
 
@@ -122,7 +122,7 @@ static const QString kPersonalizeRegistryKey = QStringLiteral(R"(Software\Micros
         }
         if (IsWin101809OrGreater()) {
             if (uMsg == WM_SETTINGCHANGE) {
-                if ((wParam == 0) && (QString::compare(QString::fromWCharArray(reinterpret_cast<LPCWSTR>(lParam)), kThemeChangeEventName, Qt::CaseInsensitive) == 0)) {
+                if ((wParam == 0) && (QString::fromWCharArray(reinterpret_cast<LPCWSTR>(lParam)).compare(kThemeSettingChangeEventName, Qt::CaseInsensitive) == 0)) {
                     shouldRefresh = true;
                 }
             }

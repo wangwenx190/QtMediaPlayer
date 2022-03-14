@@ -96,9 +96,23 @@ static constexpr const int g_titleBarHeight = 30;
 #ifdef Q_OS_WINDOWS
 static constexpr const int g_autoHideTaskbarThickness = 2; // The thickness of an auto-hide taskbar in pixels.
 static const QString kPersonalizeRegistryKey = QStringLiteral(R"(Software\Microsoft\Windows\CurrentVersion\Themes\Personalize)");
-static constexpr const DWORD _DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
 static constexpr const DWORD _DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
-static const QString kThemeChangeEventName = QStringLiteral("ImmersiveColorSet");
+static constexpr const DWORD _DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+static const QString kThemeSettingChangeEventName = QStringLiteral("ImmersiveColorSet");
+
+struct WindowHelper
+{
+    QMutex m_mutex = {};
+    WNDPROC m_qtWindowProc = nullptr;
+
+    explicit WindowHelper() = default;
+    ~WindowHelper() = default;
+
+private:
+    Q_DISABLE_COPY_MOVE(WindowHelper)
+};
+
+Q_GLOBAL_STATIC(WindowHelper, g_helper)
 #endif
 
 [[nodiscard]] static inline QScreen *getCurrentScreen(const QQuickWindow * const window)
@@ -557,24 +571,24 @@ static inline void OpenSystemMenu
     if (!systemMenu) {
         return;
     }
-    const bool max = IsMaximized(hwnd);
+    const bool maxOrFull = (IsMaximized(hwnd) || IsFullScreen(hwnd));
     // Update the options based on window state.
     MENUITEMINFOW mii;
     SecureZeroMemory(&mii, sizeof(mii));
     mii.cbSize = sizeof(mii);
     mii.fMask = MIIM_STATE;
     mii.fType = MFT_STRING;
-    const auto setState = [systemMenu, &mii](const UINT item, const bool enabled){
-        mii.fState = (enabled ? MF_ENABLED : MF_DISABLED);
+    const auto setState = [systemMenu, &mii](const UINT item, const bool enabled, const bool highlight){
+        mii.fState = ((enabled ? MFS_ENABLED : MFS_DISABLED) | (highlight ? MFS_HILITE : 0));
         SetMenuItemInfoW(systemMenu, item, FALSE, &mii);
     };
-    setState(SC_RESTORE, max);
-    setState(SC_MOVE, !max);
-    setState(SC_SIZE, !max);
-    setState(SC_MINIMIZE, true);
-    setState(SC_MAXIMIZE, !max);
-    setState(SC_CLOSE, true);
-    SetMenuDefaultItem(systemMenu, UINT_MAX, FALSE);
+    setState(SC_RESTORE, maxOrFull, true);
+    setState(SC_MOVE, !maxOrFull, false);
+    setState(SC_SIZE, !maxOrFull, false);
+    setState(SC_MINIMIZE, true, false);
+    setState(SC_MAXIMIZE, !maxOrFull, false);
+    setState(SC_CLOSE, true, false);
+    SetMenuDefaultItem(systemMenu, SC_CLOSE, FALSE);
     int xPos = 0;
     int yPos = 0;
     if (mouseX.has_value() && mouseY.has_value()) {
@@ -583,10 +597,15 @@ static inline void OpenSystemMenu
     } else {
         RECT windowPos = {};
         GetWindowRect(hwnd, &windowPos);
-        xPos = windowPos.left;
-        yPos = windowPos.top + GetTitleBarHeight();
+        const int frameSize = GetResizeBorderThickness();
+        const int titleBarHeight = GetTitleBarHeight();
+        const int horizontalOffset = (maxOrFull ? 0 : frameSize);
+        const int verticalOffset = (maxOrFull ? titleBarHeight : (titleBarHeight - frameSize));
+        xPos = (windowPos.left + horizontalOffset);
+        yPos = (windowPos.top + verticalOffset);
     }
-    const auto ret = TrackPopupMenu(systemMenu, TPM_RETURNCMD, xPos, yPos, 0, hwnd, nullptr);
+    const auto ret = TrackPopupMenu(systemMenu, (TPM_RETURNCMD | (QGuiApplication::isRightToLeft()
+                                       ? TPM_RIGHTALIGN : TPM_LEFTALIGN)), xPos, yPos, 0, hwnd, nullptr);
     if (ret != 0) {
         PostMessageW(hwnd, WM_SYSCOMMAND, ret, 0);
     }
@@ -627,6 +646,77 @@ static inline void UpdateWindowFrameBorderColor(const HWND hwnd)
     pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, &dark, sizeof(dark));
     pDwmSetWindowAttribute(hwnd, _DWMWA_USE_IMMERSIVE_DARK_MODE, &dark, sizeof(dark));
     pSetWindowTheme(hwnd, (dark ? L"DarkMode_Explorer" : L" "), nullptr);
+}
+
+[[nodiscard]] static inline LRESULT CALLBACK SysMenuWndProc
+    (const HWND hWnd, const UINT uMsg, const WPARAM wParam, const LPARAM lParam)
+{
+    const auto getGlobalPosFromMouse = [lParam]() -> QPointF {
+        return {qreal(GET_X_LPARAM(lParam)), qreal(GET_Y_LPARAM(lParam))};
+    };
+    const auto getGlobalPosFromKeyboard = [hWnd]() -> QPointF {
+        RECT rect = {};
+        GetWindowRect(hWnd, &rect);
+        const bool maxOrFull = (IsMaximized(hWnd) || IsFullScreen(hWnd));
+        const int frameSize = GetResizeBorderThickness();
+        const int titleBarHeight = GetTitleBarHeight();
+        const int horizontalOffset = (maxOrFull ? 0 : frameSize);
+        const int verticalOffset = (maxOrFull ? titleBarHeight : (titleBarHeight - frameSize));
+        return {qreal(rect.left + horizontalOffset), qreal(rect.top + verticalOffset)};
+    };
+    bool shouldShowSystemMenu = false;
+    QPointF globalPos = {};
+    if (uMsg == WM_NCRBUTTONUP) {
+        if (wParam == HTCAPTION) {
+            shouldShowSystemMenu = true;
+            globalPos = getGlobalPosFromMouse();
+        }
+    } else if (uMsg == WM_SYSCOMMAND) {
+        const WPARAM filteredWParam = (wParam & 0xFFF0);
+        if ((filteredWParam == SC_KEYMENU) && (lParam == VK_SPACE)) {
+            shouldShowSystemMenu = true;
+            globalPos = getGlobalPosFromKeyboard();
+        }
+    } else if ((uMsg == WM_KEYDOWN) || (uMsg == WM_SYSKEYDOWN)) {
+        const bool altPressed = ((wParam == VK_MENU) || (GetKeyState(VK_MENU) < 0));
+        const bool spacePressed = ((wParam == VK_SPACE) || (GetKeyState(VK_SPACE) < 0));
+        if (altPressed && spacePressed) {
+            shouldShowSystemMenu = true;
+            globalPos = getGlobalPosFromKeyboard();
+        }
+    }
+    if (shouldShowSystemMenu) {
+        OpenSystemMenu(hWnd, globalPos.x(), globalPos.y());
+        // QPA's internal code will handle system menu events separately, and its
+        // behavior is not what we would want to see because it doesn't know our
+        // window doesn't have any window frame now, so return early here to avoid
+        // entering Qt's own handling logic.
+        return 0; // Return 0 means we have handled this event.
+    }
+    g_helper()->m_mutex.lock();
+    const WNDPROC originalWindowProc = g_helper()->m_qtWindowProc;
+    g_helper()->m_mutex.unlock();
+    Q_ASSERT(originalWindowProc);
+    if (originalWindowProc) {
+        // Hand over to Qt's original window proc function for events we are not
+        // interested in.
+        return CallWindowProcW(originalWindowProc, hWnd, uMsg, wParam, lParam);
+    } else {
+        return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+    }
+}
+
+static inline void InstallWindowHook(const HWND hwnd)
+{
+    Q_ASSERT(hwnd);
+    if (!hwnd) {
+        return;
+    }
+    const auto originalWindowProc = reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hwnd, GWLP_WNDPROC));
+    g_helper()->m_mutex.lock();
+    g_helper()->m_qtWindowProc = originalWindowProc;
+    g_helper()->m_mutex.unlock();
+    SetWindowLongPtrW(hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(SysMenuWndProc));
 }
 #endif
 
@@ -797,23 +887,15 @@ void FramelessWindow::showSystemMenu(const QPointF &pos)
     if (!hwnd) {
         return;
     }
-    // The given mouse position is relative to the titlebar item,
-    // we need to translate it to global screen coordinate.
-    const auto globalPos = [this, &pos]() -> std::optional<QPoint> {
-        static const auto titleBar = findChild<QQuickItem *>(QStringLiteral("TitleBarObject"));
-        Q_ASSERT(titleBar);
-        if (!titleBar) {
-            return std::nullopt;
+    const QPoint globalPos = QPointF(mapToGlobal(pos) * effectiveDevicePixelRatio()).toPoint();
+    // For some unknown reason we need to patch the mouse position to get the correct
+    // coordinate, to be investigated.
+    OpenSystemMenu(hwnd, globalPos.x(), [this, &globalPos]() -> int {
+        if (isMaximized() || isFullScreen()) {
+            return globalPos.y();
         }
-        const QPointF mappedPos = titleBar->mapToGlobal(pos) * effectiveDevicePixelRatio();
-        return mappedPos.toPoint();
-    }();
-    if (globalPos.has_value()) {
-        const QPoint value = globalPos.value();
-        OpenSystemMenu(hwnd, value.x(), value.y());
-    } else {
-        OpenSystemMenu(hwnd, std::nullopt, std::nullopt);
-    }
+        return (globalPos.y() + GetResizeBorderThickness());
+    }());
 #else
     // ### TODO
 #endif
@@ -1108,7 +1190,7 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, qi
     }
     if (IsWin101809OrGreater()) {
         if (msg->message == WM_SETTINGCHANGE) {
-            if ((msg->wParam == 0) && (QString::compare(QString::fromWCharArray(reinterpret_cast<LPCWSTR>(msg->lParam)), kThemeChangeEventName, Qt::CaseInsensitive) == 0)) {
+            if ((msg->wParam == 0) && (QString::fromWCharArray(reinterpret_cast<LPCWSTR>(msg->lParam)).compare(kThemeSettingChangeEventName, Qt::CaseInsensitive) == 0)) {
                 UpdateWindowFrameBorderColor(msg->hwnd);
             }
         }
@@ -1202,6 +1284,7 @@ void FramelessWindow::initialize()
         Q_ASSERT(hwnd);
         if (hwnd) {
             FixupQtInternals(hwnd);
+            InstallWindowHook(hwnd);
             UpdateWindowFrameMargins(hwnd);
             UpdateWindowFrameBorderColor(hwnd);
         }

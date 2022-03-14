@@ -282,7 +282,7 @@ FramelessWindow {
         height: ((window.visibility === Window.Windowed) && OS.isWindows10OrGreater)
                 ? Constants.windowFrameBorderThickness : 0
         color: window.active ? Theme.windowFrameBorderColor :
-                      (Theme.darkModeEnabled ? Qt.color("#575959") : Qt.color("#999999"))
+                      (Theme.darkModeEnabled ? Qt.color("#575959") : Qt.color("#a6a6a6"))
     }
 
     MouseArea {
