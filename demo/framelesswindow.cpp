@@ -599,7 +599,7 @@ static inline void OpenSystemMenu
         GetWindowRect(hwnd, &windowPos);
         const int frameSize = GetResizeBorderThickness();
         const int titleBarHeight = GetTitleBarHeight();
-        const int horizontalOffset = (maxOrFull ? 0 : frameSize);
+        const int horizontalOffset = ((maxOrFull || !IsWin10OrGreater()) ? 0 : frameSize);
         const int verticalOffset = (maxOrFull ? titleBarHeight : (titleBarHeight - frameSize));
         xPos = (windowPos.left + horizontalOffset);
         yPos = (windowPos.top + verticalOffset);
@@ -660,7 +660,7 @@ static inline void UpdateWindowFrameBorderColor(const HWND hwnd)
         const bool maxOrFull = (IsMaximized(hWnd) || IsFullScreen(hWnd));
         const int frameSize = GetResizeBorderThickness();
         const int titleBarHeight = GetTitleBarHeight();
-        const int horizontalOffset = (maxOrFull ? 0 : frameSize);
+        const int horizontalOffset = ((maxOrFull || !IsWin10OrGreater()) ? 0 : frameSize);
         const int verticalOffset = (maxOrFull ? titleBarHeight : (titleBarHeight - frameSize));
         return {qreal(rect.left + horizontalOffset), qreal(rect.top + verticalOffset)};
     };
