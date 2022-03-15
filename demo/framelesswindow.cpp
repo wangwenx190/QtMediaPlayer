@@ -559,8 +559,7 @@ enum class MouseEventType : int
     return false;
 }
 
-static inline void OpenSystemMenu
-    (const HWND hwnd, const std::optional<int> mouseX, const std::optional<int> mouseY)
+static inline void OpenSystemMenu(const HWND hwnd, const int mouseX, const int mouseY)
 {
     Q_ASSERT(hwnd);
     if (!hwnd) {
@@ -579,7 +578,7 @@ static inline void OpenSystemMenu
     mii.fMask = MIIM_STATE;
     mii.fType = MFT_STRING;
     const auto setState = [systemMenu, &mii](const UINT item, const bool enabled, const bool highlight){
-        mii.fState = ((enabled ? MFS_ENABLED : MFS_DISABLED) | (highlight ? MFS_HILITE : 0));
+        mii.fState = ((enabled ? MFS_ENABLED : MFS_DISABLED) | (highlight ? MFS_HILITE : MFS_UNHILITE));
         SetMenuItemInfoW(systemMenu, item, FALSE, &mii);
     };
     setState(SC_RESTORE, maxOrFull, true);
@@ -589,23 +588,8 @@ static inline void OpenSystemMenu
     setState(SC_MAXIMIZE, !maxOrFull, false);
     setState(SC_CLOSE, true, false);
     SetMenuDefaultItem(systemMenu, SC_CLOSE, FALSE);
-    int xPos = 0;
-    int yPos = 0;
-    if (mouseX.has_value() && mouseY.has_value()) {
-        xPos = mouseX.value();
-        yPos = mouseY.value();
-    } else {
-        RECT windowPos = {};
-        GetWindowRect(hwnd, &windowPos);
-        const int frameSize = GetResizeBorderThickness();
-        const int titleBarHeight = GetTitleBarHeight();
-        const int horizontalOffset = ((maxOrFull || !IsWin10OrGreater()) ? 0 : frameSize);
-        const int verticalOffset = (maxOrFull ? titleBarHeight : (titleBarHeight - frameSize));
-        xPos = (windowPos.left + horizontalOffset);
-        yPos = (windowPos.top + verticalOffset);
-    }
-    const auto ret = TrackPopupMenu(systemMenu, (TPM_RETURNCMD | (QGuiApplication::isRightToLeft()
-                                       ? TPM_RIGHTALIGN : TPM_LEFTALIGN)), xPos, yPos, 0, hwnd, nullptr);
+    const int ret = TrackPopupMenu(systemMenu, (TPM_RETURNCMD | (QGuiApplication::isRightToLeft()
+                                       ? TPM_RIGHTALIGN : TPM_LEFTALIGN)), mouseX, mouseY, 0, hwnd, nullptr);
     if (ret != 0) {
         PostMessageW(hwnd, WM_SYSCOMMAND, ret, 0);
     }
@@ -1076,7 +1060,7 @@ bool FramelessWindow::nativeEvent(const QByteArray &eventType, void *message, qi
         ScreenToClient(msg->hwnd, &localPos);
         const int frameSize = GetResizeBorderThickness();
         const bool isTop = (localPos.y < frameSize);
-        const bool isTitleBar = false; // ### TODO
+        static constexpr const bool isTitleBar = false;
         const bool max = IsMaximized(msg->hwnd);
         const bool full = IsFullScreen(msg->hwnd);
         if (IsWin10OrGreater()) {
