@@ -293,7 +293,7 @@ void Theme::refresh()
         if (m_darkModeEnabled) {
             return QColor(QStringLiteral("#4d4d4d"));
         }
-        return QColorConstants::White;
+        return QColorConstants::Black;
     }();
     Q_EMIT darkModeEnabledChanged();
     Q_EMIT titleBarBackgroundColorChanged();
