@@ -43,17 +43,17 @@ Q_ENUM_NS(PlaybackState)
 
 enum class MediaStatusFlag : int
 {
-    Invalid = -1,
-    NoMedia = 0,
-    Unloaded = 1,
-    Loading = 2,
-    Loaded = 3,
-    Prepared = 4,
-    Stalled = 5,
-    Buffering = 6,
-    Buffered = 7,
-    End = 8,
-    Seeking = 9
+    Invalid   = 0x00000000,
+    NoMedia   = 0x00000001,
+    Unloaded  = 0x00000002,
+    Loading   = 0x00000004,
+    Loaded    = 0x00000008,
+    Prepared  = 0x00000010,
+    Stalled   = 0x00000020,
+    Buffering = 0x00000040,
+    Buffered  = 0x00000080,
+    End       = 0x00000100,
+    Seeking   = 0x00000200
 };
 Q_DECLARE_FLAGS(MediaStatus, MediaStatusFlag)
 Q_FLAG_NS(MediaStatus)
