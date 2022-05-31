@@ -25,8 +25,8 @@
 #include <windows.h>
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION     1,0,0,0
-PRODUCTVERSION  1,0,0,0
+FILEVERSION     0,0,0,0
+PRODUCTVERSION  1,1,0,0
 FILEFLAGSMASK   0x3fL
 #ifdef _DEBUG
 FILEFLAGS       VS_FF_DEBUG
@@ -43,14 +43,13 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "wangwenx190"
             VALUE "FileDescription",  "QtMediaPlayer - MDK backend"
-            VALUE "FileVersion",      "1.0.0.0"
+            VALUE "FileVersion",      "0.0.0.0"
             VALUE "LegalCopyright",   "MIT License"
             VALUE "ProductName",      "QtMediaPlayer"
-            VALUE "ProductVersion",   "1.0.0.0"
-            VALUE "OriginalFilename", ""
+            VALUE "ProductVersion",   "1.1.0.0"
+            VALUE "OriginalFilename", "QtMediaPlayer_MDKBackend.dll"
             VALUE "Comments",         "Based on the technology of QtMediaPlayer."
             VALUE "InternalName",     "MDKBackend"
-            VALUE "LegalTrademarks",  ""
         END
     END
     BLOCK "VarFileInfo"

@@ -22,25 +22,21 @@
   SOFTWARE.
 ]]
 
-set(PROJ_NAME QtMediaPlayerCommon)
+set(MOD_NAME Common)
+set(PROJ_NAME ${PROJECT_NAME}${MOD_NAME})
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Quick REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Quick)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Quick)
 
 set(SOURCES
     common_global.h
     backendinterface.h
     backendinterface.cpp
-    dummybackend.h
-    dummybackend.cpp
     texturenodeinterface.h
     texturenodeinterface.cpp
+    playertypes.h
+    playerinterface.h
+    playerinterface.cpp
 )
 
 if(WIN32 AND (NOT BUILD_STATIC_COMMON))
@@ -49,24 +45,11 @@ if(WIN32 AND (NOT BUILD_STATIC_COMMON))
 endif()
 
 if(BUILD_STATIC_COMMON)
-    qt_add_library(${PROJ_NAME} STATIC ${SOURCES})
+    add_library(${PROJ_NAME} STATIC ${SOURCES})
 else()
-    qt_add_library(${PROJ_NAME} SHARED ${SOURCES})
+    add_library(${PROJ_NAME} SHARED ${SOURCES})
 endif()
-
-qt_add_qml_module(${PROJ_NAME}
-    URI org.wangwenx190.QtMediaPlayer
-    VERSION 1.0
-    IMPORTS
-        QtQml/auto
-        QtQuick/auto
-    SOURCES
-        playertypes.h
-        playerinterface.h
-        playerinterface.cpp
-        dummyplayer.h
-        dummyplayer.cpp
-)
+add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
 
 if(BUILD_STATIC_COMMON)
     target_compile_definitions(${PROJ_NAME} PUBLIC
@@ -77,10 +60,15 @@ endif()
 target_compile_definitions(${PROJ_NAME} PRIVATE
     QT_NO_CAST_FROM_ASCII
     QT_NO_CAST_TO_ASCII
+    QT_NO_URL_CAST_FROM_STRING
+    QT_NO_CAST_FROM_BYTEARRAY
     QT_NO_KEYWORDS
+    QT_NO_NARROWING_CONVERSIONS_IN_CONNECT
+    QT_NO_FOREACH
     QT_USE_QSTRINGBUILDER
     QT_DEPRECATED_WARNINGS
     QT_DISABLE_DEPRECATED_BEFORE=0x060400
+    $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>
     QTMEDIAPLAYER_COMMON_BUILD_LIBRARY
 )
 
@@ -94,7 +82,7 @@ target_include_directories(${PROJ_NAME} PUBLIC
 
 if(MSVC)
     target_compile_options(${PROJ_NAME} PRIVATE
-        /W4 /WX
+        /utf-8 /W4 /WX
     )
 else()
     target_compile_options(${PROJ_NAME} PRIVATE

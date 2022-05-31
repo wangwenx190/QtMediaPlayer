@@ -44,7 +44,7 @@
 #endif
 #endif
 
-#if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
+#if (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
 #include <QtGui/qvulkaninstance.h>
 #include <QtGui/qvulkanfunctions.h>
 #endif
@@ -53,7 +53,7 @@
 #include "include/mdk/Player.h"
 #include "include/mdk/RenderAPI.h"
 
-#if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
+#if (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
 #define VK_ENSURE(x, ...) VK_RUN_CHECK(x, return __VA_ARGS__)
 #define VK_WARN(x, ...) VK_RUN_CHECK(x)
 #define VK_RUN_CHECK(x, ...) \
@@ -88,7 +88,7 @@ public:
 #if QT_CONFIG(opengl)
         fbo_gl.reset();
 #endif
-#if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
+#if (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
         freeTexture();
 #endif
     }
@@ -97,7 +97,7 @@ protected:
     QSGTexture *ensureTexture(void *player, const QSize &size) override;
 
 private:
-#if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
+#if (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
     bool buildTexture(const QSize &size);
     void freeTexture();
 #endif
@@ -112,7 +112,7 @@ private:
 #ifdef Q_OS_MACOS
     id<MTLTexture> m_texture_mtl = nil;
 #endif
-#if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
+#if (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
     VkImage m_texture_vk = VK_NULL_HANDLE;
     VkDeviceMemory m_textureMemory = VK_NULL_HANDLE;
     VkPhysicalDevice m_physDev = VK_NULL_HANDLE;
@@ -251,7 +251,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
     case QSGRendererInterface::VulkanRhi: // Equal to QSGRendererInterface::Vulkan in Qt6.
 #endif // (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     {
-#if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
+#if (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         nativeLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 #endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -318,7 +318,7 @@ QSGTexture *MDKVideoTextureNodeImpl::ensureTexture(void *player, const QSize &si
     return nullptr;
 }
 
-#if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
+#if (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
 bool MDKVideoTextureNodeImpl::buildTexture(const QSize &size)
 {
     VkImageCreateInfo imageInfo;

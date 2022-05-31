@@ -310,17 +310,17 @@ bool MPVPlayer::isLoaded() const
 
 bool MPVPlayer::isPlaying() const
 {
-    return playbackState() == PlaybackState::Playing;
+    return (playbackState() == PlaybackState::Playing);
 }
 
 bool MPVPlayer::isPaused() const
 {
-    return playbackState() == PlaybackState::Paused;
+    return (playbackState() == PlaybackState::Paused);
 }
 
 bool MPVPlayer::isStopped() const
 {
-    return playbackState() == PlaybackState::Stopped;
+    return (playbackState() == PlaybackState::Stopped);
 }
 
 void MPVPlayer::rotateImage(const qreal value)
@@ -457,7 +457,7 @@ QUrl MPVPlayer::source() const
 
 QString MPVPlayer::fileName() const
 {
-    return isStopped() ? QString{} : mpvGetProperty(QStringLiteral("filename")).toString();
+    return (isStopped() ? QString{} : mpvGetProperty(QStringLiteral("filename")).toString());
 }
 
 QSizeF MPVPlayer::videoSize() const
@@ -473,7 +473,7 @@ PlaybackState MPVPlayer::playbackState() const
 {
     const bool stopped = mpvGetProperty(QStringLiteral("idle-active")).toBool();
     const bool paused = mpvGetProperty(QStringLiteral("pause")).toBool();
-    return stopped ? PlaybackState::Stopped : (paused ? PlaybackState::Paused : PlaybackState::Playing);
+    return (stopped ? PlaybackState::Stopped : (paused ? PlaybackState::Paused : PlaybackState::Playing));
 }
 
 MediaStatus MPVPlayer::mediaStatus() const
@@ -513,12 +513,12 @@ LogLevel MPVPlayer::logLevel() const
 
 qint64 MPVPlayer::duration() const
 {
-    return isStopped() ? 0 : (mpvGetProperty(QStringLiteral("duration")).toLongLong() * 1000);
+    return (isStopped() ? 0 : (mpvGetProperty(QStringLiteral("duration")).toLongLong() * 1000));
 }
 
 qint64 MPVPlayer::position() const
 {
-    return isStopped() ? 0 : (mpvGetProperty(QStringLiteral("time-pos")).toLongLong() * 1000);
+    return (isStopped() ? 0 : (mpvGetProperty(QStringLiteral("time-pos")).toLongLong() * 1000));
 }
 
 qreal MPVPlayer::volume() const
@@ -533,7 +533,7 @@ bool MPVPlayer::mute() const
 
 bool MPVPlayer::seekable() const
 {
-    return isStopped() ? false : mpvGetProperty(QStringLiteral("seekable")).toBool();
+    return (isStopped() ? false : mpvGetProperty(QStringLiteral("seekable")).toBool());
 }
 
 bool MPVPlayer::hardwareDecoding() const
@@ -566,12 +566,12 @@ QString MPVPlayer::snapshotTemplate() const
 
 QUrl MPVPlayer::snapshotDirectory() const
 {
-    return mpvGetProperty(QStringLiteral("screenshot-directory")).toString();
+    return QUrl(mpvGetProperty(QStringLiteral("screenshot-directory")).toString());
 }
 
 QString MPVPlayer::filePath() const
 {
-    return isStopped() ? QString{} : QDir::toNativeSeparators(mpvGetProperty(QStringLiteral("path")).toString());
+    return (isStopped() ? QString{} : QDir::toNativeSeparators(mpvGetProperty(QStringLiteral("path")).toString()));
 }
 
 MediaTracks MPVPlayer::mediaTracks() const
@@ -645,7 +645,7 @@ MediaTracks MPVPlayer::mediaTracks() const
 
 int MPVPlayer::activeVideoTrack() const
 {
-    return isStopped() ? 0 : mpvGetProperty(QStringLiteral("vid")).toInt();
+    return (isStopped() ? 0 : mpvGetProperty(QStringLiteral("vid")).toInt());
 }
 
 void MPVPlayer::setActiveVideoTrack(const int value)
@@ -678,7 +678,7 @@ void MPVPlayer::setActiveVideoTrack(const int value)
 
 int MPVPlayer::activeAudioTrack() const
 {
-    return isStopped() ? 0 : mpvGetProperty(QStringLiteral("aid")).toInt();
+    return (isStopped() ? 0 : mpvGetProperty(QStringLiteral("aid")).toInt());
 }
 
 void MPVPlayer::setActiveAudioTrack(const int value)
@@ -711,7 +711,7 @@ void MPVPlayer::setActiveAudioTrack(const int value)
 
 int MPVPlayer::activeSubtitleTrack() const
 {
-    return isStopped() ? 0 : mpvGetProperty(QStringLiteral("sid")).toInt();
+    return (isStopped() ? 0 : mpvGetProperty(QStringLiteral("sid")).toInt());
 }
 
 void MPVPlayer::setActiveSubtitleTrack(const int value)

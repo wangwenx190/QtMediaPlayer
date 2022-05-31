@@ -10,15 +10,15 @@ A simple but powerful multimedia player **library** designed for Qt Quick.
 
 ## Known limitations
 
-Currently this library doesn't support reading from embeded resources or reading from `QIODevice`. It can only read from real local files or online streams.
+Currently this library doesn't support reading from embeded resources or reading from `QIODevice`. It can only read from real local files or online streams. There's plan to implement this feature for this library, but it's not urgent.
 
 ## Why not just use QtMultimedia or own FFmpeg implementation?
 
-Currently this project uses **MDK** and **MPV** as the player backends. They are world-famous multimedia frameworks with long time active developing, they are known to have good code quality and especially outstanding performance, however, QtMultimedia is only a simple implementation based on the operating system's default multimedia framework, it has a friendly interface but it's not designed for performance, and I'm also not convinced that the Qt company has deep experience on the multimedia area. And I also don't think some custom FFmpeg implementation can be better than these impressive frameworks.
+Currently this project uses **MDK** and **MPV** as the player backends. They are world-famous multimedia frameworks with long time active development, they are known to have good code quality and especially outstanding performance, however, QtMultimedia is only a simple implementation based on the operating system's default multimedia framework, it has a friendly interface but it's not designed for performance, and I'm also not convinced that the Qt company has deep experience on the multimedia area. And I also don't think some custom FFmpeg implementation can be better than these impressive frameworks.
 
 ## Build
 
-Since this project makes heavy usage of [Qt RHI](https://doc.qt.io/qt-6/qtquick-visualcanvas-adaptations.html), you'll need **at least Qt 5.14** to use this project. **It's recommended to use Qt 5.15 or Qt 6.2 or the latest version of Qt**.
+Since this project makes heavy usage of [Qt RHI](https://doc.qt.io/qt-6/qtquick-visualcanvas-adaptations.html), you'll need **at least Qt 5.14** to use this project. But Qt RHI in 5.14 is not quite stable, so **it's highly recommended to use Qt 5.15 or the latest version of Qt 6**.
 
 ```cmake
 cmake .
@@ -41,7 +41,7 @@ Recommended 3rd-party pre-built FFmpeg binaries:
 
 ## Usage
 
-See [demo](./demo).
+Please refer to my another project: <https://github.com/wangwenx190/QPlayer309/>.
 
 ## License
 

@@ -292,9 +292,9 @@ bool isMDKAvailable()
 QString getMDKVersion()
 {
     const int fullVerNum = MDK_version();
-    const int majorVerNum = (fullVerNum >> 16) & 0xff;
-    const int minorVerNum = (fullVerNum >> 8) & 0xff;
-    const int patchVerNum = fullVerNum & 0xff;
+    const int majorVerNum = ((fullVerNum >> 16) & 0xff);
+    const int minorVerNum = ((fullVerNum >> 8) & 0xff);
+    const int patchVerNum = (fullVerNum & 0xff);
     return QStringLiteral("%1.%2.%3").arg(QString::number(majorVerNum),
                                           QString::number(minorVerNum),
                                           QString::number(patchVerNum));

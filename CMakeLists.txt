@@ -22,21 +22,18 @@
   SOFTWARE.
 ]]
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.23)
 
 project(QtMediaPlayer
-    VERSION 1.0.0.0
+    VERSION 1.1.0.0
     LANGUAGES C CXX
     DESCRIPTION "A simple but powerful multimedia player library designed for Qt Quick."
     HOMEPAGE_URL "https://github.com/wangwenx190/QtMediaPlayer/"
 )
 
-option(BUILD_DEMO_APP "Build the QtMediaPlayer demo application." ON)
 option(BUILD_STATIC_LOADER "Build the QtMediaPlayer loader as a static library." ON)
 option(BUILD_STATIC_COMMON "Build the QtMediaPlayer common as a static library." ON)
 option(BUILD_STATIC_PLUGINS "Build the QtMediaPlayer player backend plugins as static libraries." ON)
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -96,6 +93,3 @@ if(GIT_EXECUTABLE_PATH AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
 endif()
 
 add_subdirectory(src)
-if(BUILD_DEMO_APP)
-    add_subdirectory(demo)
-endif()

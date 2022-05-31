@@ -26,6 +26,7 @@
 #include "include/mdk/global.h"
 #include "mdkplayer.h"
 #include "mdkqthelper.h"
+#include <QtCore/qfileinfo.h>
 #include <QtQuick/qsgrendererinterface.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
@@ -151,8 +152,7 @@ public:
 
     [[nodiscard]] QString fileName() const override
     {
-        // ### TODO
-        return {};
+        return QFileInfo(filePath()).fileName();
     }
 
     [[nodiscard]] bool initialize() const override
@@ -165,14 +165,19 @@ public:
             return true;
         }
         m_initialized = true;
+        qRegisterMetaType<PlaybackState>();
+        qRegisterMetaType<MediaStatusFlag>();
+        qRegisterMetaType<MediaStatus>();
+        qRegisterMetaType<LogLevel>();
+        qRegisterMetaType<FillMode>();
         qRegisterMetaType<ChapterInfo>();
         qRegisterMetaType<Chapters>();
         qRegisterMetaType<MetaData>();
         qRegisterMetaType<MediaTracks>();
-        qmlRegisterModule(QTMEDIAPLAYER_QML_URI, 1, 0);
         qmlRegisterUncreatableMetaObject(staticMetaObject, QTMEDIAPLAYER_QML_URI, 1, 0, "QtMediaPlayer",
               QStringLiteral("QtMediaPlayer is not creatable, it's only used for accessing enums & flags."));
         qmlRegisterType<MDKPlayer>(QTMEDIAPLAYER_QML_URI, 1, 0, "MediaPlayer");
+        qmlRegisterModule(QTMEDIAPLAYER_QML_URI, 1, 0);
         return true;
     }
 

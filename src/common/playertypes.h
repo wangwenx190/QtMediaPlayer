@@ -33,7 +33,7 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 
 Q_NAMESPACE_EXPORT(QTMEDIAPLAYER_COMMON_API)
 
-enum class PlaybackState : int
+enum class PlaybackState
 {
     Stopped = 0,
     Playing = 1,
@@ -41,7 +41,7 @@ enum class PlaybackState : int
 };
 Q_ENUM_NS(PlaybackState)
 
-enum class MediaStatusFlag : int
+enum class MediaStatusFlag
 {
     Invalid   = 0x00000000,
     NoMedia   = 0x00000001,
@@ -55,10 +55,11 @@ enum class MediaStatusFlag : int
     End       = 0x00000100,
     Seeking   = 0x00000200
 };
+Q_ENUM_NS(MediaStatusFlag)
 Q_DECLARE_FLAGS(MediaStatus, MediaStatusFlag)
 Q_FLAG_NS(MediaStatus)
 
-enum class LogLevel : int
+enum class LogLevel
 {
     Off = 0,
     Info = 1,
@@ -69,7 +70,7 @@ enum class LogLevel : int
 };
 Q_ENUM_NS(LogLevel)
 
-enum class FillMode : int
+enum class FillMode
 {
     PreserveAspectFit = 0,
     PreserveAspectCrop = 1,

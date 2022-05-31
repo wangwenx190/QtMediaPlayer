@@ -22,16 +22,11 @@
   SOFTWARE.
 ]]
 
-set(PROJ_NAME QtMediaPlayer_MDKBackend)
+set(MOD_NAME MDKBackend)
+set(PROJ_NAME ${PROJECT_NAME}_${MOD_NAME})
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Quick REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Quick REQUIRED)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Quick)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Quick)
 find_package(Vulkan)
 
 set(SOURCES
@@ -53,10 +48,11 @@ if(WIN32 AND (NOT BUILD_STATIC_PLUGINS))
 endif()
 
 if(BUILD_STATIC_PLUGINS)
-    qt_add_library(${PROJ_NAME} STATIC ${SOURCES})
+    add_library(${PROJ_NAME} STATIC ${SOURCES})
 else()
-    qt_add_library(${PROJ_NAME} SHARED ${SOURCES})
+    add_library(${PROJ_NAME} SHARED ${SOURCES})
 endif()
+add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
 
 target_include_directories(${PROJ_NAME} PRIVATE
     include
@@ -83,10 +79,15 @@ endif()
 target_compile_definitions(${PROJ_NAME} PRIVATE
     QT_NO_CAST_FROM_ASCII
     QT_NO_CAST_TO_ASCII
+    QT_NO_URL_CAST_FROM_STRING
+    QT_NO_CAST_FROM_BYTEARRAY
     QT_NO_KEYWORDS
+    QT_NO_NARROWING_CONVERSIONS_IN_CONNECT
+    QT_NO_FOREACH
     QT_USE_QSTRINGBUILDER
     QT_DEPRECATED_WARNINGS
     QT_DISABLE_DEPRECATED_BEFORE=0x060400
+    $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>
     BUILD_MDK_STATIC # Needed by MDK's own headers
     QTMEDIAPLAYER_PLUGIN_BUILD_LIBRARY
 )
@@ -105,7 +106,7 @@ endif()
 
 target_link_libraries(${PROJ_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Quick
-    QtMediaPlayerCommon
+    ${PROJECT_NAME}::Common
 )
 
 target_include_directories(${PROJ_NAME} PUBLIC
@@ -114,7 +115,7 @@ target_include_directories(${PROJ_NAME} PUBLIC
 
 if(MSVC)
     target_compile_options(${PROJ_NAME} PRIVATE
-        /W4 /WX
+        /utf-8 /W4 /WX
     )
 else()
     target_compile_options(${PROJ_NAME} PRIVATE

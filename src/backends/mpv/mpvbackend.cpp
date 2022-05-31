@@ -125,7 +125,7 @@ static const QString kUnknown = QStringLiteral("Unknown");
                  return kUnknown;
              }
              const QString ver = mpvGetProperty(QStringLiteral("ffmpeg-version")).toString();
-             return (ver.isEmpty() ? QStringLiteral("Unknown") : ver);
+             return (ver.isEmpty() ? kUnknown : ver);
          }()},
         {kFFmpegConfiguration, []() -> QString {
              if (!MPV::Qt::isLibmpvAvailable()) {
@@ -134,7 +134,7 @@ static const QString kUnknown = QStringLiteral("Unknown");
              // libmpv doesn't seem to provide the FFmpeg configuration parameters
              // , so just return mpv's own configuration parameters instead.
              const QString ver = mpvGetProperty(QStringLiteral("mpv-configuration")).toString();
-             return (ver.isEmpty() ? QStringLiteral("Unknown") : ver);
+             return (ver.isEmpty() ? kUnknown : ver);
          }()}
     };
     return result;
@@ -186,8 +186,7 @@ public:
 
     [[nodiscard]] QString fileName() const override
     {
-        // ### TODO
-        return {};
+        return QFileInfo(filePath()).fileName();
     }
 
     [[nodiscard]] bool initialize() const override
@@ -213,15 +212,20 @@ public:
         // them since Qt6. It's the old Qt5 story.
         QQuickWindow::setSceneGraphBackend(QSGRendererInterface::OpenGLRhi);
 #endif
+        qRegisterMetaType<PlaybackState>();
+        qRegisterMetaType<MediaStatusFlag>();
+        qRegisterMetaType<MediaStatus>();
+        qRegisterMetaType<LogLevel>();
+        qRegisterMetaType<FillMode>();
         qRegisterMetaType<ChapterInfo>();
         qRegisterMetaType<Chapters>();
         qRegisterMetaType<MetaData>();
         qRegisterMetaType<MediaTracks>();
         qRegisterMetaType<MPV::Qt::ErrorReturn>();
-        qmlRegisterModule(QTMEDIAPLAYER_QML_URI, 1, 0);
         qmlRegisterUncreatableMetaObject(staticMetaObject, QTMEDIAPLAYER_QML_URI, 1, 0, "QtMediaPlayer",
               QStringLiteral("QtMediaPlayer is not creatable, it's only used for accessing enums & flags."));
         qmlRegisterType<MPVPlayer>(QTMEDIAPLAYER_QML_URI, 1, 0, "MediaPlayer");
+        qmlRegisterModule(QTMEDIAPLAYER_QML_URI, 1, 0);
         return true;
     }
 

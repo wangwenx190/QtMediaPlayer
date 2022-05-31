@@ -128,7 +128,7 @@ void MDKPlayer::initialize()
     // Default to software decoding.
     m_player->setDecoders(MDK_NS_PREPEND(MediaType)::Video, {"FFmpeg"});
 
-    m_snapshotDirectory = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
+    m_snapshotDirectory = QUrl(QDir::toNativeSeparators(QCoreApplication::applicationDirPath()));
 
     connect(this, &MDKPlayer::sourceChanged, this, &MDKPlayer::fileNameChanged);
     connect(this, &MDKPlayer::sourceChanged, this, &MDKPlayer::filePathChanged);
@@ -326,18 +326,18 @@ void MDKPlayer::setSource(const QUrl &value)
 QString MDKPlayer::fileName() const
 {
     const QUrl url = source();
-    return url.isValid() ? url.fileName() : QString{};
+    return (url.isValid() ? url.fileName() : QString{});
 }
 
 QString MDKPlayer::filePath() const
 {
     const QUrl url = source();
-    return url.isValid() ? urlToString(url, true) : QString{};
+    return (url.isValid() ? urlToString(url, true) : QString{});
 }
 
 qint64 MDKPlayer::position() const
 {
-    return isLoaded() ? m_player->position() : 0;
+    return (isLoaded() ? m_player->position() : 0);
 }
 
 void MDKPlayer::setPosition(const qint64 value)

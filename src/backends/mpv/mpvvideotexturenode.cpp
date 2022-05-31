@@ -38,15 +38,30 @@
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
 #include <QtQuick/qquickopenglutils.h>
 #endif
-#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#include <QtX11Extras/qx11info.h>
-#else
-// TODO
-#endif
+#if (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID))
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qpa/qplatformnativeinterface.h>
+#include <xcb/xcb.h>
 #endif
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
+
+#if (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID))
+using Display = struct _XDisplay;
+
+[[maybe_unused]] [[nodiscard]] static inline Display *x11_display()
+{
+    if (!qApp) {
+        return nullptr;
+    }
+    QPlatformNativeInterface *native = qApp->platformNativeInterface();
+    if (!native) {
+        return nullptr;
+    }
+    void *display = native->nativeResourceForIntegration(QByteArrayLiteral("display"));
+    return reinterpret_cast<Display *>(display);
+}
+#endif
 
 [[nodiscard]] static inline void *get_proc_address_mpv(void *ctx, const char *name)
 {
@@ -225,22 +240,11 @@ QSGTexture* MPVVideoTextureNode::ensureTexture(void *player, const QSize &size)
                 MPV_RENDER_PARAM_INVALID,
                 nullptr
             };
-#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-            if (QX11Info::isPlatformX11() && QX11Info::display()) {
-                display.type = MPV_RENDER_PARAM_X11_DISPLAY;
-                display.data = QX11Info::display();
-            }
-#else // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+#if (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID))
             if (QGuiApplication::platformName().contains(QStringLiteral("xcb"))) {
-                if (const auto ni = QGuiApplication::nativeInterface<QNativeInterface::QX11Application>()) {
-                    if (const auto dis = ni->display()) {
-                        display.type = MPV_RENDER_PARAM_X11_DISPLAY;
-                        display.data = dis;
-                    }
-                }
+                display.type = MPV_RENDER_PARAM_X11_DISPLAY;
+                display.data = x11_display();
             }
-#endif // (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #endif // defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
             mpv_render_param params[] =
             {
