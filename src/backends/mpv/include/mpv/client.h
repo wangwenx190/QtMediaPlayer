@@ -28,10 +28,10 @@
 
 /* New symbols must still be added to libmpv/mpv.def. */
 #ifndef BUILD_MPV_STATIC
-#if defined(__GNUC__) || defined(__clang__)
-#define MPV_EXPORT __attribute__((visibility("default")))
-#elif defined(_MSC_VER)
+#ifdef _WIN32
 #define MPV_EXPORT __declspec(dllexport)
+#elif defined(__GNUC__) || defined(__clang__)
+#define MPV_EXPORT __attribute__((visibility("default")))
 #else
 #define MPV_EXPORT
 #endif
