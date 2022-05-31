@@ -200,33 +200,33 @@ private:
     bool m_rendererReady = false;
     bool m_loaded = false;
 
-    static inline const QHash<QString, QList<const char *>> properties =
+    static inline const QHash<QString, QByteArrayList> properties =
     {
-        {QStringLiteral("dwidth"), {"videoSizeChanged"}},
-        {QStringLiteral("dheight"), {"videoSizeChanged"}},
-        {QStringLiteral("duration"), {"durationChanged"}},
-        {QStringLiteral("time-pos"), {"positionChanged"}},
-        {QStringLiteral("volume"), {"volumeChanged"}},
-        {QStringLiteral("mute"), {"muteChanged"}},
-        {QStringLiteral("seekable"), {"seekableChanged"}},
-        {QStringLiteral("hwdec"), {"hardwareDecodingChanged"}},
-        {QStringLiteral("video-out-params/aspect"), {"aspectRatioChanged"}},
-        {QStringLiteral("speed"), {"playbackRateChanged"}},
-        {QStringLiteral("filename"), {"fileNameChanged"}},
-        {QStringLiteral("screenshot-format"), {"snapshotFormatChanged"}},
-        {QStringLiteral("screenshot-template"), {"snapshotTemplateChanged"}},
-        {QStringLiteral("screenshot-directory"), {"snapshotDirectoryChanged"}},
-        {QStringLiteral("path"), {"filePathChanged"}},
-        {QStringLiteral("pause"), {"playbackStateChanged"}},
-        {QStringLiteral("idle-active"), {"playbackStateChanged"}},
-        {QStringLiteral("track-list"), {"mediaTracksChanged"}},
-        {QStringLiteral("chapter-list"), {"chaptersChanged"}},
-        {QStringLiteral("metadata"), {"metaDataChanged"}},
-        {QStringLiteral("video-unscaled"), {"fillModeChanged"}},
-        {QStringLiteral("keepaspect"), {"fillModeChanged"}},
-        {QStringLiteral("vid"), {"activeVideoTrackChanged"}},
-        {QStringLiteral("aid"), {"activeAudioTrackChanged"}},
-        {QStringLiteral("sid"), {"activeSubtitleTrackChanged"}}
+        {QStringLiteral("dwidth"), {QByteArrayLiteral("videoSizeChanged")}},
+        {QStringLiteral("dheight"), {QByteArrayLiteral("videoSizeChanged")}},
+        {QStringLiteral("duration"), {QByteArrayLiteral("durationChanged")}},
+        {QStringLiteral("time-pos"), {QByteArrayLiteral("positionChanged")}},
+        {QStringLiteral("volume"), {QByteArrayLiteral("volumeChanged")}},
+        {QStringLiteral("mute"), {QByteArrayLiteral("muteChanged")}},
+        {QStringLiteral("seekable"), {QByteArrayLiteral("seekableChanged")}},
+        {QStringLiteral("hwdec"), {QByteArrayLiteral("hardwareDecodingChanged")}},
+        {QStringLiteral("video-out-params/aspect"), {QByteArrayLiteral("aspectRatioChanged")}},
+        {QStringLiteral("speed"), {QByteArrayLiteral("playbackRateChanged")}},
+        {QStringLiteral("filename"), {QByteArrayLiteral("fileNameChanged")}},
+        {QStringLiteral("screenshot-format"), {QByteArrayLiteral("snapshotFormatChanged")}},
+        {QStringLiteral("screenshot-template"), {QByteArrayLiteral("snapshotTemplateChanged")}},
+        {QStringLiteral("screenshot-directory"), {QByteArrayLiteral("snapshotDirectoryChanged")}},
+        {QStringLiteral("path"), {QByteArrayLiteral("filePathChanged")}},
+        {QStringLiteral("pause"), {QByteArrayLiteral("playbackStateChanged")}},
+        {QStringLiteral("idle-active"), {QByteArrayLiteral("playbackStateChanged")}},
+        {QStringLiteral("track-list"), {QByteArrayLiteral("mediaTracksChanged")}},
+        {QStringLiteral("chapter-list"), {QByteArrayLiteral("chaptersChanged")}},
+        {QStringLiteral("metadata"), {QByteArrayLiteral("metaDataChanged")}},
+        {QStringLiteral("video-unscaled"), {QByteArrayLiteral("fillModeChanged")}},
+        {QStringLiteral("keepaspect"), {QByteArrayLiteral("fillModeChanged")}},
+        {QStringLiteral("vid"), {QByteArrayLiteral("activeVideoTrackChanged")}},
+        {QStringLiteral("aid"), {QByteArrayLiteral("activeAudioTrackChanged")}},
+        {QStringLiteral("sid"), {QByteArrayLiteral("activeSubtitleTrackChanged")}}
     };
 
     // These properties are changing all the time during the playback process.

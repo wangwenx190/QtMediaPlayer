@@ -292,11 +292,11 @@ void MPVPlayer::processMpvPropertyChange(void *event)
         qCDebug(lcQMPMPV) << name << "-->" << mpvGetProperty(name, true);
     }
     if (properties.contains(name)) {
-        const QList<const char *> signalNames = properties.value(name);
+        const QByteArrayList signalNames = properties.value(name);
         if (!signalNames.isEmpty()) {
             for (auto &&signalName : qAsConst(signalNames)) {
-                if (signalName) {
-                    QMetaObject::invokeMethod(this, signalName);
+                if (!signalName.isEmpty()) {
+                    QMetaObject::invokeMethod(this, signalName.constData());
                 }
             }
         }
