@@ -174,8 +174,11 @@ public:
         qRegisterMetaType<Chapters>();
         qRegisterMetaType<MetaData>();
         qRegisterMetaType<MediaTracks>();
+        qRegisterMetaType<MediaInfo>();
+        qRegisterMetaType<MDKPlayer>();
         qmlRegisterUncreatableMetaObject(staticMetaObject, QTMEDIAPLAYER_QML_URI, 1, 0, "QtMediaPlayer",
               QStringLiteral("QtMediaPlayer is not creatable, it's only used for accessing enums & flags."));
+        qmlRegisterType<MediaInfo>(QTMEDIAPLAYER_QML_URI, 1, 0, "MediaInfo");
         qmlRegisterType<MDKPlayer>(QTMEDIAPLAYER_QML_URI, 1, 0, "MediaPlayer");
         qmlRegisterModule(QTMEDIAPLAYER_QML_URI, 1, 0);
         return true;

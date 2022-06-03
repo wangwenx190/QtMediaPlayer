@@ -24,6 +24,7 @@
 
 #include "playerinterface.h"
 #include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
 #include <QtCore/qmimedatabase.h>
 #include <QtCore/qmimetype.h>
 #include <QtCore/qdatetime.h>
@@ -33,6 +34,13 @@
 #include <QtQuick/qquickwindow.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
+
+static const QString kTitle = QStringLiteral("title");
+static const QString kAuthor = QStringLiteral("author");
+static const QString kAlbum = QStringLiteral("album");
+static const QString kCopyright = QStringLiteral("copyright");
+static const QString kRating = QStringLiteral("rating");
+static const QString kDescription = QStringLiteral("description");
 
 #ifndef QT_NO_DEBUG_STREAM
 [[nodiscard]] QDebug operator<<(QDebug d, const ChapterInfo &info)
@@ -64,9 +72,9 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
         return {};
     }
     QStringList mimeTypes = {};
-    const QMimeDatabase db;
+    const QMimeDatabase mimeDb = {};
     for (auto &&suffix : qAsConst(suffixes)) {
-        const QList<QMimeType> typeList = db.mimeTypesForFileName(suffix);
+        const QList<QMimeType> typeList = mimeDb.mimeTypesForFileName(suffix);
         if (!typeList.isEmpty()) {
             for (auto &&mimeType : qAsConst(typeList)) {
                 const QString name = mimeType.name();
@@ -98,15 +106,56 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
 {
     // Without this flag, our item won't draw anything. It must be set.
-    setFlag(ItemHasContents, true);
+    setFlag(ItemHasContents);
+
+    m_mediaInfo.reset(new MediaInfo(this));
 
     // Re-calculate the recommended window size and position everytime when the videoSize changes.
     connect(this, &MediaPlayer::videoSizeChanged, this, &MediaPlayer::recommendedWindowSizeChanged);
     connect(this, &MediaPlayer::recommendedWindowSizeChanged, this, &MediaPlayer::recommendedWindowPositionChanged);
 
-    connect(this, &MediaPlayer::mediaTracksChanged, this, &MediaPlayer::hasVideoChanged);
-    connect(this, &MediaPlayer::mediaTracksChanged, this, &MediaPlayer::hasAudioChanged);
-    connect(this, &MediaPlayer::mediaTracksChanged, this, &MediaPlayer::hasSubtitleChanged);
+    connect(this, &MediaPlayer::mediaTracksChanged, this, [this](){
+        m_mediaInfo->reset();
+
+        if (!isStopped()) {
+            const QString path = filePath();
+            if (!path.isEmpty() && QFileInfo::exists(path)) {
+                const QFileInfo fileInfo(path);
+                m_mediaInfo->m_filePath = QDir::toNativeSeparators(fileInfo.canonicalFilePath());
+                m_mediaInfo->m_fileName = fileInfo.fileName();
+                m_mediaInfo->m_fileSize = fileInfo.size();
+                m_mediaInfo->m_creationDateTime = fileInfo.fileTime(QFile::FileBirthTime).toString();
+                m_mediaInfo->m_modificationDateTime = fileInfo.fileTime(QFile::FileModificationTime).toString();
+                m_mediaInfo->m_location = QDir::toNativeSeparators(fileInfo.canonicalPath());
+
+                const QMimeDatabase mimeDb = {};
+                const QMimeType mime = mimeDb.mimeTypeForFile(fileInfo);
+                if (mime.isValid()) {
+                    m_mediaInfo->m_fileMimeType = mime.name();
+                    m_mediaInfo->m_friendlyFileType = mime.comment();
+                }
+            }
+
+            m_mediaInfo->m_duration = duration();
+            m_mediaInfo->m_pictureSize = videoSize();
+
+            const MetaData md = metaData();
+            if (!md.isEmpty()) {
+                m_mediaInfo->m_title = md.value(kTitle).toString();
+                m_mediaInfo->m_author = md.value(kAuthor).toString();
+                m_mediaInfo->m_album = md.value(kAlbum).toString();
+                m_mediaInfo->m_copyright = md.value(kCopyright).toString();
+                m_mediaInfo->m_rating = md.value(kRating).toString();
+                m_mediaInfo->m_description = md.value(kDescription).toString();
+            }
+        }
+
+        Q_EMIT hasVideoChanged();
+        Q_EMIT hasAudioChanged();
+        Q_EMIT hasSubtitleChanged();
+
+        Q_EMIT m_mediaInfo->mediaInfoChanged();
+    });
 }
 
 MediaPlayer::~MediaPlayer() = default;
@@ -301,6 +350,11 @@ bool MediaPlayer::hasAudio() const
 bool MediaPlayer::hasSubtitle() const
 {
     return (isStopped() ? false : !mediaTracks().subtitle.isEmpty());
+}
+
+MediaInfo *MediaPlayer::mediaInfo() const
+{
+    return m_mediaInfo.data();
 }
 
 void MediaPlayer::play(const QUrl &url)

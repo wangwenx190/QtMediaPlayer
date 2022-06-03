@@ -30,13 +30,11 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Quick)
 
 set(SOURCES
     common_global.h
-    backendinterface.h
-    backendinterface.cpp
-    texturenodeinterface.h
-    texturenodeinterface.cpp
     playertypes.h
-    playerinterface.h
-    playerinterface.cpp
+    backendinterface.h backendinterface.cpp
+    texturenodeinterface.h texturenodeinterface.cpp
+    playerinterface.h playerinterface.cpp
+    mediainfo.h mediainfo.cpp
 )
 
 if(WIN32 AND (NOT BUILD_STATIC_COMMON))

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "playertypes.h"
+#include "mediainfo.h"
 #include <QtQuick/qquickitem.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
@@ -87,6 +88,7 @@ class QTMEDIAPLAYER_COMMON_API MediaPlayer : public QQuickItem
     Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY hasVideoChanged FINAL)
     Q_PROPERTY(bool hasAudio READ hasAudio NOTIFY hasAudioChanged FINAL)
     Q_PROPERTY(bool hasSubtitle READ hasSubtitle NOTIFY hasSubtitleChanged FINAL)
+    Q_PROPERTY(MediaInfo* mediaInfo READ mediaInfo CONSTANT FINAL)
 
 public:
     explicit MediaPlayer(QQuickItem *parent = nullptr);
@@ -284,6 +286,8 @@ public:
     Q_NODISCARD bool hasAudio() const;
     Q_NODISCARD bool hasSubtitle() const;
 
+    Q_NODISCARD MediaInfo *mediaInfo() const;
+
 public Q_SLOTS:
     virtual void play() = 0;
     void play(const QUrl &url);
@@ -354,6 +358,12 @@ Q_SIGNALS:
     void hasVideoChanged();
     void hasAudioChanged();
     void hasSubtitleChanged();
+
+private:
+    QScopedPointer<MediaInfo> m_mediaInfo;
 };
 
 QTMEDIAPLAYER_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer))
+QML_DECLARE_TYPE(QTMEDIAPLAYER_PREPEND_NAMESPACE(MediaPlayer))

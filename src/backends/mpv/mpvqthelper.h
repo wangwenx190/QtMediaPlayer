@@ -27,6 +27,7 @@
 #include "mpvbackend_global.h"
 #include "include/mpv/client.h"
 #include <QtCore/qvariant.h>
+#include <QtQml/qqml.h>
 
 namespace MPV::Qt
 {
@@ -111,3 +112,4 @@ struct ErrorReturn
 } // namespace MPV::Qt
 
 Q_DECLARE_METATYPE(MPV::Qt::ErrorReturn)
+QML_DECLARE_TYPE(MPV::Qt::ErrorReturn)
