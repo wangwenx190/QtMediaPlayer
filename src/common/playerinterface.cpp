@@ -35,12 +35,10 @@
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
 
-static const QString kTitle = QStringLiteral("title");
-static const QString kAuthor = QStringLiteral("author");
-static const QString kAlbum = QStringLiteral("album");
-static const QString kCopyright = QStringLiteral("copyright");
-static const QString kRating = QStringLiteral("rating");
-static const QString kDescription = QStringLiteral("description");
+static constexpr const qint64 KiB = 1024;
+static constexpr const qint64 MiB = 1024 * KiB;
+static constexpr const qint64 GiB = 1024 * MiB;
+static constexpr const qint64 TiB = 1024 * GiB;
 
 #ifndef QT_NO_DEBUG_STREAM
 [[nodiscard]] QDebug operator<<(QDebug d, const ChapterInfo &info)
@@ -103,6 +101,22 @@ static const QString kDescription = QStringLiteral("description");
     return QGuiApplication::primaryScreen();
 }
 
+[[nodiscard]] static inline QString getHumanReadableFileSize(const qint64 fileSize)
+{
+    const QString totalBytes = QString::number(fileSize) + QStringLiteral(" Bytes");
+    if (fileSize >= TiB) {
+        return QStringLiteral("%1 TiB (%2)").arg(QString::number(qreal(fileSize) / qreal(TiB)), totalBytes);
+    } else if (fileSize >= GiB) {
+        return QStringLiteral("%1 GiB (%2)").arg(QString::number(qreal(fileSize) / qreal(GiB)), totalBytes);
+    } else if (fileSize >= MiB) {
+        return QStringLiteral("%1 MiB (%2)").arg(QString::number(qreal(fileSize) / qreal(MiB)), totalBytes);
+    } else if (fileSize >= KiB) {
+        return QStringLiteral("%1 KiB (%2)").arg(QString::number(qreal(fileSize) / qreal(KiB)), totalBytes);
+    } else {
+        return totalBytes;
+    }
+}
+
 MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
 {
     // Without this flag, our item won't draw anything. It must be set.
@@ -124,6 +138,7 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
                 m_mediaInfo->m_filePath = QDir::toNativeSeparators(fileInfo.canonicalFilePath());
                 m_mediaInfo->m_fileName = fileInfo.fileName();
                 m_mediaInfo->m_fileSize = fileInfo.size();
+                m_mediaInfo->m_friendlyFileSize = getHumanReadableFileSize(m_mediaInfo->m_fileSize);
                 m_mediaInfo->m_creationDateTime = fileInfo.fileTime(QFile::FileBirthTime).toString();
                 m_mediaInfo->m_modificationDateTime = fileInfo.fileTime(QFile::FileModificationTime).toString();
                 m_mediaInfo->m_location = QDir::toNativeSeparators(fileInfo.canonicalPath());
@@ -137,16 +152,22 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
             }
 
             m_mediaInfo->m_duration = duration();
+            m_mediaInfo->m_friendlyDuration = formatTime(m_mediaInfo->m_duration);
             m_mediaInfo->m_pictureSize = videoSize();
+            if (!m_mediaInfo->m_pictureSize.isEmpty()) {
+                m_mediaInfo->m_friendlyPictureSize = QStringLiteral("%1 x %2")
+                    .arg(QString::number(qRound(m_mediaInfo->m_pictureSize.width())),
+                         QString::number(qRound(m_mediaInfo->m_pictureSize.height())));
+            }
 
             const MetaData md = metaData();
             if (!md.isEmpty()) {
-                m_mediaInfo->m_title = md.value(kTitle).toString();
-                m_mediaInfo->m_author = md.value(kAuthor).toString();
-                m_mediaInfo->m_album = md.value(kAlbum).toString();
-                m_mediaInfo->m_copyright = md.value(kCopyright).toString();
-                m_mediaInfo->m_rating = md.value(kRating).toString();
-                m_mediaInfo->m_description = md.value(kDescription).toString();
+                m_mediaInfo->m_title = md.value(QStringLiteral("title")).toString();
+                m_mediaInfo->m_author = md.value(QStringLiteral("author")).toString();
+                m_mediaInfo->m_album = md.value(QStringLiteral("album")).toString();
+                m_mediaInfo->m_copyright = md.value(QStringLiteral("copyright")).toString();
+                m_mediaInfo->m_rating = md.value(QStringLiteral("rating")).toString();
+                m_mediaInfo->m_description = md.value(QStringLiteral("description")).toString();
             }
         }
 
@@ -182,6 +203,104 @@ QString MediaPlayer::graphicsApiName() const
 #else
     return QQuickWindow::sceneGraphBackend();
 #endif
+}
+
+QStringList MediaPlayer::videoFileSuffixes()
+{
+    static const QStringList list =
+    {
+        QStringLiteral("*.3g2"),   QStringLiteral("*.3ga"),
+        QStringLiteral("*.3gp"),   QStringLiteral("*.3gp2"),
+        QStringLiteral("*.3gpp"),  QStringLiteral("*.amv"),
+        QStringLiteral("*.asf"),   QStringLiteral("*.asx"),
+        QStringLiteral("*.avf"),   QStringLiteral("*.avi"),
+        QStringLiteral("*.bdm"),   QStringLiteral("*.bdmv"),
+        QStringLiteral("*.bik"),   QStringLiteral("*.clpi"),
+        QStringLiteral("*.cpi"),   QStringLiteral("*.dat"),
+        QStringLiteral("*.divx"),  QStringLiteral("*.drc"),
+        QStringLiteral("*.dv"),    QStringLiteral("*.dvr-ms"),
+        QStringLiteral("*.f4v"),   QStringLiteral("*.flv"),
+        QStringLiteral("*.gvi"),   QStringLiteral("*.gxf"),
+        QStringLiteral("*.hdmov"), QStringLiteral("*.hlv"),
+        QStringLiteral("*.iso"),   QStringLiteral("*.letv"),
+        QStringLiteral("*.lrv"),   QStringLiteral("*.m1v"),
+        QStringLiteral("*.m2p"),   QStringLiteral("*.m2t"),
+        QStringLiteral("*.m2ts"),  QStringLiteral("*.m2v"),
+        QStringLiteral("*.m3u"),   QStringLiteral("*.m3u8"),
+        QStringLiteral("*.m4v"),   QStringLiteral("*.mkv"),
+        QStringLiteral("*.moov"),  QStringLiteral("*.mov"),
+        QStringLiteral("*.mp2"),   QStringLiteral("*.mp2v"),
+        QStringLiteral("*.mp4"),   QStringLiteral("*.mp4v"),
+        QStringLiteral("*.mpe"),   QStringLiteral("*.mpeg"),
+        QStringLiteral("*.mpeg1"), QStringLiteral("*.mpeg2"),
+        QStringLiteral("*.mpeg4"), QStringLiteral("*.mpg"),
+        QStringLiteral("*.mpl"),   QStringLiteral("*.mpls"),
+        QStringLiteral("*.mpv"),   QStringLiteral("*.mpv2"),
+        QStringLiteral("*.mqv"),   QStringLiteral("*.mts"),
+        QStringLiteral("*.mtv"),   QStringLiteral("*.mxf"),
+        QStringLiteral("*.mxg"),   QStringLiteral("*.nsv"),
+        QStringLiteral("*.nuv"),   QStringLiteral("*.ogm"),
+        QStringLiteral("*.ogv"),   QStringLiteral("*.ogx"),
+        QStringLiteral("*.ps"),    QStringLiteral("*.qt"),
+        QStringLiteral("*.qtvr"),  QStringLiteral("*.ram"),
+        QStringLiteral("*.rec"),   QStringLiteral("*.rm"),
+        QStringLiteral("*.rmj"),   QStringLiteral("*.rmm"),
+        QStringLiteral("*.rms"),   QStringLiteral("*.rmvb"),
+        QStringLiteral("*.rmx"),   QStringLiteral("*.rp"),
+        QStringLiteral("*.rpl"),   QStringLiteral("*.rv"),
+        QStringLiteral("*.rvx"),   QStringLiteral("*.thp"),
+        QStringLiteral("*.tod"),   QStringLiteral("*.tp"),
+        QStringLiteral("*.trp"),   QStringLiteral("*.ts"),
+        QStringLiteral("*.tts"),   QStringLiteral("*.txd"),
+        QStringLiteral("*.vcd"),   QStringLiteral("*.vdr"),
+        QStringLiteral("*.vob"),   QStringLiteral("*.vp8"),
+        QStringLiteral("*.vro"),   QStringLiteral("*.webm"),
+        QStringLiteral("*.wm"),    QStringLiteral("*.wmv"),
+        QStringLiteral("*.wtv"),   QStringLiteral("*.xesc"),
+        QStringLiteral("*.xspf")
+    };
+    return list;
+}
+
+QStringList MediaPlayer::audioFileSuffixes()
+{
+    static const QStringList list =
+    {
+        QStringLiteral("*.mp3"),
+        QStringLiteral("*.aac"),
+        QStringLiteral("*.mka"),
+        QStringLiteral("*.dts"),
+        QStringLiteral("*.flac"),
+        QStringLiteral("*.ogg"),
+        QStringLiteral("*.m4a"),
+        QStringLiteral("*.ac3"),
+        QStringLiteral("*.opus"),
+        QStringLiteral("*.wav"),
+        QStringLiteral("*.wv")
+    };
+    return list;
+}
+
+QStringList MediaPlayer::subtitleFileSuffixes()
+{
+    static const QStringList list =
+    {
+        QStringLiteral("*.utf"),
+        QStringLiteral("*.utf8"),
+        QStringLiteral("*.utf-8"),
+        QStringLiteral("*.idx"),
+        QStringLiteral("*.sub"),
+        QStringLiteral("*.srt"),
+        QStringLiteral("*.rt"),
+        QStringLiteral("*.ssa"),
+        QStringLiteral("*.ass"),
+        QStringLiteral("*.mks"),
+        QStringLiteral("*.vtt"),
+        QStringLiteral("*.sup"),
+        QStringLiteral("*.scc"),
+        QStringLiteral("*.smi")
+    };
+    return list;
 }
 
 QStringList MediaPlayer::videoFileMimeTypes()

@@ -29,30 +29,25 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Quick)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Quick)
 find_package(Vulkan)
 
-set(SOURCES
+if(BUILD_STATIC_PLUGINS)
+    add_library(${PROJ_NAME} STATIC)
+else()
+    add_library(${PROJ_NAME} SHARED)
+endif()
+add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
+
+target_sources(${PROJ_NAME} PRIVATE
     mdkbackend_global.h
-    mdkqthelper.h
-    mdkqthelper.cpp
-    mdkplayer.h
-    mdkplayer.cpp
-    mdkvideotexturenode.h
-    mdkvideotexturenode.cpp
-    mdkvideotexturenode_impl.cpp
-    mdkbackend.h
-    mdkbackend.cpp
+    mdkqthelper.h mdkqthelper.cpp
+    mdkplayer.h mdkplayer.cpp
+    mdkvideotexturenode.h mdkvideotexturenode.cpp mdkvideotexturenode_impl.cpp
+    mdkbackend.h mdkbackend.cpp
 )
 
 if(WIN32 AND (NOT BUILD_STATIC_PLUGINS))
     enable_language(RC)
-    list(APPEND SOURCES mdkbackend.rc)
+    target_sources(${PROJ_NAME} PRIVATE mdkbackend.rc)
 endif()
-
-if(BUILD_STATIC_PLUGINS)
-    add_library(${PROJ_NAME} STATIC ${SOURCES})
-else()
-    add_library(${PROJ_NAME} SHARED ${SOURCES})
-endif()
-add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
 
 target_include_directories(${PROJ_NAME} PRIVATE
     include

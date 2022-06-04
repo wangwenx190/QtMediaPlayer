@@ -57,14 +57,29 @@ qint64 MediaInfo::fileSize() const
     return m_fileSize;
 }
 
+QString MediaInfo::friendlyFileSize() const
+{
+    return m_friendlyFileSize;
+}
+
 qint64 MediaInfo::duration() const
 {
     return m_duration;
 }
 
+QString MediaInfo::friendlyDuration() const
+{
+    return m_friendlyDuration;
+}
+
 QSizeF MediaInfo::pictureSize() const
 {
     return m_pictureSize;
+}
+
+QString MediaInfo::friendlyPictureSize() const
+{
+    return m_friendlyPictureSize;
 }
 
 QString MediaInfo::creationDateTime() const
@@ -119,8 +134,11 @@ void MediaInfo::reset()
     m_fileMimeType.clear();
     m_friendlyFileType.clear();
     m_fileSize = 0;
+    m_friendlyFileSize.clear();
     m_duration = 0;
+    m_friendlyDuration.clear();
     m_pictureSize = {};
+    m_friendlyPictureSize.clear();
     m_creationDateTime.clear();
     m_modificationDateTime.clear();
     m_title.clear();

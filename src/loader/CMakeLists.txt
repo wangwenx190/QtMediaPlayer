@@ -28,23 +28,22 @@ set(PROJ_NAME ${PROJECT_NAME}${MOD_NAME})
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 
-set(SOURCES
+if(BUILD_STATIC_LOADER)
+    add_library(${PROJ_NAME} STATIC)
+else()
+    add_library(${PROJ_NAME} SHARED)
+endif()
+add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
+
+target_sources(${PROJ_NAME} PRIVATE
     qtmediaplayer_global.h
-    qtmediaplayer.h
-    qtmediaplayer.cpp
+    qtmediaplayer.h qtmediaplayer.cpp
 )
 
 if(WIN32 AND (NOT BUILD_STATIC_LOADER))
     enable_language(RC)
-    list(APPEND SOURCES loader.rc)
+    target_sources(${PROJ_NAME} PRIVATE loader.rc)
 endif()
-
-if(BUILD_STATIC_LOADER)
-    add_library(${PROJ_NAME} STATIC ${SOURCES})
-else()
-    add_library(${PROJ_NAME} SHARED ${SOURCES})
-endif()
-add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
 
 if(BUILD_STATIC_LOADER)
     target_compile_definitions(${PROJ_NAME} PUBLIC

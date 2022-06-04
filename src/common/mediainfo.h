@@ -40,8 +40,11 @@ class QTMEDIAPLAYER_COMMON_API MediaInfo : public QObject
     Q_PROPERTY(QString fileMimeType READ fileMimeType NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString friendlyFileType READ friendlyFileType NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(qint64 fileSize READ fileSize NOTIFY mediaInfoChanged FINAL)
+    Q_PROPERTY(QString friendlyFileSize READ friendlyFileSize NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(qint64 duration READ duration NOTIFY mediaInfoChanged FINAL)
+    Q_PROPERTY(QString friendlyDuration READ friendlyDuration NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QSizeF pictureSize READ pictureSize NOTIFY mediaInfoChanged FINAL)
+    Q_PROPERTY(QString friendlyPictureSize READ friendlyPictureSize NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString creationDateTime READ creationDateTime NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString modificationDateTime READ modificationDateTime NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString title READ title NOTIFY mediaInfoChanged FINAL)
@@ -61,8 +64,11 @@ public:
     Q_NODISCARD QString fileMimeType() const;
     Q_NODISCARD QString friendlyFileType() const;
     Q_NODISCARD qint64 fileSize() const;
+    Q_NODISCARD QString friendlyFileSize() const;
     Q_NODISCARD qint64 duration() const;
+    Q_NODISCARD QString friendlyDuration() const;
     Q_NODISCARD QSizeF pictureSize() const;
+    Q_NODISCARD QString friendlyPictureSize() const;
     Q_NODISCARD QString creationDateTime() const;
     Q_NODISCARD QString modificationDateTime() const;
     Q_NODISCARD QString title() const;
@@ -87,8 +93,11 @@ private:
     QString m_fileMimeType = {};
     QString m_friendlyFileType = {};
     qint64 m_fileSize = 0;
+    QString m_friendlyFileSize = {};
     qint64 m_duration = 0;
+    QString m_friendlyDuration = {};
     QSizeF m_pictureSize = {};
+    QString m_friendlyPictureSize = {};
     QString m_creationDateTime = {};
     QString m_modificationDateTime = {};
     QString m_title = {};

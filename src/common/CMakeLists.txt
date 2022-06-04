@@ -28,7 +28,14 @@ set(PROJ_NAME ${PROJECT_NAME}${MOD_NAME})
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Quick)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Quick)
 
-set(SOURCES
+if(BUILD_STATIC_COMMON)
+    add_library(${PROJ_NAME} STATIC)
+else()
+    add_library(${PROJ_NAME} SHARED)
+endif()
+add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
+
+target_sources(${PROJ_NAME} PRIVATE
     common_global.h
     playertypes.h
     backendinterface.h backendinterface.cpp
@@ -39,15 +46,8 @@ set(SOURCES
 
 if(WIN32 AND (NOT BUILD_STATIC_COMMON))
     enable_language(RC)
-    list(APPEND SOURCES common.rc)
+    target_sources(${PROJ_NAME} PRIVATE common.rc)
 endif()
-
-if(BUILD_STATIC_COMMON)
-    add_library(${PROJ_NAME} STATIC ${SOURCES})
-else()
-    add_library(${PROJ_NAME} SHARED ${SOURCES})
-endif()
-add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
 
 if(BUILD_STATIC_COMMON)
     target_compile_definitions(${PROJ_NAME} PUBLIC

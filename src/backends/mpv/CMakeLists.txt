@@ -32,30 +32,26 @@ endif()
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Quick)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Quick)
 
-set(SOURCES
+if(BUILD_STATIC_PLUGINS)
+    add_library(${PROJ_NAME} STATIC)
+else()
+    add_library(${PROJ_NAME} SHARED)
+endif()
+add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
+
+target_sources(${PROJ_NAME} PRIVATE
     mpvbackend.qrc
     mpvbackend_global.h
-    mpvqthelper.h
-    mpvqthelper.cpp
-    mpvplayer.h
-    mpvplayer.cpp
-    mpvvideotexturenode.h
-    mpvvideotexturenode.cpp
-    mpvbackend.h
-    mpvbackend.cpp
+    mpvqthelper.h mpvqthelper.cpp
+    mpvplayer.h mpvplayer.cpp
+    mpvvideotexturenode.h mpvvideotexturenode.cpp
+    mpvbackend.h mpvbackend.cpp
 )
 
 if(WIN32 AND (NOT BUILD_STATIC_PLUGINS))
     enable_language(RC)
-    list(APPEND SOURCES mpvbackend.rc)
+    target_sources(${PROJ_NAME} PRIVATE mpvbackend.rc)
 endif()
-
-if(BUILD_STATIC_PLUGINS)
-    add_library(${PROJ_NAME} STATIC ${SOURCES})
-else()
-    add_library(${PROJ_NAME} SHARED ${SOURCES})
-endif()
-add_library(${PROJECT_NAME}::${MOD_NAME} ALIAS ${PROJ_NAME})
 
 target_include_directories(${PROJ_NAME} PRIVATE
     include
