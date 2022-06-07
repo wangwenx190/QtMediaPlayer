@@ -127,46 +127,45 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
     connect(this, &MediaPlayer::recommendedWindowSizeChanged, this, &MediaPlayer::recommendedWindowPositionChanged);
 
     connect(this, &MediaPlayer::mediaTracksChanged, this, [this](){
-        MediaInfo * const info = mediaInformation();
-        info->resetInfo();
+        m_mediaInfo->resetInfo();
 
         if (!isStopped()) {
             const QString path = filePath();
             if (!path.isEmpty() && QFileInfo::exists(path)) {
                 const QFileInfo fileInfo(path);
-                info->m_filePath = QDir::toNativeSeparators(fileInfo.canonicalFilePath());
-                info->m_fileName = fileInfo.fileName();
-                info->m_fileSize = fileInfo.size();
-                info->m_friendlyFileSize = getHumanReadableFileSize(info->m_fileSize);
-                info->m_creationDateTime = fileInfo.fileTime(QFile::FileBirthTime).toString();
-                info->m_modificationDateTime = fileInfo.fileTime(QFile::FileModificationTime).toString();
-                info->m_location = QDir::toNativeSeparators(fileInfo.canonicalPath());
+                m_mediaInfo->m_filePath = QDir::toNativeSeparators(fileInfo.canonicalFilePath());
+                m_mediaInfo->m_fileName = fileInfo.fileName();
+                m_mediaInfo->m_fileSize = fileInfo.size();
+                m_mediaInfo->m_friendlyFileSize = getHumanReadableFileSize(m_mediaInfo->m_fileSize);
+                m_mediaInfo->m_creationDateTime = fileInfo.fileTime(QFile::FileBirthTime).toString();
+                m_mediaInfo->m_modificationDateTime = fileInfo.fileTime(QFile::FileModificationTime).toString();
+                m_mediaInfo->m_location = QDir::toNativeSeparators(fileInfo.canonicalPath());
 
                 const QMimeDatabase mimeDb = {};
                 const QMimeType mime = mimeDb.mimeTypeForFile(fileInfo);
                 if (mime.isValid()) {
-                    info->m_fileMimeType = mime.name();
-                    info->m_friendlyFileType = mime.comment();
+                    m_mediaInfo->m_fileMimeType = mime.name();
+                    m_mediaInfo->m_friendlyFileType = mime.comment();
                 }
             }
 
-            info->m_duration = duration();
-            info->m_friendlyDuration = formatTime(info->m_duration);
-            info->m_pictureSize = videoSize();
-            if (!info->m_pictureSize.isEmpty()) {
-                info->m_friendlyPictureSize = QStringLiteral("%1 x %2")
-                    .arg(QString::number(qRound(info->m_pictureSize.width())),
-                         QString::number(qRound(info->m_pictureSize.height())));
+            m_mediaInfo->m_duration = duration();
+            m_mediaInfo->m_friendlyDuration = formatTime(m_mediaInfo->m_duration);
+            m_mediaInfo->m_pictureSize = videoSize();
+            if (!m_mediaInfo->m_pictureSize.isEmpty()) {
+                m_mediaInfo->m_friendlyPictureSize = QStringLiteral("%1 x %2")
+                    .arg(QString::number(qRound(m_mediaInfo->m_pictureSize.width())),
+                         QString::number(qRound(m_mediaInfo->m_pictureSize.height())));
             }
 
             const MetaData md = metaData();
             if (!md.isEmpty()) {
-                info->m_title = md.value(QStringLiteral("title")).toString();
-                info->m_author = md.value(QStringLiteral("author")).toString();
-                info->m_album = md.value(QStringLiteral("album")).toString();
-                info->m_copyright = md.value(QStringLiteral("copyright")).toString();
-                info->m_rating = md.value(QStringLiteral("rating")).toString();
-                info->m_description = md.value(QStringLiteral("description")).toString();
+                m_mediaInfo->m_title = md.value(QStringLiteral("title")).toString();
+                m_mediaInfo->m_author = md.value(QStringLiteral("author")).toString();
+                m_mediaInfo->m_album = md.value(QStringLiteral("album")).toString();
+                m_mediaInfo->m_copyright = md.value(QStringLiteral("copyright")).toString();
+                m_mediaInfo->m_rating = md.value(QStringLiteral("rating")).toString();
+                m_mediaInfo->m_description = md.value(QStringLiteral("description")).toString();
             }
         }
 
@@ -174,7 +173,7 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
         Q_EMIT hasAudioChanged();
         Q_EMIT hasSubtitleChanged();
 
-        Q_EMIT info->mediaInfoChanged();
+        Q_EMIT m_mediaInfo->mediaInfoChanged();
     });
 }
 
@@ -470,12 +469,9 @@ bool MediaPlayer::hasSubtitle() const
     return (isStopped() ? false : !mediaTracks().subtitle.isEmpty());
 }
 
-MediaInfo *MediaPlayer::mediaInformation()
+MediaInfo *MediaPlayer::mediaInfo() const
 {
-    if (!m_mediaInfo) {
-        m_mediaInfo = new MediaInfo;
-    }
-    return m_mediaInfo;
+    return m_mediaInfo.data();
 }
 
 void MediaPlayer::play(const QUrl &url)
