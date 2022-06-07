@@ -122,14 +122,12 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
     // Without this flag, our item won't draw anything. It must be set.
     setFlag(ItemHasContents);
 
-    m_mediaInfo.reset(new MediaInfo(this));
-
     // Re-calculate the recommended window size and position everytime when the videoSize changes.
     connect(this, &MediaPlayer::videoSizeChanged, this, &MediaPlayer::recommendedWindowSizeChanged);
     connect(this, &MediaPlayer::recommendedWindowSizeChanged, this, &MediaPlayer::recommendedWindowPositionChanged);
 
     connect(this, &MediaPlayer::mediaTracksChanged, this, [this](){
-        m_mediaInfo->reset();
+        m_mediaInfo->resetInfo();
 
         if (!isStopped()) {
             const QString path = filePath();

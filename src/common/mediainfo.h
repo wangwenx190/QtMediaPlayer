@@ -35,6 +35,7 @@ class QTMEDIAPLAYER_COMMON_API MediaInfo : public QObject
 {
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(MediaInfo)
+
     Q_PROPERTY(QString filePath READ filePath NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString fileName READ fileName NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString fileMimeType READ fileMimeType NOTIFY mediaInfoChanged FINAL)
@@ -80,7 +81,7 @@ public:
     Q_NODISCARD QString description() const;
 
 private Q_SLOTS:
-    void reset();
+    void resetInfo();
 
 Q_SIGNALS:
     void mediaInfoChanged();

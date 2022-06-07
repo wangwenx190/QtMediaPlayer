@@ -127,7 +127,7 @@ QString MediaInfo::description() const
     return m_description;
 }
 
-void MediaInfo::reset()
+void MediaInfo::resetInfo()
 {
     m_filePath.clear();
     m_fileName.clear();

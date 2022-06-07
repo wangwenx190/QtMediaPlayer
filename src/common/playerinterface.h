@@ -266,7 +266,7 @@ Q_SIGNALS:
     void hasSubtitleChanged();
 
 private:
-    QScopedPointer<MediaInfo> m_mediaInfo;
+    QScopedPointer<MediaInfo> m_mediaInfo{new MediaInfo(this)};
 };
 
 QTMEDIAPLAYER_END_NAMESPACE
