@@ -88,7 +88,7 @@ class QTMEDIAPLAYER_COMMON_API MediaPlayer : public QQuickItem
     Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY hasVideoChanged FINAL)
     Q_PROPERTY(bool hasAudio READ hasAudio NOTIFY hasAudioChanged FINAL)
     Q_PROPERTY(bool hasSubtitle READ hasSubtitle NOTIFY hasSubtitleChanged FINAL)
-    Q_PROPERTY(MediaInfo* mediaInfo READ mediaInfo CONSTANT FINAL)
+    Q_PROPERTY(MediaInfo* mediaInformation READ mediaInformation CONSTANT FINAL)
 
 public:
     explicit MediaPlayer(QQuickItem *parent = nullptr);
@@ -192,7 +192,7 @@ public:
     Q_NODISCARD bool hasAudio() const;
     Q_NODISCARD bool hasSubtitle() const;
 
-    Q_NODISCARD MediaInfo *mediaInfo() const;
+    Q_NODISCARD MediaInfo *mediaInformation();
 
 public Q_SLOTS:
     virtual void play() = 0;
@@ -266,7 +266,7 @@ Q_SIGNALS:
     void hasSubtitleChanged();
 
 private:
-    QScopedPointer<MediaInfo> m_mediaInfo{new MediaInfo(this)};
+    MediaInfo *m_mediaInfo = nullptr;
 };
 
 QTMEDIAPLAYER_END_NAMESPACE
