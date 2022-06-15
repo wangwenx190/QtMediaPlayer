@@ -12,9 +12,11 @@ A simple but powerful multimedia player **library** designed for Qt Quick.
 
 Currently this library doesn't support reading from embeded resources or reading from `QIODevice`. It can only read from real local files or online streams. There's plan to implement this feature for this library, but it's not urgent.
 
-## Why not just use QtMultimedia or own FFmpeg implementation?
+## Why not just use QtMultimedia (Qt5) or own FFmpeg implementation?
 
-Currently this project uses **MDK** and **MPV** as the player backends. They are world-famous multimedia frameworks with long time active development, they are known to have good code quality and especially outstanding performance, however, QtMultimedia is only a simple implementation based on the operating system's default multimedia framework, it has a friendly interface but it's not designed for performance, and I'm also not convinced that the Qt company has deep experience on the multimedia area. And I also don't think some custom FFmpeg implementation can be better than these impressive frameworks.
+For Qt5: Currently this project uses **MDK** and **MPV** as the player backends. They are world-famous multimedia frameworks with long time active development, they are known to have good code quality and especially outstanding performance, however, QtMultimedia is only a simple implementation based on the operating system's default multimedia framework, it has a friendly interface but it's not designed for performance, and I'm also not convinced that the Qt company has deep experience on the multimedia area. And I also don't think some custom FFmpeg implementation can be better than these impressive frameworks.
+
+For Qt6: The QtMultimedia module has been totally rewritten by the Qt company's CTO, Lars Knoll. The code quality and general performance was greatly improved. And it also adds a FFmpeg backend. The QtMM module now has a bright future than ever.
 
 ## Build
 
@@ -32,7 +34,9 @@ Currently two player backends are available: [MDK](https://sourceforge.net/proje
 
 **Notes for using the MPV backend**: libmpv needs [ANGLE](https://github.com/google/angle) (libEGL.dll & libGLESv2.dll) and Microsoft's shader compiler (d3dcompiler_XX.dll), you need to put them into the application directory. The latter is shipped with Windows SDK, the former is shipped with Google Chrome/Mozilla Firefox/Visual Studio Code/etc. If you want to build ANGLE yourself, [vcpkg](https://github.com/microsoft/vcpkg) is a good choice. If you want to play online media streams, you need to download [youtube-dl](https://github.com/yt-dlp/yt-dlp/releases/latest)'s executable and place it into your application's directory.
 
-About the [VLC](https://artifacts.videolan.org/vlc/nightly-win64-llvm/) backend: There has been quite some work on the initial porting of the VLC backend, but it comes to an dead end. libVLC recommends to use a separate window to do the rendering to get the best performance and experience. It also supports get the decoded data and do the rendering ourself, but after some testing, I found there is significant performance lost, just like libVLC's official documentation said. And we want to use QtRHI to catch up Qt's latest design, however, libVLC's design is not suitable for doing so. It supports custom rendering through Direct3D and OpenGL, but it works quite differently with QtRHI's design. In one word: the VLC backend is abandoned due to significant performance lost and incompatible design with QtRHI.
+**Notes for using the VLC backend**: as for the [VLC](https://artifacts.videolan.org/vlc/nightly-win64-llvm/) backend, there has been quite some work on the initial porting of the VLC backend, but it comes to an dead end. libVLC recommends to use a separate window to do the rendering to get the best performance and experience. It also supports get the decoded data and do the rendering ourself, but after some testing, I found there is significant performance lost, just like libVLC's official documentation said. And we want to use QtRHI to catch up Qt's latest design, however, libVLC's design is not suitable for doing so. It supports custom rendering through Direct3D and OpenGL, but it works quite differently with QtRHI's design. In one word: the VLC backend is abandoned due to significant performance lost and incompatible design with QtRHI.
+
+**Notes for using the FFmpeg backend**: on plan, to be implemented.
 
 Recommended 3rd-party pre-built FFmpeg binaries:
 - **RECOMMENDED** [avbuild](https://sourceforge.net/projects/avbuild/files/) (desktop & mobile & embeded platforms, full featured & lite builds, shared & static libraries, LGPL & GPL)

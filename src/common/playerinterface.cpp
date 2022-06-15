@@ -31,6 +31,7 @@
 #include <QtCore/qfileinfo.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qscreen.h>
+#include <QtGui/qabstractfileiconprovider.h>
 #include <QtQuick/qquickwindow.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
@@ -38,7 +39,6 @@ QTMEDIAPLAYER_BEGIN_NAMESPACE
 static constexpr const qint64 KiB = 1024;
 static constexpr const qint64 MiB = 1024 * KiB;
 static constexpr const qint64 GiB = 1024 * MiB;
-static constexpr const qint64 TiB = 1024 * GiB;
 
 #ifndef QT_NO_DEBUG_STREAM
 [[nodiscard]] QDebug operator<<(QDebug d, const ChapterInfo &info)
@@ -104,17 +104,44 @@ static constexpr const qint64 TiB = 1024 * GiB;
 [[nodiscard]] static inline QString getHumanReadableFileSize(const qint64 fileSize)
 {
     const QString totalBytes = QString::number(fileSize) + QStringLiteral(" Bytes");
-    if (fileSize >= TiB) {
-        return QStringLiteral("%1 TiB (%2)").arg(QString::number(qreal(fileSize) / qreal(TiB)), totalBytes);
-    } else if (fileSize >= GiB) {
-        return QStringLiteral("%1 GiB (%2)").arg(QString::number(qreal(fileSize) / qreal(GiB)), totalBytes);
+    static const QString kTemplate = QStringLiteral("%1 %2iB (%3)");
+    static const QString kG = QStringLiteral("G");
+    static const QString kM = QStringLiteral("M");
+    static const QString kK = QStringLiteral("K");
+    if (fileSize >= GiB) {
+        return kTemplate.arg(QString::number(qreal(fileSize) / qreal(GiB)), kG, totalBytes);
     } else if (fileSize >= MiB) {
-        return QStringLiteral("%1 MiB (%2)").arg(QString::number(qreal(fileSize) / qreal(MiB)), totalBytes);
+        return kTemplate.arg(QString::number(qreal(fileSize) / qreal(MiB)), kM, totalBytes);
     } else if (fileSize >= KiB) {
-        return QStringLiteral("%1 KiB (%2)").arg(QString::number(qreal(fileSize) / qreal(KiB)), totalBytes);
+        return kTemplate.arg(QString::number(qreal(fileSize) / qreal(KiB)), kK, totalBytes);
     } else {
         return totalBytes;
     }
+}
+
+[[nodiscard]] static inline QString getMediaTracksSummary(const QString &title, const QList<QVariantHash> &tracks)
+{
+    Q_ASSERT(!title.isEmpty());
+    if (title.isEmpty() || tracks.isEmpty()) {
+        return {};
+    }
+    QString result = {};
+    int index = 1;
+    for (auto &&track : qAsConst(tracks)) {
+        result.append(QStringLiteral("%1 #%2\n").arg(title, QString::number(index)));
+        auto it = track.constBegin();
+        while (it != track.constEnd()) {
+            if (it.value().canConvert<QString>()) {
+                result.append(QStringLiteral("%1: %2\n").arg(it.key(), it.value().toString()));
+            }
+            ++it;
+        }
+        ++index;
+    }
+    if (result.endsWith(u'\n')) {
+        result.chop(1);
+    }
+    return result;
 }
 
 MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
@@ -133,6 +160,8 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
             const QString path = filePath();
             if (!path.isEmpty() && QFileInfo::exists(path)) {
                 const QFileInfo fileInfo(path);
+                const QScopedPointer<QAbstractFileIconProvider> iconProvider(new QAbstractFileIconProvider);
+                m_mediaInfo->m_fileIcon = iconProvider->icon(fileInfo).pixmap(QSize(64, 64));
                 m_mediaInfo->m_filePath = QDir::toNativeSeparators(fileInfo.canonicalFilePath());
                 m_mediaInfo->m_fileName = fileInfo.fileName();
                 m_mediaInfo->m_fileSize = fileInfo.size();
@@ -166,6 +195,17 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
                 m_mediaInfo->m_copyright = md.value(QStringLiteral("copyright")).toString();
                 m_mediaInfo->m_rating = md.value(QStringLiteral("rating")).toString();
                 m_mediaInfo->m_description = md.value(QStringLiteral("description")).toString();
+            }
+
+            const MediaTracks mt = mediaTracks();
+            if (!mt.video.isEmpty()) {
+                m_mediaInfo->m_mediaTracks.append(getMediaTracksSummary(QStringLiteral("Video Track"), mt.video));
+            }
+            if (!mt.audio.isEmpty()) {
+                m_mediaInfo->m_mediaTracks.append(getMediaTracksSummary(QStringLiteral("Audio Track"), mt.audio));
+            }
+            if (!mt.subtitle.isEmpty()) {
+                m_mediaInfo->m_mediaTracks.append(getMediaTracksSummary(QStringLiteral("Subtitle Track"), mt.subtitle));
             }
         }
 

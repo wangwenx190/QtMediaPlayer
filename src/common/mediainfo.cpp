@@ -32,6 +32,11 @@ MediaInfo::MediaInfo(QObject *parent) : QObject(parent)
 
 MediaInfo::~MediaInfo() = default;
 
+QPixmap MediaInfo::fileIcon() const
+{
+    return m_fileIcon;
+}
+
 QString MediaInfo::filePath() const
 {
     return m_filePath;
@@ -127,8 +132,24 @@ QString MediaInfo::description() const
     return m_description;
 }
 
+QPixmap MediaInfo::cover() const
+{
+    return m_cover;
+}
+
+QString MediaInfo::mediaTracks() const
+{
+    return m_mediaTracks;
+}
+
+QString MediaInfo::metaData() const
+{
+    return m_metaData;
+}
+
 void MediaInfo::resetInfo()
 {
+    m_fileIcon = {};
     m_filePath.clear();
     m_fileName.clear();
     m_fileMimeType.clear();
@@ -148,6 +169,9 @@ void MediaInfo::resetInfo()
     m_rating.clear();
     m_location.clear();
     m_description.clear();
+    m_cover = {};
+    m_mediaTracks.clear();
+    m_metaData.clear();
 
     Q_EMIT mediaInfoChanged();
 }

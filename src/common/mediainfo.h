@@ -27,6 +27,7 @@
 #include "common_global.h"
 #include <QtCore/qobject.h>
 #include <QtCore/qsize.h>
+#include <QtGui/qpixmap.h>
 #include <QtQml/qqml.h>
 
 QTMEDIAPLAYER_BEGIN_NAMESPACE
@@ -36,6 +37,7 @@ class QTMEDIAPLAYER_COMMON_API MediaInfo : public QObject
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(MediaInfo)
 
+    Q_PROPERTY(QPixmap fileIcon READ fileIcon NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString filePath READ filePath NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString fileName READ fileName NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString fileMimeType READ fileMimeType NOTIFY mediaInfoChanged FINAL)
@@ -48,6 +50,7 @@ class QTMEDIAPLAYER_COMMON_API MediaInfo : public QObject
     Q_PROPERTY(QString friendlyPictureSize READ friendlyPictureSize NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString creationDateTime READ creationDateTime NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString modificationDateTime READ modificationDateTime NOTIFY mediaInfoChanged FINAL)
+
     Q_PROPERTY(QString title READ title NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString author READ author NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString album READ album NOTIFY mediaInfoChanged FINAL)
@@ -55,11 +58,16 @@ class QTMEDIAPLAYER_COMMON_API MediaInfo : public QObject
     Q_PROPERTY(QString rating READ rating NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString location READ location NOTIFY mediaInfoChanged FINAL)
     Q_PROPERTY(QString description READ description NOTIFY mediaInfoChanged FINAL)
+    Q_PROPERTY(QPixmap cover READ cover NOTIFY mediaInfoChanged FINAL)
+
+    Q_PROPERTY(QString mediaTracks READ mediaTracks NOTIFY mediaInfoChanged FINAL)
+    Q_PROPERTY(QString metaData READ metaData NOTIFY mediaInfoChanged FINAL)
 
 public:
     explicit MediaInfo(QObject *parent = nullptr);
     ~MediaInfo() override;
 
+    Q_NODISCARD QPixmap fileIcon() const;
     Q_NODISCARD QString filePath() const;
     Q_NODISCARD QString fileName() const;
     Q_NODISCARD QString fileMimeType() const;
@@ -72,6 +80,7 @@ public:
     Q_NODISCARD QString friendlyPictureSize() const;
     Q_NODISCARD QString creationDateTime() const;
     Q_NODISCARD QString modificationDateTime() const;
+
     Q_NODISCARD QString title() const;
     Q_NODISCARD QString author() const;
     Q_NODISCARD QString album() const;
@@ -79,6 +88,10 @@ public:
     Q_NODISCARD QString rating() const;
     Q_NODISCARD QString location() const;
     Q_NODISCARD QString description() const;
+    Q_NODISCARD QPixmap cover() const;
+
+    Q_NODISCARD QString mediaTracks() const;
+    Q_NODISCARD QString metaData() const;
 
 private Q_SLOTS:
     void resetInfo();
@@ -89,6 +102,7 @@ Q_SIGNALS:
 private:
     friend class MediaPlayer;
 
+    QPixmap m_fileIcon = {};
     QString m_filePath = {};
     QString m_fileName = {};
     QString m_fileMimeType = {};
@@ -108,6 +122,9 @@ private:
     QString m_rating = {};
     QString m_location = {};
     QString m_description = {};
+    QPixmap m_cover = {};
+    QString m_mediaTracks = {};
+    QString m_metaData = {};
 };
 
 QTMEDIAPLAYER_END_NAMESPACE
