@@ -119,6 +119,25 @@ static constexpr const qint64 GiB = 1024 * MiB;
     }
 }
 
+[[nodiscard]] static inline QString variantHashToString(const QVariantHash &hash)
+{
+    if (hash.isEmpty()) {
+        return {};
+    }
+    QString result = {};
+    auto it = hash.constBegin();
+    while (it != hash.constEnd()) {
+        if (it.value().canConvert<QString>()) {
+            result.append(QStringLiteral("%1: %2\n").arg(it.key(), it.value().toString()));
+        }
+        ++it;
+    }
+    if (result.endsWith(u'\n')) {
+        result.chop(1);
+    }
+    return result;
+}
+
 [[nodiscard]] static inline QString getMediaTracksSummary(const QString &title, const QList<QVariantHash> &tracks)
 {
     Q_ASSERT(!title.isEmpty());
@@ -129,13 +148,7 @@ static constexpr const qint64 GiB = 1024 * MiB;
     int index = 1;
     for (auto &&track : qAsConst(tracks)) {
         result.append(QStringLiteral("%1 #%2\n").arg(title, QString::number(index)));
-        auto it = track.constBegin();
-        while (it != track.constEnd()) {
-            if (it.value().canConvert<QString>()) {
-                result.append(QStringLiteral("%1: %2\n").arg(it.key(), it.value().toString()));
-            }
-            ++it;
-        }
+        result.append(variantHashToString(track));
         ++index;
     }
     if (result.endsWith(u'\n')) {
@@ -160,6 +173,7 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
             const QString path = filePath();
             if (!path.isEmpty() && QFileInfo::exists(path)) {
                 const QFileInfo fileInfo(path);
+
                 const QScopedPointer<QAbstractFileIconProvider> iconProvider(new QAbstractFileIconProvider);
                 m_mediaInfo->m_fileIcon = iconProvider->icon(fileInfo).pixmap(QSize(64, 64));
                 m_mediaInfo->m_filePath = QDir::toNativeSeparators(fileInfo.canonicalFilePath());
@@ -195,6 +209,8 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
                 m_mediaInfo->m_copyright = md.value(QStringLiteral("copyright")).toString();
                 m_mediaInfo->m_rating = md.value(QStringLiteral("rating")).toString();
                 m_mediaInfo->m_description = md.value(QStringLiteral("description")).toString();
+
+                m_mediaInfo->m_metaData = variantHashToString(md);
             }
 
             const MediaTracks mt = mediaTracks();
@@ -202,9 +218,15 @@ MediaPlayer::MediaPlayer(QQuickItem *parent) : QQuickItem(parent)
                 m_mediaInfo->m_mediaTracks.append(getMediaTracksSummary(QStringLiteral("Video Track"), mt.video));
             }
             if (!mt.audio.isEmpty()) {
+                if (!m_mediaInfo->m_mediaTracks.isEmpty()) {
+                    m_mediaInfo->m_mediaTracks.append(QStringLiteral("\n\n\n"));
+                }
                 m_mediaInfo->m_mediaTracks.append(getMediaTracksSummary(QStringLiteral("Audio Track"), mt.audio));
             }
             if (!mt.subtitle.isEmpty()) {
+                if (!m_mediaInfo->m_mediaTracks.isEmpty()) {
+                    m_mediaInfo->m_mediaTracks.append(QStringLiteral("\n\n\n"));
+                }
                 m_mediaInfo->m_mediaTracks.append(getMediaTracksSummary(QStringLiteral("Subtitle Track"), mt.subtitle));
             }
         }
