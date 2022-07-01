@@ -121,11 +121,12 @@ enum class SeekFlag {
     From0       = 1,    /// relative to time 0. TODO: remove from api
     FromStart   = 1<<1, /// relative to media start position
     FromNow     = 1<<2, /// relative to current position, the seek position can be negative
-    Frame       = 1<<6, /* Seek by frame. Seek target is frame count instead of milliseconds. Currently only FromNow|Frame and positive target is supported, .i.e step forward. BUG: avsync */
+    Frame       = 1<<6, /* Seek by frame. Seek target is frame count instead of milliseconds. Currently only FromNow|Frame is supported. BUG: avsync */
     /// combine the above values with one of the following
 /* KeyFrame forward seek may fail(permission denied) near the end of media if there's no key frame after seek target position*/
     KeyFrame    = 1<<8, /* fast key-frame seek, forward if Backward is not set. It's accurate seek without this flag. Accurate seek is slow and implies backward seek internally.*/
     Fast        = KeyFrame,
+    InCache     = 1 << 10, // try to seek in cache first. useful for speeding up network stream seeking.  Target position must be in range (position(), position() + Player.buffered()]
 
     Default     = KeyFrame|FromStart
 };
@@ -208,6 +209,7 @@ static inline bool GetGlobalOption(const char* key, const char** value)
   - "videoout.buffer_frames": N. max buffered frames to in the renderer
   - "logLevel": raw value of LogLevel
   - "profiler.gpu": 0, 1
+  - "demuxer.io": 0, 1(default), 2
  */
 static inline void SetGlobalOption(const char* key, int value)
 {
@@ -231,7 +233,7 @@ static inline void SetGlobalOption(const char* key, LogLevel value)
 }
 /*
   keys:
-  - "jvm", "JavaVM": JavaVM*. android only
+  - "jvm", "JavaVM": JavaVM*. android only. Required if not loaded by System.loadLibrary()
  */
 static inline void SetGlobalOption(const char* key, void* value)
 {

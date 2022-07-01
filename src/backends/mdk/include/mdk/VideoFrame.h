@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 WangBin <wbsecg1 at gmail.com>
+ * Copyright (c) 2019-2022 WangBin <wbsecg1 at gmail.com>
  * This file is part of MDK
  * MDK SDK: https://github.com/wang-bin/mdk-sdk
  * Free for opensource softwares or non-commercial use.
@@ -149,6 +149,7 @@ public:
 /*!
   \brief to
   The result frame data is always on host memory. If it's already on host memory and the same as target format, return the current frame.
+  NOTE: compressed input/output formats are not supported
   \param fmt output format. if invalid, same as format()
   \param width output width. if invalid(<=0), same as width()
   \param height output height. if invalid(<=0), same as height()
@@ -161,6 +162,10 @@ public:
 /*!
   \brief save
   Saves the frame to the file with the given fileName, using the given image file format and quality factor.
+  Save the original frame data if:
+  - fileName extension is the same as format().name()
+  - fileName has no extension, and format is null
+  - format is the same as format().name()
   \param format if null, guess the format by fileName's suffix
   \param quality must be in the range 0.0 to 1.0 or -1. Specify 0 to obtain small compressed files, 100 for large uncompressed files, and -1 (the default) to use the default settings.
   \returns true if the frame was successfully saved; otherwise returns false.

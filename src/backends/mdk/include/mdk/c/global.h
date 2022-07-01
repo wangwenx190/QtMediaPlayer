@@ -13,8 +13,8 @@
 #define MDK_VERSION_INT(major, minor, patch) \
     (((major&0xff)<<16) | ((minor&0xff)<<8) | (patch&0xff))
 #define MDK_MAJOR 0
-#define MDK_MINOR 14
-#define MDK_MICRO 2
+#define MDK_MINOR 15
+#define MDK_MICRO 0
 #define MDK_VERSION MDK_VERSION_INT(MDK_MAJOR, MDK_MINOR, MDK_MICRO)
 #define MDK_VERSION_CHECK(a, b, c) (MDK_VERSION >= MDK_VERSION_INT(a, b, c))
 
@@ -104,7 +104,7 @@ typedef enum MDKSeekFlag {
     MDK_SeekFlag_From0       = 1,    /* relative to time 0*/
     MDK_SeekFlag_FromStart   = 1<<1, /* relative to media start position*/
     MDK_SeekFlag_FromNow     = 1<<2, /* relative to current position, the seek position can be negative*/
-    MDK_SeekFlag_Frame       = 1<<6, /* Seek by frame. Seek target is frame count instead of milliseconds. Currently only FromNow|Frame and positive target is supported, .i.e step forward. BUG: avsync */
+    MDK_SeekFlag_Frame       = 1<<6, /* Seek by frame. Seek target is frame count instead of milliseconds. Currently only FromNow|Frame is supported. BUG: avsync */
     /* combine the above values with one of the following*/
 /* KeyFrame forward seek may fail(permission denied) near the end of media if there's no key frame after seek target position*/
     MDK_SeekFlag_KeyFrame    = 1<<8, /* fast key-frame seek, forward if Backward is not set. It's accurate seek without this flag. Accurate seek is slow and implies backward seek internally.*/

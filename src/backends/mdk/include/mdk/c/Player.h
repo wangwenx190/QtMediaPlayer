@@ -303,8 +303,7 @@ NOTE:
   \param pos seek target. if flags has SeekFlag::Frame, pos is frame count, otherwise it's milliseconds.
   If pos > media time range, e.g. INT64_MAX, will seek to the last frame of media for SeekFlag::AnyFrame, and the last key frame of media for SeekFlag::Fast.
   If pos > media time range with SeekFlag::AnyFrame, playback will stop unless setProperty("continue_at_end", "1") was called
-  If SeekFlag::Frame, only pos > 0 with SeekFlag::FromNow is supported, i.e. step forward.
-  FIXME: a/v sync broken if SeekFlag::Frame.
+  FIXME: a/v sync broken if SeekFlag::Frame|SeekFlag::FromNow.
   \param cb callback to be invoked when seek finished(ret >= 0), error occured(ret < 0, usually -1) or skipped because of unfinished previous seek(ret == -2)
  */
     bool (*seekWithFlags)(struct mdkPlayer*, int64_t pos, MDK_SeekFlag flags, mdkSeekCallback);
